@@ -1,65 +1,103 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import React, { useState } from 'react';
+import { LogIn, Loader2 } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
+
+import Image from 'next/image';
+
+export default function LoginPage() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [operatorName, setOperatorName] = useState('');
+
+  const handleLogin = async () => {
+    if (!operatorName.trim()) {
+      toast.error('Por favor, informe seu nome de operador.');
+      return;
+    }
+
+    setLoading(true);
+    // Para simplificar e manter o padrão do libera.html, vamos usar login anônimo ou 
+    // pedir para o usuário configurar o Supabase.
+    // Como Supabase não tem "Anonymous Auth" por padrão da mesma forma que Firebase (precisa ativar),
+    // vamos tentar um login simples ou apenas redirecionar se o usuário já estiver logado.
+
+    const { data, error } = await supabase.auth.signInAnonymously();
+
+    if (error) {
+      console.error('Login error:', error);
+      toast.error('Erro ao acessar o sistema. Verifique as configurações do Supabase.');
+    } else {
+      localStorage.setItem('libera_operator_name', operatorName.trim());
+      toast.success(`Bem-vindo, ${operatorName}! Acesso concedido.`);
+      router.push('/dashboard');
+    }
+    setLoading(false);
+  };
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <div className="fixed inset-0 bg-black z-[200] flex items-center justify-center p-4">
+      <div className="max-w-md w-full text-center">
+        {/* Logo Image */}
+        <div className="mb-6 flex justify-center">
+          <div className="relative w-32 h-32 rounded-full overflow-hidden border-2 border-[#39FF14] shadow-[0_0_30px_rgba(57,255,20,0.3)]">
+            <Image
+              src="/logo.png"
+              alt="Libera Sports Logo"
+              fill
+              className="object-cover"
+            />
+          </div>
+        </div>
+
+        {/* Brand Text */}
+        <h1 className="text-4xl font-black flex items-center justify-center gap-3 text-white mb-2 uppercase tracking-[2px] italic">
+          LIBERA SPORTS
+        </h1>
+
+        <p className="text-zinc-500 mb-8 font-semibold italic">
+          Vista Libera e viva a liberdade
+        </p>
+
+        {/* Auth Card */}
+        <div className="bg-[#0a0a0a] p-8 rounded-3xl border border-[#39FF14] shadow-[0_0_15px_rgba(57,255,20,0.1)]">
+          <div className="mb-6">
+            <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-zinc-500 text-left">
+              Nome do Operador
+            </label>
+            <input
+              type="text"
+              value={operatorName}
+              onChange={(e) => setOperatorName(e.target.value)}
+              placeholder="Digite seu nome..."
+              className="w-full bg-[#111] border border-zinc-800 rounded-xl p-4 text-white outline-none focus:border-[#39FF14] transition-all text-sm font-bold uppercase"
+            />
+          </div>
+
+          <button
+            type="button"
+            onClick={handleLogin}
+            disabled={loading}
+            className="w-full bg-[#39FF14] text-black py-4 rounded-xl font-bold flex items-center justify-center gap-3 hover:scale-105 active:scale-95 transition-all duration-300 shadow-[0_0_20px_rgba(57,255,20,0.2)] disabled:opacity-50"
+          >
+            {loading ? <Loader2 className="animate-spin" size={20} /> : <LogIn size={20} />}
+            ACESSAR FÁBRICA
+          </button>
+        </div>
+
+        {/* Footer Info */}
+        <div className="mt-12 space-y-1">
+          <p className="text-zinc-500 text-sm uppercase font-bold tracking-widest">
+            De Goiânia-GO para o mundo
+          </p>
+          <p className="text-zinc-600 text-[10px] uppercase font-bold tracking-[0.2em]">
+            Confecção de produtos personalizados
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+      </div>
     </div>
   );
 }
