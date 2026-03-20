@@ -1,10 +1,21 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { LogOut, Plus, Package, Truck, ArrowRight, Check, Info, Trash2, AlertCircle, MessageCircle, X, User, Loader2, Clock, Calendar, FileText, ChevronDown, ChevronUp, History, Pencil } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
-import { toast } from 'sonner';
+import {
+    LayoutDashboard, Plus, Search, Calendar, Package,
+    ArrowRight, Check, AlertCircle, Clock, X, LogOut,
+    TrendingUp, Truck, User, History, MessageSquare, Info, Filter,
+    Loader2, ChevronDown, ChevronUp, MessageCircle, Pencil, FileText, Trash2
+} from 'lucide-react';
+import { auth, db } from '@/lib/firebase';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
+import {
+    collection, doc, addDoc, updateDoc, deleteDoc,
+    onSnapshot, query, orderBy, serverTimestamp,
+    getDoc, setDoc, getDocs
+} from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 const workflow = ["PEDIDO FEITO", "GRÁFICA", "CORTE", "COSTURA", "REVISÃO", "EM FASE DE ENTREGA", "PEDIDO ENTREGUE"];
 const displayWorkflow = ["PEDIDO FEITO", "GRÁFICA", "CORTE", "COSTURA", "REVISÃO", "EM FASE DE ENTREGA", "PENDÊNCIA", "PEDIDO ENTREGUE"];
@@ -23,58 +34,76 @@ const addBusinessDays = (startDate: Date, days: number) => {
 
 export default function DashboardPage() {
     const router = useRouter();
+
+    // Core App State
+    const [operatorName, setOperatorName] = useState('');
     const [orders, setOrders] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [isPendingModalOpen, setIsPendingModalOpen] = useState(false);
-    const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
-    const [pendingReason, setPendingReason] = useState('');
-    const [userId, setUserId] = useState<string | null>(null);
-    const [operatorName, setOperatorName] = useState<string>('');
-    const [activeFilter, setActiveFilter] = useState<string | null>(null);
-    const [editingObsId, setEditingObsId] = useState<string | null>(null);
-    const [obsValue, setObsValue] = useState('');
-    const [expandedObs, setExpandedObs] = useState<Record<string, boolean>>({});
+    const [authChecking, setAuthChecking] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
-    const [expandedOrderIds, setExpandedOrderIds] = useState<Record<string, boolean>>({});
-    const [expandedHistoryIds, setExpandedHistoryIds] = useState<Record<string, boolean>>({});
 
     // Form State
     const [client, setClient] = useState('');
     const [clientWhatsapp, setClientWhatsapp] = useState('');
     const [value, setValue] = useState('');
     const [deadline, setDeadline] = useState<string>(addBusinessDays(new Date(), 20));
-    const [description, setDescription] = useState('');
     const [deliveryMethod, setDeliveryMethod] = useState<'MOTOBOY' | 'TRANSPORTADORA' | 'RETIRADA'>('MOTOBOY');
+    const [description, setDescription] = useState('');
+
+    // Configurações do AppId para o caminho solicitado
+    const appId = 'libera-sports-v1';
+    const ordersCollectionPath = `artifacts/${appId}/public/data/pedidos`;
+
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isPendingModalOpen, setIsPendingModalOpen] = useState(false);
+    const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
+    const [pendingReason, setPendingReason] = useState('');
+    const [userId, setUserId] = useState<string | null>(null);
+    const [activeFilter, setActiveFilter] = useState<string | null>(null);
+    const [editingObsId, setEditingObsId] = useState<string | null>(null);
+    const [obsValue, setObsValue] = useState('');
+    const [expandedObs, setExpandedObs] = useState<Record<string, boolean>>({});
+    const [expandedOrderIds, setExpandedOrderIds] = useState<Record<string, boolean>>({});
+    const [expandedHistoryIds, setExpandedHistoryIds] = useState<Record<string, boolean>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [nextOrderNumber, setNextOrderNumber] = useState('');
 
     useEffect(() => {
-        const checkAuth = async () => {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (!session) {
+        const unsubscribe = onAuthStateChanged(auth, (user: any) => {
+            if (!user) {
                 router.push('/');
             } else {
-                setUserId(session.user.id);
-                const savedName = localStorage.getItem('libera_operator_name');
-                setOperatorName(savedName || 'Operador');
-                fetchOrders();
+                setUserId(user.uid);
+                const storedName = localStorage.getItem('libera_operator_name');
+                setOperatorName(storedName || 'Operador');
+                setAuthChecking(false);
             }
-        };
-        checkAuth();
+        });
 
-        // Real-time subscription
-        const channel = supabase
-            .channel('schema-db-changes')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => {
-                fetchOrders();
-            })
-            .subscribe();
-
-        return () => {
-            supabase.removeChannel(channel);
-        };
+        return () => unsubscribe();
     }, [router]);
+
+    // Real-time Orders Fetching
+    useEffect(() => {
+        if (authChecking) return;
+
+        const q = query(collection(db, ordersCollectionPath), orderBy('created_at', 'desc'));
+
+        const unsubscribe = onSnapshot(q, (snapshot: any) => {
+            const ordersData = snapshot.docs.map((doc: any) => ({
+                id: doc.id,
+                ...doc.data()
+            }));
+            setOrders(ordersData);
+            setLoading(false);
+        }, (error: any) => {
+            console.error("Firestore error:", error);
+            toast.error("Erro ao sincronizar dados em tempo real.");
+            setLoading(false);
+        });
+
+        return () => unsubscribe();
+    }, [authChecking]);
 
     useEffect(() => {
         if (isModalOpen) {
@@ -83,102 +112,120 @@ export default function DashboardPage() {
     }, [isModalOpen]);
 
     const updateNextOrderNumber = async () => {
-        const num = await generateOrderNumber();
-        setNextOrderNumber(num);
+        try {
+            const lastOrderQuery = query(collection(db, ordersCollectionPath), orderBy('order_number', 'desc'), orderBy('created_at', 'desc'));
+            const querySnapshot = await getDocs(lastOrderQuery); // Use getDocs for a one-time fetch
+            if (!querySnapshot.empty) {
+                const lastOrder = querySnapshot.docs[0].data();
+                const lastNumber = parseInt(lastOrder.order_number.replace('LIBERA-', ''));
+                setNextOrderNumber(`LIBERA-${String(lastNumber + 1).padStart(4, '0')}`);
+            } else {
+                setNextOrderNumber('LIBERA-0001');
+            }
+        } catch (error) {
+            console.error('Error getting next order number:', error);
+            setNextOrderNumber('LIBERA-0001');
+        }
     };
 
     const fetchOrders = async () => {
         setLoading(true);
-        const { data, error } = await supabase
-            .from('orders')
-            .select('*, order_logs(*)')
-            .order('created_at', { ascending: false });
-
-        if (error) {
-            console.error('Error fetching orders:', error);
-            toast.error('Erro ao carregar pedidos');
-        } else {
-            setOrders(data || []);
-        }
+        // This function is no longer used directly for fetching, as onSnapshot handles real-time.
+        // It might be kept for manual refresh if needed, but for now, it's a placeholder.
+        // The real-time listener in useEffect handles updates.
         setLoading(false);
     };
 
     const handleUpdateObservations = async (id: string) => {
-        const { error } = await supabase
-            .from('orders')
-            .update({ observations: obsValue })
-            .eq('id', id);
-
-        if (error) {
-            toast.error('Erro ao atualizar observações');
-        } else {
+        setLoading(true);
+        try {
+            const orderRef = doc(db, ordersCollectionPath, id);
+            await updateDoc(orderRef, { observations: obsValue });
             setEditingObsId(null);
-            fetchOrders();
             toast.success('Observações atualizadas!');
+        } catch (error) {
+            console.error('Error updating observations:', error);
+            toast.error('Erro ao atualizar observações');
+        } finally {
+            setLoading(false);
         }
     };
 
     const generateOrderNumber = async () => {
         const year = new Date().getFullYear().toString().slice(-2);
         // Fetch orders from this year to count
-        const { count, error } = await supabase
-            .from('orders')
-            .select('id', { count: 'exact', head: true })
-            .filter('created_at', 'gte', `${new Date().getFullYear()}-01-01`);
+        const q = query(collection(db, ordersCollectionPath), orderBy('created_at', 'desc'));
+        const querySnapshot = await getDocs(q); // Use getDocs for a one-time fetch
+        const count = querySnapshot.docs.filter(doc => new Date(doc.data().created_at?.toDate()).getFullYear() === new Date().getFullYear()).length;
 
-        if (error) {
-            console.error('Error counting orders:', error);
-            return `#${year}??`;
-        }
-
-        const sequence = (count || 0) + 1;
+        const sequence = count + 1;
         const paddedSequence = sequence.toString().padStart(2, '0');
         return `#${year}${paddedSequence}`;
     };
 
-    const advanceStep = async (id: string, currentStatus: string) => {
-        // Se estiver em pendência, ao avançar, volta para REVISÃO ou segue o fluxo
-        if (currentStatus === 'PENDÊNCIA') {
-            updateStatus(id, 'REVISÃO', currentStatus);
-            return;
+    const advanceStep = async (orderId: string, currentStatus: string) => {
+        const currentIndex = workflow.indexOf(currentStatus);
+        if (currentIndex < workflow.length - 1) {
+            const nextStatus = workflow[currentIndex + 1];
+            setLoading(true);
+            try {
+                const orderRef = doc(db, ordersCollectionPath, orderId);
+                const orderSnap = await getDoc(orderRef);
+                const orderData = orderSnap.data();
+
+                const newLog = {
+                    id: crypto.randomUUID(),
+                    old_status: currentStatus,
+                    new_status: nextStatus,
+                    operator_name: operatorName,
+                    created_at: new Date().toISOString()
+                };
+
+                await updateDoc(orderRef, {
+                    status: nextStatus,
+                    order_logs: [...(orderData?.order_logs || []), newLog]
+                });
+
+                toast.success(`Pedido avançado para ${nextStatus}`);
+            } catch (error) {
+                console.error('Error advancing step:', error);
+                toast.error('Erro ao atualizar status');
+            } finally {
+                setLoading(false);
+            }
         }
-
-        const nextIdx = workflow.indexOf(currentStatus) + 1;
-        if (nextIdx >= workflow.length) return;
-
-        const nextStatus = workflow[nextIdx];
-        updateStatus(id, nextStatus, currentStatus);
     };
 
     const updateStatus = async (id: string, nextStatus: string, currentStatus: string, reason?: string) => {
-        const updateData: any = { status: nextStatus };
-        if (reason) updateData.pending_reason = reason;
-        if (nextStatus !== 'PENDÊNCIA') updateData.pending_reason = null;
+        setLoading(true);
+        try {
+            const orderRef = doc(db, ordersCollectionPath, id);
+            const orderSnap = await getDoc(orderRef);
+            const orderData = orderSnap.data();
 
-        const { error: updateError } = await supabase
-            .from('orders')
-            .update(updateData)
-            .eq('id', id);
+            const newLog = {
+                id: crypto.randomUUID(),
+                old_status: currentStatus,
+                new_status: nextStatus,
+                operator_name: operatorName,
+                created_at: new Date().toISOString(),
+                reason: reason || null
+            };
 
-        if (updateError) {
-            console.warn('Supabase update error:', updateError);
-            toast.error(`Erro ao atualizar: ${updateError.message || 'Verifique se rodou o script SQL v3'}`);
-        } else {
-            // Audit Log
-            await supabase.from('order_logs').insert([
-                {
-                    order_id: id,
-                    old_status: currentStatus,
-                    new_status: nextStatus,
-                    operator_name: operatorName
-                }
-            ]);
+            const updateData: any = {
+                status: nextStatus,
+                order_logs: [...(orderData?.order_logs || []), newLog]
+            };
+
+            await updateDoc(orderRef, updateData);
 
             toast.success(`Pedido movido para ${nextStatus}`);
-            if (nextStatus === 'ENTREGA') toast.success('Pedido finalizado com sucesso! 🚀');
-
-            // Forçar atualização local imediata caso o Realtime esteja desativado no banco
-            fetchOrders();
+            if (nextStatus === 'PEDIDO ENTREGUE') toast.success('Pedido finalizado com sucesso! 🚀');
+        } catch (error) {
+            console.error('Error updating status:', error);
+            toast.error('Erro ao atualizar status');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -202,12 +249,38 @@ export default function DashboardPage() {
 
     const handlePendingSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!pendingOrderId || !pendingReason) return;
+        if (!pendingOrderId || !pendingReason.trim()) return;
 
-        await updateStatus(pendingOrderId, 'PENDÊNCIA', 'REVISÃO', pendingReason);
-        setIsPendingModalOpen(false);
-        setPendingOrderId(null);
-        setPendingReason('');
+        setLoading(true);
+        try {
+            const orderRef = doc(db, ordersCollectionPath, pendingOrderId);
+            const orderSnap = await getDoc(orderRef);
+            const orderData = orderSnap.data();
+
+            const newLog = {
+                id: crypto.randomUUID(),
+                old_status: orderData?.status || 'UNKNOWN',
+                new_status: 'PENDÊNCIA',
+                operator_name: operatorName,
+                created_at: new Date().toISOString(),
+                reason: pendingReason
+            };
+
+            await updateDoc(orderRef, {
+                status: 'PENDÊNCIA',
+                order_logs: [...(orderData?.order_logs || []), newLog]
+            });
+
+            toast.warning('Pedido movido para PENDÊNCIA');
+            setIsPendingModalOpen(false);
+            setPendingOrderId(null);
+            setPendingReason('');
+        } catch (error) {
+            console.error('Error setting pending:', error);
+            toast.error('Erro ao registrar pendência');
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleCreateOrder = async (e: React.FormEvent) => {
@@ -223,54 +296,45 @@ export default function DashboardPage() {
             return;
         }
 
-        setIsSubmitting(true);
+        setLoading(true);
 
         try {
-            // Remove pontos de milhar e troca vírgula por ponto para o Supabase
+            // Remove pontos de milhar e troca vírgula por ponto para o Firestore
             const normalizedValue = value.replace(/\./g, '').replace(',', '.');
 
-            const { data, error } = await supabase
-                .from('orders')
-                .insert([
+            const newOrder = {
+                order_number: nextOrderNumber,
+                client,
+                client_whatsapp: clientWhatsapp,
+                value: parseFloat(normalizedValue),
+                deadline: deadline,
+                delivery_method: deliveryMethod,
+                status: 'PEDIDO FEITO',
+                description,
+                user_id: userId,
+                operator_name: operatorName,
+                created_at: new Date().toISOString(),
+                order_logs: [
                     {
-                        order_number: nextOrderNumber,
-                        client,
-                        client_whatsapp: clientWhatsapp,
-                        value: parseFloat(normalizedValue),
-                        deadline: deadline,
-                        delivery_method: deliveryMethod,
-                        status: 'PEDIDO FEITO',
-                        description,
-                        user_id: userId
-                    }
-                ])
-                .select()
-                .single();
-
-            if (error) {
-                console.warn('Supabase save error:', error);
-                toast.error(`Erro ao salvar pedido: ${error.message || 'Erro desconhecido'}`);
-            } else {
-                // Audit Log para criação
-                await supabase.from('order_logs').insert([
-                    {
-                        order_id: data.id,
+                        id: crypto.randomUUID(),
                         old_status: 'INÍCIO',
                         new_status: 'PEDIDO FEITO',
-                        operator_name: operatorName
+                        operator_name: operatorName,
+                        created_at: new Date().toISOString()
                     }
-                ]);
+                ]
+            };
 
-                toast.success('Pedido criado com sucesso!');
-                setIsModalOpen(false);
-                resetForm();
-                fetchOrders(); // Atualiza a lista imediatamente
-            }
+            await addDoc(collection(db, ordersCollectionPath), newOrder);
+
+            toast.success('Pedido criado com sucesso!');
+            setIsModalOpen(false);
+            resetForm();
         } catch (err: any) {
             console.error('Unexpected save error:', err);
             toast.error('Ocorreu um erro inesperado ao salvar');
         } finally {
-            setIsSubmitting(false);
+            setLoading(false);
         }
     };
 
@@ -433,16 +497,15 @@ export default function DashboardPage() {
     const handleDeleteOrder = async (id: string, number: string) => {
         if (!window.confirm(`Tem certeza que deseja EXCLUIR o pedido ${number}? Esta ação não pode ser desfeita.`)) return;
 
-        const { error } = await supabase
-            .from('orders')
-            .delete()
-            .eq('id', id);
-
-        if (error) {
-            toast.error('Erro ao excluir pedido');
-        } else {
+        setLoading(true);
+        try {
+            await deleteDoc(doc(db, ordersCollectionPath, id));
             toast.success('Pedido excluído com sucesso');
-            fetchOrders();
+        } catch (error) {
+            console.error('Error deleting order:', error);
+            toast.error('Erro ao excluir pedido');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -455,7 +518,7 @@ export default function DashboardPage() {
     };
 
     const logout = async () => {
-        await supabase.auth.signOut();
+        await signOut(auth);
         localStorage.removeItem('libera_operator_name');
         router.push('/');
     };
