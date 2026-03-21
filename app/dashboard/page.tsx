@@ -48,6 +48,7 @@ export default function DashboardPage() {
     const [value, setValue] = useState('');
     const [deadline, setDeadline] = useState<string>(addBusinessDays(new Date(), 20));
     const [deliveryMethod, setDeliveryMethod] = useState<'MOTOBOY' | 'TRANSPORTADORA' | 'RETIRADA'>('MOTOBOY');
+    const [paymentMethod, setPaymentMethod] = useState<'PIX' | 'BOLETO' | 'CARTÃO CRÉDITO' | 'CARTÃO DÉBITO' | 'OUTROS'>('PIX');
     const [description, setDescription] = useState('');
 
     // Configurações do AppId para o caminho solicitado
@@ -309,6 +310,7 @@ export default function DashboardPage() {
                 value: parseFloat(normalizedValue),
                 deadline: deadline,
                 delivery_method: deliveryMethod,
+                payment_method: paymentMethod,
                 status: 'PEDIDO FEITO',
                 description,
                 user_id: userId,
@@ -329,7 +331,8 @@ export default function DashboardPage() {
 
             toast.success('Pedido criado com sucesso!');
             setIsModalOpen(false);
-            resetForm();
+            setPaymentMethod('PIX');
+            setDescription('');
         } catch (err: any) {
             console.error('Unexpected save error:', err);
             toast.error('Ocorreu um erro inesperado ao salvar');
@@ -450,6 +453,10 @@ export default function DashboardPage() {
                                 <div class="info-label">🚚 Método de Entrega</div>
                                 <div class="info-value">${order.delivery_method}</div>
                             </div>
+                            <div class="info-block">
+                                <div class="info-label">💰 Forma de Pagamento</div>
+                                <div class="info-value">${order.payment_method || 'PIX'}</div>
+                            </div>
                         </div>
                     </div>
 
@@ -514,6 +521,7 @@ export default function DashboardPage() {
         setClientWhatsapp('');
         setValue('');
         setDeadline(addBusinessDays(new Date(), 20));
+        setPaymentMethod('PIX');
         setDescription('');
     };
 
@@ -723,6 +731,9 @@ export default function DashboardPage() {
                                                 </span>
                                                 <span className="bg-zinc-900 text-[#39FF14] px-2 py-1 rounded text-[9px] font-bold flex items-center gap-1 uppercase">
                                                     <Truck size={10} /> {order.delivery_method}
+                                                </span>
+                                                <span className="bg-zinc-900 text-orange-500 px-2 py-1 rounded text-[9px] font-bold flex items-center gap-1 uppercase">
+                                                    <TrendingUp size={10} /> {order.payment_method || 'PIX'}
                                                 </span>
                                             </div>
 
@@ -1068,6 +1079,26 @@ export default function DashboardPage() {
                                             <option value="TRANSPORTADORA">TRANSPORTADORA</option>
                                             <option value="RETIRADA">RETIRADA</option>
                                         </select>
+                                    </div>
+                                </div>
+
+                                {/* Forma de Pagamento */}
+                                <div className="space-y-4">
+                                    <label className="block text-[10px] font-black uppercase tracking-widest text-[#39FF14] mb-2 font-bold italic">Forma de Pagamento</label>
+                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                                        {['PIX', 'BOLETO', 'CARTÃO CRÉDITO', 'CARTÃO DÉBITO', 'OUTROS'].map((m) => (
+                                            <button
+                                                key={m}
+                                                type="button"
+                                                onClick={() => setPaymentMethod(m as any)}
+                                                className={`p-3 rounded-2xl border text-[10px] font-black uppercase tracking-widest transition-all ${paymentMethod === m
+                                                    ? 'border-[#39FF14] bg-[#39FF14]/10 text-[#39FF14]'
+                                                    : 'border-zinc-800 bg-zinc-900/50 text-zinc-500 hover:border-zinc-700'
+                                                    }`}
+                                            >
+                                                {m}
+                                            </button>
+                                        ))}
                                     </div>
                                 </div>
 
