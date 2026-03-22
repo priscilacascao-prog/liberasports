@@ -982,14 +982,24 @@ export default function DashboardPage() {
                             color: #111;
                             background: white;
                         }
-                        .header { 
-                            display: flex; 
-                            justify-content: space-between; 
+                        .header {
+                            display: flex;
+                            justify-content: space-between;
                             align-items: center;
-                            border-bottom: 4px solid #39FF14;
+                            border-bottom: 3px solid #111;
                             padding-bottom: 20px;
                             margin-bottom: 40px;
                         }
+                        .stepper { display: flex; align-items: center; margin: 30px 0; gap: 0; }
+                        .step { display: flex; flex-direction: column; align-items: center; flex: 1; position: relative; }
+                        .step-dot { width: 14px; height: 14px; border-radius: 50%; border: 2px solid #ddd; background: #fff; z-index: 1; }
+                        .step-dot.completed { background: #111; border-color: #111; }
+                        .step-dot.current { background: #111; border-color: #111; box-shadow: 0 0 0 3px #ccc; }
+                        .step-label { font-size: 7px; font-weight: 800; text-transform: uppercase; color: #bbb; margin-top: 6px; text-align: center; letter-spacing: 0.5px; }
+                        .step-label.completed { color: #111; }
+                        .step-label.current { color: #111; font-weight: 900; }
+                        .step-line { flex: 1; height: 2px; background: #ddd; margin-top: -7px; z-index: 0; }
+                        .step-line.completed { background: #111; }
                         .logo { 
                             font-size: 32px; 
                             font-weight: 900; 
@@ -1097,7 +1107,26 @@ export default function DashboardPage() {
                     </div>
                     ` : ''}
 
-                    <div class="grid" style="margin-top: 40px; border-top: 2px solid #eee; pt-20">
+                    <div class="section">
+                        <div class="section-title">Evolução do Pedido</div>
+                        <div class="stepper">
+                            ${(() => {
+                                const steps = ['PEDIDO FEITO', 'GRÁFICA', 'CORTE', 'COSTURA', 'REVISÃO', 'EM FASE DE ENTREGA', 'PEDIDO ENTREGUE'];
+                                const labels: Record<string, string> = { 'PEDIDO FEITO': 'PEDIDO', 'GRÁFICA': 'GRÁFICA', 'CORTE': 'CORTE', 'COSTURA': 'COSTURA', 'REVISÃO': 'REVISÃO', 'EM FASE DE ENTREGA': 'SAIU P/ ENTREGA', 'PEDIDO ENTREGUE': 'ENTREGUE' };
+                                const currentStepIdx = steps.indexOf(order.status);
+                                return steps.map((step, idx) => {
+                                    const isCompleted = idx < currentStepIdx;
+                                    const isCurrent = idx === currentStepIdx;
+                                    const dotClass = isCompleted ? 'completed' : isCurrent ? 'current' : '';
+                                    const labelClass = isCompleted ? 'completed' : isCurrent ? 'current' : '';
+                                    const line = idx < steps.length - 1 ? `<div class="step-line ${idx < currentStepIdx ? 'completed' : ''}"></div>` : '';
+                                    return `<div class="step"><div class="step-dot ${dotClass}"></div><span class="step-label ${labelClass}">${labels[step]}</span></div>${line}`;
+                                }).join('');
+                            })()}
+                        </div>
+                    </div>
+
+                    <div class="grid" style="margin-top: 20px; border-top: 2px solid #eee; padding-top: 20px;">
                         <div class="info-block">
                             <div class="info-label">Status Atual</div>
                             <div class="info-value" style="color: #000; font-weight: bold;">${order.status}</div>
@@ -1954,7 +1983,7 @@ export default function DashboardPage() {
                                                     .total-row { font-weight: bold; background: #f5f5f5; }
                                                     .total-row td { border-top: 2px solid #111; }
                                                     .right { text-align: right; }
-                                                    .green { color: #16a34a; }
+                                                    .bold-total { color: #111; font-weight: 900; }
                                                 </style></head><body>
                                                 <h1>LIBERA SPORTS</h1>
                                                 <p class="sub">Relatório de Vendas • Gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}</p>
@@ -1970,7 +1999,7 @@ export default function DashboardPage() {
                                                         </tr>`).join('')}
                                                         <tr class="total-row">
                                                             <td colspan="4">TOTAL (${sales.length} vendas)</td>
-                                                            <td class="right green">R$ ${sales.reduce((a: number, s: any) => a + (s.total || 0), 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                                                            <td class="right bold-total">R$ ${sales.reduce((a: number, s: any) => a + (s.total || 0), 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                                                         </tr>
                                                     </tbody>
                                                 </table>
