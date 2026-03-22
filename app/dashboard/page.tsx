@@ -2711,8 +2711,8 @@ export default function DashboardPage() {
             {/* Modal Cadastro de Pedido */}
             {
                 isModalOpen && (
-                    <div className="fixed inset-0 bg-black/95 z-[600] flex items-center justify-center p-4 backdrop-blur-xl animate-in fade-in duration-300">
-                        <div className="bg-zinc-900 w-full max-w-xl p-8 rounded-[32px] border border-zinc-800 shadow-2xl relative">
+                    <div className="fixed inset-0 bg-black/95 z-[600] flex items-center justify-center p-4 backdrop-blur-xl animate-in fade-in duration-300 overflow-y-auto">
+                        <div className="bg-zinc-900 w-full max-w-xl p-6 md:p-8 rounded-[32px] border border-zinc-800 shadow-2xl relative my-auto">
                             <button
                                 onClick={() => setIsModalOpen(false)}
                                 className="absolute top-6 right-6 text-zinc-500 hover:text-white transition-colors"
@@ -2783,7 +2783,7 @@ export default function DashboardPage() {
                                                 className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all [color-scheme:dark]"
                                             />
                                         </div>
-                                        <div className="space-y-2">
+                                        <div>
                                             <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-zinc-500">
                                                 Método de Entrega
                                             </label>
