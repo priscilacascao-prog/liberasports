@@ -1616,7 +1616,7 @@ export default function DashboardPage() {
                                                                     'CORTE': 'CORTE',
                                                                     'COSTURA': 'COSTURA',
                                                                     'REVISÃO': 'REVISÃO',
-                                                                    'EM FASE DE ENTREGA': 'ENTREGA',
+                                                                    'EM FASE DE ENTREGA': 'SAIU P/ ENTREGA',
                                                                     'PEDIDO ENTREGUE': 'ENTREGUE',
                                                                 };
 
