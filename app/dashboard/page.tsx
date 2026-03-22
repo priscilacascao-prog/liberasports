@@ -1532,110 +1532,105 @@ export default function DashboardPage() {
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        {/* Valor + botões de ação */}
-                                                        <div className="flex items-center justify-between mt-2 mb-2">
-                                                            <div>
-                                                                <span className="block text-[9px] text-zinc-600 font-bold uppercase tracking-widest">Valor Total</span>
-                                                                <span className="text-lg font-black text-[#39FF14]">
-                                                                    R$ {Number(order.value).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                                                                </span>
-                                                            </div>
-                                                            <div className="flex items-center gap-1.5">
-                                                                {order.status !== 'PENDÊNCIA' && order.status !== 'PEDIDO ENTREGUE' && (
-                                                                    <button
-                                                                        onClick={() => {
-                                                                            setPendingOrderId(order.id);
-                                                                            setIsPendingModalOpen(true);
-                                                                        }}
-                                                                        className="p-2 px-3 rounded-lg bg-zinc-950 border border-orange-500/30 text-orange-500 hover:bg-orange-500/10 transition-all text-[8px] font-black uppercase flex items-center gap-1"
-                                                                        title="Mover para Pendência"
-                                                                    >
-                                                                        <AlertCircle size={12} /> Pendência
-                                                                    </button>
-                                                                )}
-                                                                <button
-                                                                    onClick={() => {
-                                                                        toast.info('Edição completa em breve');
-                                                                    }}
-                                                                    className="p-2 rounded-lg bg-zinc-950 border border-zinc-900 text-zinc-600 hover:text-white transition-all"
-                                                                    title="Editar Pedido"
-                                                                >
-                                                                    <Pencil size={13} />
-                                                                </button>
-                                                                <button
-                                                                    onClick={() => handlePrintOrder(order)}
-                                                                    className="p-2 rounded-lg bg-zinc-950 border border-zinc-900 text-zinc-600 hover:text-[#39FF14] transition-all"
-                                                                    title="Gerar PDF"
-                                                                >
-                                                                    <FileText size={13} />
-                                                                </button>
-                                                                <button
-                                                                    onClick={() => handleDeleteOrder(order.id, order.order_number)}
-                                                                    className="p-2 rounded-lg bg-zinc-950 border border-zinc-900 text-zinc-600 hover:text-[#FF3D00] transition-all"
-                                                                    title="Excluir Pedido"
-                                                                >
-                                                                    <Trash2 size={13} />
-                                                                </button>
-                                                            </div>
-                                                        </div>
-
                                                         {order.status === 'PENDÊNCIA' && order.pending_reason && (
-                                                            <div className="bg-[#FF3D00]/10 border border-[#FF3D00]/20 p-4 rounded-2xl mb-6 flex items-start gap-3 shadow-lg shadow-[#FF3D00]/5">
-                                                                <AlertCircle className="text-[#FF3D00] shrink-0" size={18} />
+                                                            <div className="bg-[#FF3D00]/10 border border-[#FF3D00]/20 p-3 rounded-xl mb-3 mt-2 flex items-start gap-2">
+                                                                <AlertCircle className="text-[#FF3D00] shrink-0" size={14} />
                                                                 <div>
-                                                                    <p className="text-[#FF3D00] text-[10px] font-black uppercase tracking-widest mb-1">Motivo da Pendência</p>
-                                                                    <p className="text-zinc-200 text-sm font-medium">{order.pending_reason}</p>
+                                                                    <p className="text-[#FF3D00] text-[9px] font-black uppercase tracking-widest mb-0.5">Pendência</p>
+                                                                    <p className="text-zinc-300 text-[11px] font-medium">{order.pending_reason}</p>
                                                                 </div>
                                                             </div>
                                                         )}
                                                     </div>
 
-                                                    {/* Botão Avançar - acima do stepper */}
-                                                    {order.status !== 'PEDIDO ENTREGUE' && (
-                                                        <button
-                                                            onClick={() => advanceStep(order.id, order.status)}
-                                                            className="w-full bg-[#39FF14] text-black px-4 py-3 rounded-2xl font-black text-[11px] uppercase hover:scale-[1.01] transition-all shadow-lg shadow-[#39FF14]/10 flex items-center justify-center gap-2 mb-3"
-                                                        >
-                                                            {order.status === 'PENDÊNCIA'
-                                                                ? 'Resolver Pendência'
-                                                                : order.status === 'REVISÃO'
-                                                                    ? 'Finalizar Produção'
-                                                                    : order.status === 'EM FASE DE ENTREGA'
-                                                                        ? 'Confirmar Entrega'
-                                                                        : `Avançar p/ ${workflow[workflow.indexOf(order.status) + 1]}`
-                                                            } <ArrowRight size={14} />
-                                                        </button>
-                                                    )}
-                                                    {order.status === 'PEDIDO ENTREGUE' && (
-                                                        <div className="bg-zinc-950 text-[#39FF14] px-4 py-3 rounded-2xl font-black text-[11px] uppercase border border-[#39FF14]/20 flex items-center justify-center gap-2 mb-3">
-                                                            <Check size={14} /> Pedido Entregue
+                                                    {/* Valor */}
+                                                    <div className="flex items-center justify-between mt-1 mb-2">
+                                                        <div>
+                                                            <span className="block text-[8px] text-zinc-600 font-bold uppercase tracking-widest">Valor Total</span>
+                                                            <span className="text-lg font-black text-[#39FF14]">
+                                                                R$ {Number(order.value).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                                            </span>
                                                         </div>
-                                                    )}
+                                                        <div className="flex items-center gap-1.5">
+                                                            <button onClick={() => { toast.info('Edição completa em breve'); }}
+                                                                className="p-2 rounded-lg bg-zinc-950 border border-zinc-900 text-zinc-600 hover:text-white transition-all" title="Editar">
+                                                                <Pencil size={13} />
+                                                            </button>
+                                                            <button onClick={() => handlePrintOrder(order)}
+                                                                className="p-2 rounded-lg bg-zinc-950 border border-zinc-900 text-zinc-600 hover:text-[#39FF14] transition-all" title="PDF">
+                                                                <FileText size={13} />
+                                                            </button>
+                                                            <button onClick={() => handleDeleteOrder(order.id, order.order_number)}
+                                                                className="p-2 rounded-lg bg-zinc-950 border border-zinc-900 text-zinc-600 hover:text-[#FF3D00] transition-all" title="Excluir">
+                                                                <Trash2 size={13} />
+                                                            </button>
+                                                        </div>
+                                                    </div>
 
-                                                    {/* Visual Stepper */}
-                                                    <div className="mb-6 mt-2 px-0 overflow-x-auto pb-6 mask-fade">
-                                                        <div className="relative flex justify-between items-center h-1 bg-zinc-900 rounded-full min-w-[420px] mx-2">
-                                                            {/* Progress Line */}
+                                                    {/* Botões Avançar + Pendência na mesma linha */}
+                                                    <div className="flex gap-2 mb-3">
+                                                        {order.status !== 'PEDIDO ENTREGUE' && (
+                                                            <button
+                                                                onClick={() => advanceStep(order.id, order.status)}
+                                                                className="flex-1 bg-[#39FF14] text-black px-3 py-2.5 rounded-xl font-black text-[10px] uppercase hover:scale-[1.01] transition-all shadow-lg shadow-[#39FF14]/10 flex items-center justify-center gap-1.5"
+                                                            >
+                                                                {order.status === 'PENDÊNCIA'
+                                                                    ? 'Resolver'
+                                                                    : order.status === 'REVISÃO'
+                                                                        ? 'Finalizar'
+                                                                        : order.status === 'EM FASE DE ENTREGA'
+                                                                            ? 'Confirmar Entrega'
+                                                                            : `Avançar`
+                                                                } <ArrowRight size={12} />
+                                                            </button>
+                                                        )}
+                                                        {order.status === 'PEDIDO ENTREGUE' && (
+                                                            <div className="flex-1 bg-zinc-950 text-[#39FF14] px-3 py-2.5 rounded-xl font-black text-[10px] uppercase border border-[#39FF14]/20 flex items-center justify-center gap-1.5">
+                                                                <Check size={12} /> Entregue
+                                                            </div>
+                                                        )}
+                                                        {order.status !== 'PENDÊNCIA' && order.status !== 'PEDIDO ENTREGUE' && (
+                                                            <button
+                                                                onClick={() => { setPendingOrderId(order.id); setIsPendingModalOpen(true); }}
+                                                                className="px-3 py-2.5 rounded-xl bg-zinc-950 border border-orange-500/30 text-orange-500 hover:bg-orange-500/10 transition-all text-[10px] font-black uppercase flex items-center gap-1.5"
+                                                            >
+                                                                <AlertCircle size={12} /> Pendência
+                                                            </button>
+                                                        )}
+                                                    </div>
+
+                                                    {/* Visual Stepper - sem scroll, responsivo */}
+                                                    <div className="mb-4 mt-1">
+                                                        <div className="relative flex justify-between items-center h-1 bg-zinc-900 rounded-full mx-1">
                                                             <div
-                                                                className="absolute left-0 top-0 h-full bg-[#39FF14] rounded-full transition-all duration-500 shadow-[0_0_10px_rgba(57,255,20,0.5)]"
+                                                                className="absolute left-0 top-0 h-full bg-[#39FF14] rounded-full transition-all duration-500 shadow-[0_0_8px_rgba(57,255,20,0.4)]"
                                                                 style={{ width: `${(currentIdx / (workflow.length - 1)) * 100}%` }}
                                                             />
 
                                                             {workflow.map((step, idx) => {
                                                                 const isCompleted = idx < currentIdx;
                                                                 const isCurrent = idx === currentIdx;
+                                                                const shortNames: Record<string, string> = {
+                                                                    'PEDIDO FEITO': 'PEDIDO',
+                                                                    'GRÁFICA': 'GRÁFICA',
+                                                                    'CORTE': 'CORTE',
+                                                                    'COSTURA': 'COSTURA',
+                                                                    'REVISÃO': 'REVISÃO',
+                                                                    'EM FASE DE ENTREGA': 'ENTREGA',
+                                                                    'PEDIDO ENTREGUE': 'ENTREGUE',
+                                                                };
 
                                                                 return (
                                                                     <div key={step} className="relative flex flex-col items-center">
                                                                         <div className={`
-                                                                    w-3 h-3 rounded-full border-2 border-black transition-all duration-300 z-10
-                                                                    ${isCompleted ? 'bg-[#39FF14] scale-110' : isCurrent ? 'bg-white scale-125 shadow-[0_0_15px_white]' : 'bg-zinc-800'}
+                                                                    w-2.5 h-2.5 rounded-full border-2 border-black transition-all duration-300 z-10
+                                                                    ${isCompleted ? 'bg-[#39FF14]' : isCurrent ? 'bg-white scale-125 shadow-[0_0_10px_white]' : 'bg-zinc-800'}
                                                                 `} />
                                                                         <span className={`
-                                                                    absolute top-5 text-[8px] font-black uppercase tracking-tighter whitespace-nowrap transition-colors
+                                                                    absolute top-4 text-[6px] md:text-[8px] font-black uppercase tracking-tight whitespace-nowrap transition-colors
                                                                     ${isCurrent ? 'text-white' : isCompleted ? 'text-[#39FF14]' : 'text-zinc-700'}
                                                                 `}>
-                                                                            {step}
+                                                                            {shortNames[step] || step}
                                                                         </span>
                                                                     </div>
                                                                 );
