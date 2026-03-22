@@ -21,7 +21,7 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: "LIBERA SPORTS - Gestão Profissional",
-  description: "Vista Libera e viva a liberdade 🔥🚀",
+  description: "Vista Libera e viva a liberdade",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
@@ -31,6 +31,18 @@ export const metadata: Metadata = {
   icons: {
     icon: "/logo.png",
     apple: "/logo.png",
+  },
+  openGraph: {
+    title: "LIBERA SPORTS",
+    description: "Vista Libera e viva a liberdade",
+    images: [{ url: "/logo.png", width: 1080, height: 1080 }],
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "LIBERA SPORTS",
+    description: "Vista Libera e viva a liberdade",
+    images: ["/logo.png"],
   },
 };
 
