@@ -42,7 +42,16 @@ export default function DashboardPage() {
     const [orders, setOrders] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [authChecking, setAuthChecking] = useState(true);
-    const [activeTab, setActiveTab] = useState<'HOME' | 'PRODUÇÃO' | 'VENDAS' | 'ESTOQUE' | 'FINANCEIRO' | 'CAIXA'>('HOME');
+    const [activeTab, setActiveTabState] = useState<'HOME' | 'PRODUÇÃO' | 'VENDAS' | 'ESTOQUE' | 'FINANCEIRO' | 'CAIXA'>(() => {
+        if (typeof window !== 'undefined') {
+            return (localStorage.getItem('libera_active_tab') as any) || 'HOME';
+        }
+        return 'HOME';
+    });
+    const setActiveTab = (tab: typeof activeTab) => {
+        setActiveTabState(tab);
+        localStorage.setItem('libera_active_tab', tab);
+    };
     const [financeView, setFinanceView] = useState<'A PAGAR' | 'A RECEBER'>('A PAGAR');
     const [searchTerm, setSearchTerm] = useState('');
 
