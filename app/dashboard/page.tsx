@@ -2445,10 +2445,8 @@ export default function DashboardPage() {
                     </div>
                 )}
 
-                {/* ================================================ */}
-                {/* CONTAS A PAGAR – CONFECÇÃO  (aba FINANCEIRO)     */}
-                {/* ================================================ */}
-                {activeTab === 'FINANCEIRO' && financeView === 'A PAGAR' && (() => {
+                {/* Seção antiga removida */}
+                {false && (() => {
                     const fmtBRL = (v: number) => `R$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
                     const today = new Date().toISOString().split('T')[0];
 
