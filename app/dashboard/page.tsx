@@ -1510,56 +1510,59 @@ export default function DashboardPage() {
                                                                     <User className="text-[#39FF14]" size={18} />
                                                                 </div>
                                                                 <div className="min-w-0 flex-1">
-                                                                    <div className="flex items-center gap-2 flex-wrap">
-                                                                        <h3 className="text-sm md:text-2xl font-black tracking-tighter text-white uppercase italic break-words">
-                                                                            {order.client}
-                                                                        </h3>
-                                                                        <div className="flex items-center gap-1 shrink-0">
-                                                                            {order.client_whatsapp && (
-                                                                                <a
-                                                                                    href={`https://wa.me/${order.client_whatsapp.replace(/\D/g, '')}`}
-                                                                                    target="_blank"
-                                                                                    className="p-1.5 rounded-lg bg-zinc-900 text-[#39FF14] hover:bg-[#39FF14] hover:text-black transition-all"
-                                                                                    title="WhatsApp"
-                                                                                >
-                                                                                    <MessageCircle size={14} />
-                                                                                </a>
-                                                                            )}
-                                                                            <button
-                                                                                onClick={() => {
-                                                                                    // Implement edit logic later if needed or just use current structure
-                                                                                    toast.info('Edição completa em breve');
-                                                                                }}
-                                                                                className="p-1.5 rounded-lg bg-zinc-900 text-zinc-400 hover:bg-white hover:text-black transition-all"
-                                                                                title="Editar Pedido"
-                                                                            >
-                                                                                <Pencil size={14} />
-                                                                            </button>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div className="flex items-center gap-3 mt-1">
-                                                                        <span className="text-zinc-600 text-[10px] font-black uppercase tracking-widest">{order.order_number}</span>
+                                                                    <h3 className="text-[13px] md:text-xl font-black tracking-tighter text-white uppercase italic">
+                                                                        {order.client}
+                                                                    </h3>
+                                                                    <div className="flex items-center gap-2 mt-1">
+                                                                        <span className="text-zinc-600 text-[9px] font-black uppercase tracking-widest">{order.order_number}</span>
                                                                         <span className="w-1 h-1 rounded-full bg-zinc-800" />
-                                                                        <span className="text-zinc-700 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1">
-                                                                            <Truck size={10} /> {order.delivery_method}
+                                                                        <span className="text-zinc-700 text-[9px] font-bold uppercase flex items-center gap-1">
+                                                                            <Truck size={9} /> {order.delivery_method}
                                                                         </span>
+                                                                        {order.client_whatsapp && (
+                                                                            <a
+                                                                                href={`https://wa.me/${order.client_whatsapp.replace(/\D/g, '')}`}
+                                                                                target="_blank"
+                                                                                className="p-1 rounded bg-zinc-900 text-[#39FF14] hover:bg-[#39FF14] hover:text-black transition-all"
+                                                                            >
+                                                                                <MessageCircle size={12} />
+                                                                            </a>
+                                                                        )}
                                                                     </div>
                                                                 </div>
                                                             </div>
-                                                            <div className="flex items-center gap-1.5 shrink-0">
+                                                        </div>
+                                                        {/* Valor + botões de ação */}
+                                                        <div className="flex items-center justify-between mt-2 mb-2">
+                                                            <div>
+                                                                <span className="block text-[9px] text-zinc-600 font-bold uppercase tracking-widest">Valor Total</span>
+                                                                <span className="text-lg font-black text-[#39FF14]">
+                                                                    R$ {Number(order.value).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                                                </span>
+                                                            </div>
+                                                            <div className="flex items-center gap-1.5">
+                                                                <button
+                                                                    onClick={() => {
+                                                                        toast.info('Edição completa em breve');
+                                                                    }}
+                                                                    className="p-2 rounded-lg bg-zinc-950 border border-zinc-900 text-zinc-600 hover:text-white transition-all"
+                                                                    title="Editar Pedido"
+                                                                >
+                                                                    <Pencil size={13} />
+                                                                </button>
                                                                 <button
                                                                     onClick={() => handlePrintOrder(order)}
-                                                                    className="p-2 md:p-3 rounded-lg md:rounded-xl bg-zinc-950 border border-zinc-900 text-zinc-700 hover:text-[#39FF14] hover:border-[#39FF14]/30 transition-all"
-                                                                    title="Gerar PDF / Imprimir"
+                                                                    className="p-2 rounded-lg bg-zinc-950 border border-zinc-900 text-zinc-600 hover:text-[#39FF14] transition-all"
+                                                                    title="Gerar PDF"
                                                                 >
-                                                                    <FileText size={14} />
+                                                                    <FileText size={13} />
                                                                 </button>
                                                                 <button
                                                                     onClick={() => handleDeleteOrder(order.id, order.order_number)}
-                                                                    className="p-2 md:p-3 rounded-lg md:rounded-xl bg-zinc-950 border border-zinc-900 text-zinc-700 hover:text-[#FF3D00] hover:border-[#FF3D00]/30 transition-all"
+                                                                    className="p-2 rounded-lg bg-zinc-950 border border-zinc-900 text-zinc-600 hover:text-[#FF3D00] transition-all"
                                                                     title="Excluir Pedido"
                                                                 >
-                                                                    <Trash2 size={14} />
+                                                                    <Trash2 size={13} />
                                                                 </button>
                                                             </div>
                                                         </div>
@@ -1575,8 +1578,30 @@ export default function DashboardPage() {
                                                         )}
                                                     </div>
 
+                                                    {/* Botão Avançar - acima do stepper */}
+                                                    {order.status !== 'PEDIDO ENTREGUE' && (
+                                                        <button
+                                                            onClick={() => advanceStep(order.id, order.status)}
+                                                            className="w-full bg-[#39FF14] text-black px-4 py-3 rounded-2xl font-black text-[11px] uppercase hover:scale-[1.01] transition-all shadow-lg shadow-[#39FF14]/10 flex items-center justify-center gap-2 mb-3"
+                                                        >
+                                                            {order.status === 'PENDÊNCIA'
+                                                                ? 'Resolver Pendência'
+                                                                : order.status === 'REVISÃO'
+                                                                    ? 'Finalizar Produção'
+                                                                    : order.status === 'EM FASE DE ENTREGA'
+                                                                        ? 'Confirmar Entrega'
+                                                                        : `Avançar p/ ${workflow[workflow.indexOf(order.status) + 1]}`
+                                                            } <ArrowRight size={14} />
+                                                        </button>
+                                                    )}
+                                                    {order.status === 'PEDIDO ENTREGUE' && (
+                                                        <div className="bg-zinc-950 text-[#39FF14] px-4 py-3 rounded-2xl font-black text-[11px] uppercase border border-[#39FF14]/20 flex items-center justify-center gap-2 mb-3">
+                                                            <Check size={14} /> Pedido Entregue
+                                                        </div>
+                                                    )}
+
                                                     {/* Visual Stepper */}
-                                                    <div className="mb-8 mt-4 md:mt-6 px-0 overflow-x-auto pb-6 mask-fade">
+                                                    <div className="mb-6 mt-2 px-0 overflow-x-auto pb-6 mask-fade">
                                                         <div className="relative flex justify-between items-center h-1 bg-zinc-900 rounded-full min-w-[550px] mx-2">
                                                             {/* Progress Line */}
                                                             <div
@@ -1709,50 +1734,17 @@ export default function DashboardPage() {
                                                     )}
                                                 </div>
 
-                                                <div className="flex flex-col justify-between items-end gap-4 min-w-[180px]">
-                                                    <div className="text-right">
-                                                        <span className="block text-[10px] text-zinc-600 font-bold uppercase tracking-widest">Valor Total</span>
-                                                        <span className="text-xl font-black text-[#39FF14] drop-shadow-[0_0_8px_rgba(57,255,20,0.2)]">
-                                                            R$ {Number(order.value).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                                                        </span>
-                                                    </div>
-
-                                                    <div className="flex flex-col gap-2 w-full">
-                                                        {order.status !== 'PEDIDO ENTREGUE' && (
-                                                            <button
-                                                                onClick={() => advanceStep(order.id, order.status)}
-                                                                className="w-full bg-[#39FF14] text-black px-6 py-4 rounded-2xl font-black text-[11px] uppercase hover:scale-[1.02] transition-all shadow-xl shadow-[#39FF14]/10 flex items-center justify-center gap-2"
-                                                            >
-                                                                {order.status === 'PENDÊNCIA'
-                                                                    ? 'Resolver Pendência'
-                                                                    : order.status === 'REVISÃO'
-                                                                        ? 'Finalizar Produção'
-                                                                        : order.status === 'EM FASE DE ENTREGA'
-                                                                            ? 'Confirmar Entrega'
-                                                                            : `Avançar p/ ${workflow[workflow.indexOf(order.status) + 1]}`
-                                                                } <ArrowRight size={14} />
-                                                            </button>
-                                                        )}
-
-                                                        {order.status !== 'PENDÊNCIA' && order.status !== 'PEDIDO ENTREGUE' && (
-                                                            <button
-                                                                onClick={() => {
-                                                                    setPendingOrderId(order.id);
-                                                                    setIsPendingModalOpen(true);
-                                                                }}
-                                                                className="w-full bg-zinc-950 text-[#FF3D00] border border-[#FF3D00]/20 px-6 py-3 rounded-2xl font-black text-[10px] uppercase hover:bg-[#FF3D00]/10 transition-all flex items-center justify-center gap-2 shadow-sm"
-                                                            >
-                                                                <AlertCircle size={12} /> Mover para Pendência
-                                                            </button>
-                                                        )}
-
-                                                        {order.status === 'PEDIDO ENTREGUE' && (
-                                                            <div className="bg-zinc-950 text-[#39FF14] px-6 py-4 rounded-2xl font-black text-[11px] uppercase border border-[#39FF14]/20 flex items-center justify-center gap-2 shadow-inner">
-                                                                <Check size={16} /> Pedido Entregue
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                </div>
+                                                {order.status !== 'PENDÊNCIA' && order.status !== 'PEDIDO ENTREGUE' && (
+                                                    <button
+                                                        onClick={() => {
+                                                            setPendingOrderId(order.id);
+                                                            setIsPendingModalOpen(true);
+                                                        }}
+                                                        className="w-full bg-zinc-950 text-[#FF3D00] border border-[#FF3D00]/20 px-4 py-2.5 rounded-2xl font-black text-[9px] uppercase hover:bg-[#FF3D00]/10 transition-all flex items-center justify-center gap-2 mt-2"
+                                                    >
+                                                        <AlertCircle size={11} /> Mover para Pendência
+                                                    </button>
+                                                )}
                                             </div>
                                         </div>
                                     );
