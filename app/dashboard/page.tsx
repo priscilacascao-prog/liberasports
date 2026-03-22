@@ -2007,7 +2007,7 @@ export default function DashboardPage() {
                                             return (
                                                 <div key={sale.id} className="p-4 md:p-6 hover:bg-zinc-900/30 transition-colors">
                                                     <div className="flex justify-between items-start gap-3">
-                                                        <div className="flex-1 min-w-0 cursor-pointer" onClick={() => setExpandedSaleIds(prev => ({ ...prev, [sale.id]: !prev[sale.id] }))}>
+                                                        <div className="flex-1 min-w-0 cursor-pointer" onClick={() => setExpandedSaleIds(prev => prev[sale.id] ? {} : { [sale.id]: true })}>
                                                             <div className="flex items-center gap-2 flex-wrap">
                                                                 <span className="text-[10px] font-black uppercase tracking-widest text-[#39FF14]">{sale.sale_number}</span>
                                                                 <span className="text-[10px] text-zinc-600 font-bold">•</span>
