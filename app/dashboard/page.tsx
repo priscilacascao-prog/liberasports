@@ -118,6 +118,7 @@ export default function DashboardPage() {
     const [finDebitDay, setFinDebitDay] = useState(new Date().getDate());
     const [finDebitRecurrent, setFinDebitRecurrent] = useState(false);
     const [isFinanceModalOpen, setIsFinanceModalOpen] = useState(false);
+    const [editingFinanceItem, setEditingFinanceItem] = useState<any>(null);
 
     // Finance View State
     const [financeFilterYear, setFinanceFilterYear] = useState(new Date().getFullYear());
@@ -2172,22 +2173,149 @@ export default function DashboardPage() {
                                                         )}
                                                     </div>
                                                 </div>
-                                                <button onClick={async () => {
-                                                    try {
-                                                        await deleteDoc(doc(db, financeCollectionPath, item.id));
-                                                        toast.success('Conta excluída!');
-                                                    } catch (err) {
-                                                        console.error('Erro ao excluir:', err);
-                                                        toast.error('Erro ao excluir conta');
-                                                    }
-                                                }} className="text-zinc-600 hover:text-red-500 transition-colors p-2" title="Excluir conta">
-                                                    <Trash2 size={18} />
-                                                </button>
+                                                <div className="flex flex-col gap-1">
+                                                    <button onClick={() => {
+                                                        setEditingFinanceItem({
+                                                            ...item,
+                                                            editDesc: item.description,
+                                                            editAmount: item.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 }),
+                                                            editDueDate: (item.due_date || item.transaction_date || item.created_at).split('T')[0],
+                                                            editPayMethod: item.payment_method || 'PIX',
+                                                            editObs: item.observations || '',
+                                                        });
+                                                    }} className="text-zinc-600 hover:text-[#39FF14] transition-colors p-2" title="Editar conta">
+                                                        <Pencil size={16} />
+                                                    </button>
+                                                    <button onClick={async () => {
+                                                        try {
+                                                            await deleteDoc(doc(db, financeCollectionPath, item.id));
+                                                            toast.success('Conta excluída!');
+                                                        } catch (err) {
+                                                            console.error('Erro ao excluir:', err);
+                                                            toast.error('Erro ao excluir conta');
+                                                        }
+                                                    }} className="text-zinc-600 hover:text-red-500 transition-colors p-2" title="Excluir conta">
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
                                     ));
                                 })()}
                             </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Modal Editar Conta */}
+                {editingFinanceItem && (
+                    <div className="fixed inset-0 bg-black/95 z-[600] flex items-center justify-center p-4 backdrop-blur-xl">
+                        <div className="bg-zinc-900 w-full max-w-xl p-8 rounded-[32px] border border-zinc-800 shadow-2xl relative text-white max-h-[90vh] overflow-y-auto">
+                            <button
+                                onClick={() => setEditingFinanceItem(null)}
+                                className="absolute right-6 top-6 text-zinc-500 hover:text-white transition-colors"
+                            >
+                                <X size={24} />
+                            </button>
+
+                            <div className="mb-6">
+                                <h3 className="text-2xl font-black italic uppercase text-white flex items-center gap-3">
+                                    <Pencil size={24} className="text-[#39FF14]" /> EDITAR CONTA
+                                </h3>
+                            </div>
+
+                            <form onSubmit={async (e) => {
+                                e.preventDefault();
+                                try {
+                                    await handleUpdateFinanceEntry(editingFinanceItem.id, {
+                                        description: editingFinanceItem.editDesc.toUpperCase(),
+                                        amount: parseBRL(editingFinanceItem.editAmount),
+                                        due_date: editingFinanceItem.editDueDate,
+                                        payment_method: editingFinanceItem.editPayMethod,
+                                        observations: editingFinanceItem.editObs,
+                                    });
+                                    toast.success('Conta atualizada!');
+                                    setEditingFinanceItem(null);
+                                } catch (err) {
+                                    toast.error('Erro ao atualizar');
+                                }
+                            }} className="space-y-5">
+                                <div>
+                                    <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-zinc-500">Descrição</label>
+                                    <input
+                                        type="text"
+                                        value={editingFinanceItem.editDesc}
+                                        onChange={e => setEditingFinanceItem({ ...editingFinanceItem, editDesc: e.target.value })}
+                                        required
+                                        className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all font-bold"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-zinc-500">Valor (R$)</label>
+                                    <input
+                                        type="text"
+                                        value={editingFinanceItem.editAmount}
+                                        onChange={e => setEditingFinanceItem({ ...editingFinanceItem, editAmount: formatCurrency(e.target.value) })}
+                                        required
+                                        className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all font-bold"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-zinc-500">Data de Vencimento</label>
+                                    <input
+                                        type="date"
+                                        value={editingFinanceItem.editDueDate}
+                                        onChange={e => setEditingFinanceItem({ ...editingFinanceItem, editDueDate: e.target.value })}
+                                        required
+                                        className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all font-bold [color-scheme:dark]"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-zinc-500">Forma de Pagamento</label>
+                                    <div className="flex flex-wrap gap-2">
+                                        {['PIX', 'BOLETO', 'CARTÃO CRÉDITO', 'CARTÃO DÉBITO', 'OUTRO'].map(pm => (
+                                            <button
+                                                key={pm}
+                                                type="button"
+                                                onClick={() => setEditingFinanceItem({ ...editingFinanceItem, editPayMethod: pm })}
+                                                className={`px-4 py-3 rounded-xl font-black uppercase text-[10px] tracking-widest transition-all ${editingFinanceItem.editPayMethod === pm ? 'bg-[#39FF14] text-black shadow-lg shadow-[#39FF14]/20' : 'bg-zinc-950 text-zinc-500 hover:text-white'}`}
+                                            >
+                                                {pm}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-zinc-500">Observação</label>
+                                    <textarea
+                                        value={editingFinanceItem.editObs}
+                                        onChange={e => setEditingFinanceItem({ ...editingFinanceItem, editObs: e.target.value })}
+                                        placeholder="Informações adicionais..."
+                                        rows={2}
+                                        className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all font-bold placeholder:text-zinc-700 resize-none"
+                                    />
+                                </div>
+
+                                <div className="flex gap-4 pt-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => setEditingFinanceItem(null)}
+                                        className="flex-1 bg-zinc-800 py-4 rounded-xl font-bold uppercase text-xs hover:bg-zinc-700 transition-colors"
+                                    >
+                                        Cancelar
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        className="flex-1 bg-[#39FF14] text-black py-4 rounded-xl font-black uppercase text-xs hover:scale-105 transition-all shadow-lg shadow-[#39FF14]/10"
+                                    >
+                                        Salvar Alterações
+                                    </button>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 )}
