@@ -2770,33 +2770,31 @@ export default function DashboardPage() {
                                         </div>
                                     </div>
 
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-zinc-500">
-                                                Data de Entrega
-                                            </label>
-                                            <input
-                                                type="date"
-                                                value={deadline}
-                                                onChange={e => setDeadline(e.target.value)}
-                                                required
-                                                className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all [color-scheme:dark]"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-zinc-500">
-                                                Método de Entrega
-                                            </label>
-                                            <select
-                                                value={deliveryMethod}
-                                                onChange={e => setDeliveryMethod(e.target.value as 'MOTOBOY' | 'TRANSPORTADORA' | 'RETIRADA')}
-                                                className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all appearance-none"
-                                            >
-                                                <option value="MOTOBOY">MOTOBOY</option>
-                                                <option value="TRANSPORTADORA">TRANSPORTADORA</option>
-                                                <option value="RETIRADA">RETIRADA</option>
-                                            </select>
-                                        </div>
+                                    <div>
+                                        <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-zinc-500">
+                                            Data de Entrega
+                                        </label>
+                                        <input
+                                            type="date"
+                                            value={deadline}
+                                            onChange={e => setDeadline(e.target.value)}
+                                            required
+                                            className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all [color-scheme:dark]"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-zinc-500">
+                                            Método de Entrega
+                                        </label>
+                                        <select
+                                            value={deliveryMethod}
+                                            onChange={e => setDeliveryMethod(e.target.value as 'MOTOBOY' | 'TRANSPORTADORA' | 'RETIRADA')}
+                                            className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all appearance-none"
+                                        >
+                                            <option value="MOTOBOY">MOTOBOY</option>
+                                            <option value="TRANSPORTADORA">TRANSPORTADORA</option>
+                                            <option value="RETIRADA">RETIRADA</option>
+                                        </select>
                                     </div>
 
                                     {/* Forma de Pagamento */}
