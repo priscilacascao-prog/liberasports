@@ -1259,10 +1259,10 @@ export default function DashboardPage() {
                                         <button
                                             key={mod.id}
                                             onClick={() => setActiveTab(mod.id as any)}
-                                            className="group bg-white border border-zinc-200 rounded-2xl py-4 px-2 flex flex-col items-center gap-2 hover:border-[#39FF14] hover:shadow-lg hover:shadow-[#39FF14]/10 transition-all hover:scale-[1.03] active:scale-95"
+                                            className="group bg-white border border-zinc-200 rounded-2xl py-4 px-2 flex flex-col items-center gap-2 hover:border-zinc-400 hover:shadow-lg hover:shadow-black/10 transition-all hover:scale-[1.03] active:scale-95"
                                         >
-                                            <Icon size={20} className="text-[#39FF14] transition-colors" />
-                                            <span className="text-[10px] font-black uppercase tracking-wider text-[#39FF14] transition-colors">
+                                            <Icon size={20} className="text-zinc-800 transition-colors" />
+                                            <span className="text-[10px] font-black uppercase tracking-wider text-zinc-800 transition-colors">
                                                 {mod.label}
                                             </span>
                                         </button>
