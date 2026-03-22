@@ -2021,9 +2021,9 @@ export default function DashboardPage() {
                                                             ) : (
                                                                 <div className="mt-2 space-y-1.5">
                                                                     {sale.items?.map((item: any, idx: number) => (
-                                                                        <div key={idx} className="flex justify-between items-center text-[11px] bg-zinc-900/50 rounded-xl px-3 py-2">
+                                                                        <div key={idx} className="flex flex-wrap justify-between text-[11px] bg-zinc-900/50 rounded-xl px-3 py-2 gap-x-4">
                                                                             <span className="font-bold text-white">{item.quantity}x {item.name}</span>
-                                                                            <span className="font-bold text-zinc-400">R$ {(item.price * item.quantity).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                                                                            <span className="font-bold text-[#39FF14] ml-auto">R$ {(item.price * item.quantity).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                                                                         </div>
                                                                     ))}
                                                                 </div>
