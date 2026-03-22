@@ -1931,12 +1931,12 @@ export default function DashboardPage() {
                                 <div className="border-t border-zinc-900 pt-6 mt-6">
                                     <div className="flex justify-between items-end mb-6">
                                         <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">Total</p>
-                                        <p className="text-3xl font-black text-[#39FF14]">R$ {cartTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                                        <p className="text-2xl font-black text-[#39FF14]">R$ {cartTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                                     </div>
                                     <button
                                         onClick={handleCheckout}
                                         disabled={cart.length === 0 || loading}
-                                        className="w-full bg-[#39FF14] text-black py-4 rounded-2xl font-black uppercase text-[11px] tracking-widest hover:scale-105 transition-all shadow-xl shadow-[#39FF14]/10 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        className="w-full bg-[#39FF14] text-black py-4 rounded-2xl font-black uppercase text-sm tracking-widest hover:scale-105 transition-all shadow-xl shadow-[#39FF14]/10 disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
                                         {loading ? 'Processando...' : 'Finalizar Venda'}
                                     </button>
