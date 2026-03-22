@@ -1961,7 +1961,7 @@ export default function DashboardPage() {
                                                         <span className="text-[10px] text-zinc-600 font-bold">•</span>
                                                         <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">{new Date(sale.created_at).toLocaleString('pt-BR')}</span>
                                                     </div>
-                                                    <p className="text-sm font-black text-white italic truncate max-w-[400px]">
+                                                    <p className="text-sm font-black text-white italic">
                                                         {sale.items?.map((i: any) => `${i.quantity}x ${i.name}`).join(', ')}
                                                     </p>
                                                     <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">
