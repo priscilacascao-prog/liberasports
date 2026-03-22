@@ -1486,20 +1486,20 @@ export default function DashboardPage() {
                                             <div className="flex flex-col md:flex-row justify-between gap-6">
                                                 <div className="flex-grow">
                                                     <div className="flex flex-wrap items-center gap-1.5 mb-3">
-                                                        <span className="text-zinc-600 text-[9px] font-black uppercase tracking-widest">
+                                                        <span className="text-zinc-600 text-[10px] font-black uppercase tracking-widest">
                                                             {order.order_number || `#${order.id.slice(0, 5).toUpperCase()}`}
                                                         </span>
-                                                        <span className="bg-zinc-900 text-zinc-400 px-1.5 py-0.5 rounded text-[8px] font-bold flex items-center gap-1">
-                                                            <Clock size={8} /> {new Date(order.created_at).toLocaleDateString('pt-BR')}
+                                                        <span className="bg-zinc-900 text-zinc-400 px-1.5 py-0.5 rounded text-[9px] font-bold flex items-center gap-1">
+                                                            <Clock size={9} /> {new Date(order.created_at).toLocaleDateString('pt-BR')}
                                                         </span>
-                                                        <span className="bg-zinc-900 text-zinc-400 px-1.5 py-0.5 rounded text-[8px] font-bold flex items-center gap-1">
-                                                            <Calendar size={8} /> {order.deadline.split('-').reverse().join('/')}
+                                                        <span className="bg-zinc-900 text-zinc-400 px-1.5 py-0.5 rounded text-[9px] font-bold flex items-center gap-1">
+                                                            <Calendar size={9} /> {order.deadline.split('-').reverse().join('/')}
                                                         </span>
-                                                        <span className="bg-zinc-900 text-[#39FF14] px-1.5 py-0.5 rounded text-[8px] font-bold flex items-center gap-1 uppercase">
-                                                            <Truck size={8} /> {order.delivery_method}
+                                                        <span className="bg-zinc-900 text-[#39FF14] px-1.5 py-0.5 rounded text-[9px] font-bold flex items-center gap-1 uppercase">
+                                                            <Truck size={9} /> {order.delivery_method}
                                                         </span>
-                                                        <span className="bg-zinc-900 text-orange-500 px-1.5 py-0.5 rounded text-[8px] font-bold flex items-center gap-1 uppercase">
-                                                            <TrendingUp size={8} /> {order.payment_method || 'PIX'}
+                                                        <span className="bg-zinc-900 text-orange-500 px-1.5 py-0.5 rounded text-[9px] font-bold flex items-center gap-1 uppercase">
+                                                            <TrendingUp size={9} /> {order.payment_method || 'PIX'}
                                                         </span>
                                                     </div>
 
@@ -1514,10 +1514,10 @@ export default function DashboardPage() {
                                                                         {order.client}
                                                                     </h3>
                                                                     <div className="flex items-center gap-2 mt-1">
-                                                                        <span className="text-zinc-600 text-[9px] font-black uppercase tracking-widest">{order.order_number}</span>
+                                                                        <span className="text-zinc-600 text-[10px] font-black uppercase tracking-widest">{order.order_number}</span>
                                                                         <span className="w-1 h-1 rounded-full bg-zinc-800" />
-                                                                        <span className="text-zinc-700 text-[9px] font-bold uppercase flex items-center gap-1">
-                                                                            <Truck size={9} /> {order.delivery_method}
+                                                                        <span className="text-zinc-700 text-[10px] font-bold uppercase flex items-center gap-1">
+                                                                            <Truck size={10} /> {order.delivery_method}
                                                                         </span>
                                                                         {order.client_whatsapp && (
                                                                             <a
