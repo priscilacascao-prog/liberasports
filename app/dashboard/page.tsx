@@ -119,6 +119,7 @@ export default function DashboardPage() {
     const [finDebitRecurrent, setFinDebitRecurrent] = useState(false);
     const [isFinanceModalOpen, setIsFinanceModalOpen] = useState(false);
     const [editingFinanceItem, setEditingFinanceItem] = useState<any>(null);
+    const [expandedSaleIds, setExpandedSaleIds] = useState<Record<string, boolean>>({});
 
     // Finance View State
     const [financeFilterYear, setFinanceFilterYear] = useState(new Date().getFullYear());
@@ -1945,44 +1946,109 @@ export default function DashboardPage() {
 
                         {/* Histórico de Vendas */}
                         <div className="mt-12 space-y-4">
-                            <h3 className="text-zinc-500 text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
-                                <History size={12} className="text-[#39FF14]" /> Histórico Recente de Vendas
-                            </h3>
-                            <div className="bg-zinc-950 border border-zinc-900 rounded-[32px] overflow-hidden">
+                            <div className="flex justify-between items-center">
+                                <h3 className="text-zinc-500 text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                                    <History size={12} className="text-[#39FF14]" /> Histórico Recente de Vendas
+                                </h3>
+                                {sales.length > 0 && (
+                                    <button
+                                        onClick={() => {
+                                            const printContent = `
+                                                <html><head><title>Relatório de Vendas - Libera Sports</title>
+                                                <style>
+                                                    * { margin: 0; padding: 0; box-sizing: border-box; }
+                                                    body { font-family: Arial, sans-serif; padding: 24px; color: #111; }
+                                                    h1 { font-size: 20px; margin-bottom: 4px; }
+                                                    .sub { font-size: 11px; color: #888; margin-bottom: 20px; }
+                                                    table { width: 100%; border-collapse: collapse; font-size: 11px; }
+                                                    th { background: #111; color: #fff; text-align: left; padding: 8px 10px; font-size: 9px; text-transform: uppercase; letter-spacing: 1px; }
+                                                    td { padding: 8px 10px; border-bottom: 1px solid #eee; }
+                                                    .total-row { font-weight: bold; background: #f5f5f5; }
+                                                    .total-row td { border-top: 2px solid #111; }
+                                                    .right { text-align: right; }
+                                                    .green { color: #16a34a; }
+                                                </style></head><body>
+                                                <h1>LIBERA SPORTS</h1>
+                                                <p class="sub">Relatório de Vendas • Gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}</p>
+                                                <table>
+                                                    <thead><tr><th>Venda</th><th>Data</th><th>Itens</th><th>Pagamento</th><th class="right">Valor</th></tr></thead>
+                                                    <tbody>
+                                                        ${sales.map((s: any) => `<tr>
+                                                            <td>${s.sale_number}</td>
+                                                            <td>${new Date(s.created_at).toLocaleDateString('pt-BR')}</td>
+                                                            <td>${s.items?.map((i: any) => `${i.quantity}x ${i.name}`).join(', ')}</td>
+                                                            <td>${s.payment_method || '-'}</td>
+                                                            <td class="right">R$ ${s.total?.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                                                        </tr>`).join('')}
+                                                        <tr class="total-row">
+                                                            <td colspan="4">TOTAL (${sales.length} vendas)</td>
+                                                            <td class="right green">R$ ${sales.reduce((a: number, s: any) => a + (s.total || 0), 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                                </body></html>`;
+                                            const w = window.open('', '_blank');
+                                            if (w) { w.document.write(printContent); w.document.close(); w.print(); }
+                                        }}
+                                        className="text-[9px] font-black uppercase tracking-widest text-zinc-500 hover:text-[#39FF14] transition-colors flex items-center gap-1.5 px-3 py-2 rounded-xl border border-zinc-800 hover:border-[#39FF14]/50"
+                                    >
+                                        <FileText size={12} /> Relatório PDF
+                                    </button>
+                                )}
+                            </div>
+                            <div className="bg-zinc-950 border border-zinc-900 rounded-2xl md:rounded-[32px] overflow-hidden">
                                 {sales.length === 0 ? (
                                     <div className="p-12 text-center text-zinc-700 font-bold uppercase text-[10px] tracking-widest italic">Nenhuma venda registrada até o momento</div>
                                 ) : (
                                     <div className="divide-y divide-zinc-900">
-                                        {sales.map(sale => (
-                                            <div key={sale.id} className="p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:bg-zinc-900/30 transition-colors">
-                                                <div className="space-y-1">
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="text-[10px] font-black uppercase tracking-widest text-[#39FF14]">{sale.sale_number}</span>
-                                                        <span className="text-[10px] text-zinc-600 font-bold">•</span>
-                                                        <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">{new Date(sale.created_at).toLocaleString('pt-BR')}</span>
+                                        {sales.map(sale => {
+                                            const isExpanded = expandedSaleIds[sale.id];
+                                            const summary = sale.items?.map((i: any) => `${i.quantity}x ${i.name}`).join(', ') || '';
+                                            return (
+                                                <div key={sale.id} className="p-4 md:p-6 hover:bg-zinc-900/30 transition-colors">
+                                                    <div className="flex justify-between items-start gap-3">
+                                                        <div className="flex-1 min-w-0 cursor-pointer" onClick={() => setExpandedSaleIds(prev => ({ ...prev, [sale.id]: !prev[sale.id] }))}>
+                                                            <div className="flex items-center gap-2 flex-wrap">
+                                                                <span className="text-[10px] font-black uppercase tracking-widest text-[#39FF14]">{sale.sale_number}</span>
+                                                                <span className="text-[10px] text-zinc-600 font-bold">•</span>
+                                                                <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">{new Date(sale.created_at).toLocaleDateString('pt-BR')}</span>
+                                                                <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-600">{sale.payment_method}</span>
+                                                            </div>
+                                                            {!isExpanded ? (
+                                                                <p className="text-[11px] font-bold text-zinc-300 italic mt-1 line-clamp-1">
+                                                                    {summary}
+                                                                </p>
+                                                            ) : (
+                                                                <div className="mt-2 space-y-1.5">
+                                                                    {sale.items?.map((item: any, idx: number) => (
+                                                                        <div key={idx} className="flex justify-between items-center text-[11px] bg-zinc-900/50 rounded-xl px-3 py-2">
+                                                                            <span className="font-bold text-white">{item.quantity}x {item.name}</span>
+                                                                            <span className="font-bold text-zinc-400">R$ {(item.price * item.quantity).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            )}
+                                                            <p className="text-[9px] text-zinc-600 mt-1">
+                                                                {isExpanded ? 'Toque para fechar' : 'Toque para ver detalhes'}
+                                                            </p>
+                                                        </div>
+                                                        <div className="flex items-center gap-2 shrink-0">
+                                                            <p className="text-base md:text-xl font-black text-white tabular-nums">
+                                                                R$ {sale.total?.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                                            </p>
+                                                            <button
+                                                                onClick={() => handleDeleteSale(sale.id)}
+                                                                disabled={loading}
+                                                                className="bg-red-500/10 text-red-500 p-2.5 rounded-xl hover:bg-red-500 hover:text-white transition-all disabled:opacity-50"
+                                                                title="Excluir Venda"
+                                                            >
+                                                                <Trash2 size={14} />
+                                                            </button>
+                                                        </div>
                                                     </div>
-                                                    <p className="text-sm font-black text-white italic">
-                                                        {sale.items?.map((i: any) => `${i.quantity}x ${i.name}`).join(', ')}
-                                                    </p>
-                                                    <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">
-                                                        {sale.payment_method}
-                                                    </p>
                                                 </div>
-                                                <div className="flex items-center gap-6 w-full md:w-auto mt-4 md:mt-0">
-                                                    <p className="text-xl font-black text-white tabular-nums">
-                                                        R$ {sale.total?.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                                                    </p>
-                                                    <button
-                                                        onClick={() => handleDeleteSale(sale.id)}
-                                                        disabled={loading}
-                                                        className="bg-red-500/10 text-red-500 p-3 rounded-2xl hover:bg-red-500 hover:text-white transition-all disabled:opacity-50"
-                                                        title="Excluir Venda e Estornar Estoque"
-                                                    >
-                                                        <Trash2 size={16} />
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        ))}
+                                            );
+                                        })}
                                     </div>
                                 )}
                             </div>
