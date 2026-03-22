@@ -1976,7 +1976,7 @@ export default function DashboardPage() {
                                                         ${sales.map((s: any) => `<tr>
                                                             <td>${s.sale_number}</td>
                                                             <td>${new Date(s.created_at).toLocaleDateString('pt-BR')}</td>
-                                                            <td>${s.items?.map((i: any) => `${i.quantity}x ${i.name}`).join(', ')}</td>
+                                                            <td>${s.items?.map((i: any) => `${i.quantity}x ${i.name}`).join('<br>')}</td>
                                                             <td>${s.payment_method || '-'}</td>
                                                             <td class="right">R$ ${s.total?.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                                                         </tr>`).join('')}
