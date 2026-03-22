@@ -1289,20 +1289,20 @@ export default function DashboardPage() {
 
             {/* Tab Navigation (visible when NOT on HOME) */}
             {activeTab !== 'HOME' && (
-                <div className="max-w-5xl mx-auto px-6 mt-6">
-                    <div className="flex flex-wrap gap-2 p-1 bg-zinc-950 rounded-2xl border border-zinc-900">
+                <div className="max-w-5xl mx-auto px-4 md:px-6 mt-4 md:mt-6">
+                    <div className="flex gap-1.5 p-1 bg-zinc-950 rounded-2xl border border-zinc-900 overflow-x-auto mask-fade">
                         <button
                             onClick={() => setActiveTab('HOME')}
-                            className="flex items-center gap-2 px-4 py-3 rounded-xl font-black uppercase text-[10px] tracking-widest transition-all text-zinc-500 hover:text-white hover:bg-zinc-900"
+                            className="flex items-center gap-1 px-3 py-2.5 rounded-xl font-black uppercase text-[9px] tracking-widest transition-all text-zinc-500 hover:text-white hover:bg-zinc-900 shrink-0"
                         >
-                            <Home size={14} />
+                            <Home size={12} />
                         </button>
                         {[
                             { id: 'VENDAS', icon: ShoppingCart, label: 'Vendas' },
                             { id: 'PRODUÇÃO', icon: Layers, label: 'Fábrica' },
                             { id: 'ESTOQUE', icon: Box, label: 'Estoque' },
                             { id: 'FINANCEIRO', icon: Wallet, label: 'Financeiro' },
-                            { id: 'CAIXA', icon: DollarSign, label: 'Fluxo de Caixa' }
+                            { id: 'CAIXA', icon: DollarSign, label: 'Caixa' }
                         ].map((tab) => {
                             const Icon = tab.icon;
                             const isActive = activeTab === tab.id;
@@ -1311,14 +1311,14 @@ export default function DashboardPage() {
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id as any)}
                                     className={`
-                                        flex items-center gap-2 px-6 py-3 rounded-xl font-black uppercase text-[10px] tracking-widest transition-all
+                                        flex items-center gap-1.5 px-3 md:px-5 py-2.5 rounded-xl font-black uppercase text-[9px] md:text-[10px] tracking-widest transition-all shrink-0
                                         ${isActive
                                             ? 'bg-[#39FF14] text-black shadow-lg shadow-[#39FF14]/20'
                                             : 'text-zinc-500 hover:text-white hover:bg-zinc-900'
                                         }
                                     `}
                                 >
-                                    <Icon size={14} />
+                                    <Icon size={12} />
                                     {tab.label}
                                 </button>
                             );
@@ -1327,7 +1327,7 @@ export default function DashboardPage() {
                 </div>
             )}
 
-            <main className="max-w-5xl mx-auto p-6 md:p-8">
+            <main className="max-w-5xl mx-auto px-4 py-5 md:p-8">
                 {activeTab === 'PRODUÇÃO' && (
                     <>
                         <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 gap-6">
@@ -1992,18 +1992,18 @@ export default function DashboardPage() {
 
                 {/* =================== FINANCEIRO - Contas a Pagar / Receber =================== */}
                 {activeTab === 'FINANCEIRO' && (
-                    <div className="space-y-6">
-                        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 gap-4">
-                            <div className="pl-1">
-                                <h1 className="text-4xl font-black italic uppercase tracking-tighter">FINANCEIRO</h1>
-                                <p className="text-zinc-500 text-sm mt-1">Gestão de contas a pagar e a receber</p>
+                    <div className="space-y-4 md:space-y-6">
+                        <div className="flex justify-between items-start gap-3">
+                            <div>
+                                <h1 className="text-2xl md:text-4xl font-black italic uppercase tracking-tighter">FINANCEIRO</h1>
+                                <p className="text-zinc-500 text-[11px] md:text-sm mt-0.5">Gestão de contas a pagar e a receber</p>
                             </div>
                             {financeView === 'A PAGAR' && (
                                 <button
                                     onClick={() => setIsFinanceModalOpen(true)}
-                                    className="bg-[#39FF14] text-black px-6 py-3 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:scale-105 transition-all shadow-lg shadow-[#39FF14]/20 flex items-center gap-2"
+                                    className="bg-[#39FF14] text-black px-4 md:px-6 py-2.5 md:py-3 rounded-2xl font-black uppercase text-[9px] md:text-[10px] tracking-widest hover:scale-105 transition-all shadow-lg shadow-[#39FF14]/20 flex items-center gap-1.5 shrink-0"
                                 >
-                                    <Plus size={16} /> Nova Conta a Pagar
+                                    <Plus size={14} /> Nova Conta
                                 </button>
                             )}
                         </div>
@@ -2025,24 +2025,24 @@ export default function DashboardPage() {
                         </div>
 
                         {/* Cards resumo */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-3 gap-2 md:gap-4">
                             {financeView === 'A PAGAR' ? (
                                 <>
-                                    <div className="bg-zinc-950 p-6 rounded-[32px] border border-zinc-900">
-                                        <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest mb-1">Total a Pagar</p>
-                                        <p className="text-3xl font-black text-red-500 tabular-nums">
+                                    <div className="bg-zinc-950 p-3 md:p-6 rounded-2xl md:rounded-[32px] border border-zinc-900">
+                                        <p className="text-zinc-500 text-[8px] md:text-[10px] font-black uppercase tracking-widest mb-0.5">Total a Pagar</p>
+                                        <p className="text-lg md:text-3xl font-black text-red-500 tabular-nums">
                                             R$ {financialItems.filter(i => i.type === 'OUTFLOW' && (i.status === 'A PAGAR' || i.status === 'ATRASADO')).reduce((a: number, i: any) => a + i.amount, 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                         </p>
                                     </div>
-                                    <div className="bg-zinc-950 p-6 rounded-[32px] border border-zinc-900">
-                                        <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest mb-1">Atrasadas</p>
-                                        <p className="text-3xl font-black text-orange-500 tabular-nums">
+                                    <div className="bg-zinc-950 p-3 md:p-6 rounded-2xl md:rounded-[32px] border border-zinc-900">
+                                        <p className="text-zinc-500 text-[8px] md:text-[10px] font-black uppercase tracking-widest mb-0.5">Atrasadas</p>
+                                        <p className="text-lg md:text-3xl font-black text-orange-500 tabular-nums">
                                             {financialItems.filter(i => i.type === 'OUTFLOW' && i.status === 'ATRASADO').length}
                                         </p>
                                     </div>
-                                    <div className="bg-zinc-950 p-6 rounded-[32px] border border-zinc-900">
-                                        <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest mb-1">Pagas este mês</p>
-                                        <p className="text-3xl font-black text-[#39FF14] tabular-nums">
+                                    <div className="bg-zinc-950 p-3 md:p-6 rounded-2xl md:rounded-[32px] border border-zinc-900">
+                                        <p className="text-zinc-500 text-[8px] md:text-[10px] font-black uppercase tracking-widest mb-0.5">Pagas este mês</p>
+                                        <p className="text-lg md:text-3xl font-black text-[#39FF14] tabular-nums">
                                             R$ {financialItems.filter(i => {
                                                 if (i.type !== 'OUTFLOW' || i.status !== 'PAGO' || !i.paid_at) return false;
                                                 const d = new Date(i.paid_at);
@@ -2053,20 +2053,20 @@ export default function DashboardPage() {
                                 </>
                             ) : (
                                 <>
-                                    <div className="bg-zinc-950 p-6 rounded-[32px] border border-zinc-900">
-                                        <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest mb-1">Total a Receber</p>
-                                        <p className="text-3xl font-black text-[#39FF14] tabular-nums">
+                                    <div className="bg-zinc-950 p-3 md:p-6 rounded-2xl md:rounded-[32px] border border-zinc-900">
+                                        <p className="text-zinc-500 text-[8px] md:text-[10px] font-black uppercase tracking-widest mb-0.5">Total a Receber</p>
+                                        <p className="text-lg md:text-3xl font-black text-[#39FF14] tabular-nums">
                                             R$ {financialItems.filter(i => i.type === 'INFLOW' && (i.status === 'A RECEBER' || i.status === 'PENDENTE' || i.status === 'ATRASADO')).reduce((a: number, i: any) => a + i.amount, 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                         </p>
                                     </div>
-                                    <div className="bg-zinc-950 p-6 rounded-[32px] border border-zinc-900">
-                                        <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest mb-1">Atrasadas</p>
-                                        <p className="text-3xl font-black text-orange-500 tabular-nums">
+                                    <div className="bg-zinc-950 p-3 md:p-6 rounded-2xl md:rounded-[32px] border border-zinc-900">
+                                        <p className="text-zinc-500 text-[8px] md:text-[10px] font-black uppercase tracking-widest mb-0.5">Atrasadas</p>
+                                        <p className="text-lg md:text-3xl font-black text-orange-500 tabular-nums">
                                             {financialItems.filter(i => i.type === 'INFLOW' && i.status === 'ATRASADO').length}
                                         </p>
                                     </div>
-                                    <div className="bg-zinc-950 p-6 rounded-[32px] border border-zinc-900">
-                                        <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest mb-1">Recebidas este mês</p>
+                                    <div className="bg-zinc-950 p-3 md:p-6 rounded-2xl md:rounded-[32px] border border-zinc-900">
+                                        <p className="text-zinc-500 text-[8px] md:text-[10px] font-black uppercase tracking-widest mb-0.5">Recebidas este mês</p>
                                         <p className="text-3xl font-black text-[#39FF14] tabular-nums">
                                             R$ {financialItems.filter(i => {
                                                 if (i.type !== 'INFLOW' || (i.status !== 'RECEBIDO' && i.status !== 'PAGO') || !i.paid_at) return false;
@@ -2080,10 +2080,10 @@ export default function DashboardPage() {
                         </div>
 
                         {/* Lista de contas */}
-                        <div className="bg-zinc-950 border border-zinc-900 rounded-[32px] overflow-hidden">
-                            <div className="p-6 border-b border-zinc-900 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                                <h3 className="text-zinc-500 text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
-                                    {financeView === 'A PAGAR' ? <><ArrowDownLeft size={12} /> Contas a Pagar</> : <><ArrowUpRight size={12} /> Contas a Receber</>}
+                        <div className="bg-zinc-950 border border-zinc-900 rounded-2xl md:rounded-[32px] overflow-hidden">
+                            <div className="p-4 md:p-6 border-b border-zinc-900 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+                                <h3 className="text-zinc-500 text-[9px] md:text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                                    {financeView === 'A PAGAR' ? <><ArrowDownLeft size={11} /> Contas a Pagar</> : <><ArrowUpRight size={11} /> Contas a Receber</>}
                                 </h3>
                                 <div className="flex flex-wrap items-center gap-2">
                                     <select
@@ -2130,27 +2130,27 @@ export default function DashboardPage() {
                                     }
 
                                     return filtered.map(item => (
-                                        <div key={item.id} className="p-6 flex flex-col md:flex-row items-start md:items-center justify-between hover:bg-zinc-900/50 transition-colors gap-4">
-                                            <div className="flex items-center gap-4 w-full md:w-auto">
-                                                <div className={`p-3 rounded-2xl shrink-0 ${item.type === 'INFLOW' ? 'bg-[#39FF14]/10 text-[#39FF14]' : 'bg-red-500/10 text-red-500'}`}>
-                                                    {item.type === 'INFLOW' ? <ArrowUpRight size={20} /> : <ArrowDownLeft size={20} />}
+                                        <div key={item.id} className="p-4 md:p-6 flex flex-col md:flex-row items-start md:items-center justify-between hover:bg-zinc-900/50 transition-colors gap-3 md:gap-4">
+                                            <div className="flex items-center gap-3 w-full md:w-auto">
+                                                <div className={`p-2 md:p-3 rounded-xl md:rounded-2xl shrink-0 ${item.type === 'INFLOW' ? 'bg-[#39FF14]/10 text-[#39FF14]' : 'bg-red-500/10 text-red-500'}`}>
+                                                    {item.type === 'INFLOW' ? <ArrowUpRight size={16} /> : <ArrowDownLeft size={16} />}
                                                 </div>
-                                                <div className="flex-1">
-                                                    <p className="text-sm font-black text-white uppercase">{item.description}</p>
-                                                    <p className="text-[10px] text-zinc-500 font-bold uppercase">
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-[12px] md:text-sm font-black text-white uppercase truncate">{item.description}</p>
+                                                    <p className="text-[9px] md:text-[10px] text-zinc-500 font-semibold uppercase">
                                                         Venc: {new Date(item.due_date || item.transaction_date || item.created_at).toLocaleDateString('pt-BR')}
-                                                        {item.payment_method && <span className="ml-2 text-zinc-600">• {item.payment_method}</span>}
+                                                        {item.payment_method && <span className="ml-1.5 text-zinc-600">• {item.payment_method}</span>}
                                                     </p>
-                                                    {item.observations && <p className="text-[10px] text-zinc-600 italic mt-1">{item.observations}</p>}
+                                                    {item.observations && <p className="text-[9px] text-zinc-600 italic mt-0.5 truncate">{item.observations}</p>}
                                                 </div>
                                             </div>
 
-                                            <div className="flex items-center justify-between w-full md:w-auto md:justify-end gap-4 shrink-0">
+                                            <div className="flex items-center justify-between w-full md:w-auto md:justify-end gap-3 shrink-0 pl-10 md:pl-0">
                                                 <div className="text-right">
-                                                    <p className={`text-lg font-black ${item.type === 'INFLOW' ? 'text-[#39FF14]' : 'text-red-500'}`}>
+                                                    <p className={`text-base md:text-lg font-black ${item.type === 'INFLOW' ? 'text-[#39FF14]' : 'text-red-500'}`}>
                                                         {item.type === 'INFLOW' ? '+' : '-'} R$ {item.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                                     </p>
-                                                    <div className="flex justify-end mt-1 gap-2 items-center">
+                                                    <div className="flex justify-end mt-1 gap-1.5 items-center">
                                                         {item.status === 'PAGO' || item.status === 'RECEBIDO' ? (
                                                             <span className="text-[8px] font-black uppercase px-3 py-1 rounded-full bg-green-500/20 text-green-400">
                                                                 {item.status} {item.paid_at ? `em ${new Date(item.paid_at).toLocaleDateString('pt-BR')}` : ''}
