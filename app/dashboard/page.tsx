@@ -1051,7 +1051,11 @@ export default function DashboardPage() {
                         <div class="section-title">Grade / Descrição</div>
                         <div class="description-box">${order.description}</div>
                         ${(() => {
-                            const linkedSale = order.linked_sale_id ? sales.find((s: any) => s.id === order.linked_sale_id) : null;
+                            let linkedSale = order.linked_sale_id ? sales.find((s: any) => s.id === order.linked_sale_id) : null;
+                            if (!linkedSale && order.description) {
+                                const match = order.description.match(/\\[Vinculado à (VENDA-\\d+)\\]/);
+                                if (match) linkedSale = sales.find((s: any) => s.sale_number === match[1]);
+                            }
                             if (!linkedSale?.items?.length) return '';
                             return `<div style="margin-top: 8px; background: #f0f0f0; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
                                 <div style="font-size: 8px; font-weight: 800; text-transform: uppercase; color: #888; margin-bottom: 6px;">Itens da Venda Vinculada (${linkedSale.sale_number})</div>
