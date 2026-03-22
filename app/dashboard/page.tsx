@@ -1474,7 +1474,7 @@ export default function DashboardPage() {
                                     }
 
                                     return (
-                                        <div key={order.id} className={`bg-[#0a0a0a] rounded-[32px] p-6 border transition-all group relative overflow-hidden ${order.status === 'PENDÊNCIA' ? 'border-red-500/30' : 'border-zinc-900 hover:border-zinc-800'}`}>
+                                        <div key={order.id} className={`bg-[#0a0a0a] rounded-2xl md:rounded-[32px] p-4 md:p-6 border transition-all group relative overflow-hidden ${order.status === 'PENDÊNCIA' ? 'border-red-500/30' : 'border-zinc-900 hover:border-zinc-800'}`}>
                                             {order.status === 'PEDIDO ENTREGUE' && (
                                                 <button
                                                     onClick={() => setExpandedOrderIds(prev => ({ ...prev, [order.id]: false }))}
@@ -1485,36 +1485,36 @@ export default function DashboardPage() {
                                             )}
                                             <div className="flex flex-col md:flex-row justify-between gap-6">
                                                 <div className="flex-grow">
-                                                    <div className="flex flex-wrap items-center gap-3 mb-4">
-                                                        <span className="text-zinc-600 text-[10px] font-black uppercase tracking-widest">
+                                                    <div className="flex flex-wrap items-center gap-1.5 mb-3">
+                                                        <span className="text-zinc-600 text-[9px] font-black uppercase tracking-widest">
                                                             {order.order_number || `#${order.id.slice(0, 5).toUpperCase()}`}
                                                         </span>
-                                                        <span className="bg-zinc-900 text-zinc-400 px-2 py-1 rounded text-[9px] font-bold flex items-center gap-1">
-                                                            <Clock size={10} /> CRIADO EM: {new Date(order.created_at).toLocaleDateString('pt-BR')}
+                                                        <span className="bg-zinc-900 text-zinc-400 px-1.5 py-0.5 rounded text-[8px] font-bold flex items-center gap-1">
+                                                            <Clock size={8} /> {new Date(order.created_at).toLocaleDateString('pt-BR')}
                                                         </span>
-                                                        <span className="bg-zinc-900 text-zinc-400 px-2 py-1 rounded text-[9px] font-bold flex items-center gap-1">
-                                                            <Calendar size={10} /> ENTREGA: {order.deadline.split('-').reverse().join('/')}
+                                                        <span className="bg-zinc-900 text-zinc-400 px-1.5 py-0.5 rounded text-[8px] font-bold flex items-center gap-1">
+                                                            <Calendar size={8} /> {order.deadline.split('-').reverse().join('/')}
                                                         </span>
-                                                        <span className="bg-zinc-900 text-[#39FF14] px-2 py-1 rounded text-[9px] font-bold flex items-center gap-1 uppercase">
-                                                            <Truck size={10} /> {order.delivery_method}
+                                                        <span className="bg-zinc-900 text-[#39FF14] px-1.5 py-0.5 rounded text-[8px] font-bold flex items-center gap-1 uppercase">
+                                                            <Truck size={8} /> {order.delivery_method}
                                                         </span>
-                                                        <span className="bg-zinc-900 text-orange-500 px-2 py-1 rounded text-[9px] font-bold flex items-center gap-1 uppercase">
-                                                            <TrendingUp size={10} /> {order.payment_method || 'PIX'}
+                                                        <span className="bg-zinc-900 text-orange-500 px-1.5 py-0.5 rounded text-[8px] font-bold flex items-center gap-1 uppercase">
+                                                            <TrendingUp size={8} /> {order.payment_method || 'PIX'}
                                                         </span>
                                                     </div>
 
                                                     <div className="flex-1">
-                                                        <div className="flex items-center justify-between mb-4">
-                                                            <div className="flex items-center gap-4">
-                                                                <div className="bg-zinc-950 p-4 rounded-2xl border border-zinc-900 group-hover:border-white/30 transition-all shadow-inner">
-                                                                    <User className="text-[#39FF14]" size={24} />
+                                                        <div className="flex items-center justify-between mb-4 gap-2">
+                                                            <div className="flex items-center gap-3 min-w-0 flex-1">
+                                                                <div className="bg-zinc-950 p-3 rounded-xl border border-zinc-900 group-hover:border-white/30 transition-all shadow-inner shrink-0">
+                                                                    <User className="text-[#39FF14]" size={18} />
                                                                 </div>
-                                                                <div>
-                                                                    <div className="flex items-center gap-3">
-                                                                        <h3 className="text-2xl font-black tracking-tighter text-white uppercase italic">
+                                                                <div className="min-w-0 flex-1">
+                                                                    <div className="flex items-center gap-2 flex-wrap">
+                                                                        <h3 className="text-sm md:text-2xl font-black tracking-tighter text-white uppercase italic break-words">
                                                                             {order.client}
                                                                         </h3>
-                                                                        <div className="flex items-center gap-1">
+                                                                        <div className="flex items-center gap-1 shrink-0">
                                                                             {order.client_whatsapp && (
                                                                                 <a
                                                                                     href={`https://wa.me/${order.client_whatsapp.replace(/\D/g, '')}`}
@@ -1546,20 +1546,20 @@ export default function DashboardPage() {
                                                                     </div>
                                                                 </div>
                                                             </div>
-                                                            <div className="flex items-center gap-2">
+                                                            <div className="flex items-center gap-1.5 shrink-0">
                                                                 <button
                                                                     onClick={() => handlePrintOrder(order)}
-                                                                    className="p-3 rounded-xl bg-zinc-950 border border-zinc-900 text-zinc-700 hover:text-[#39FF14] hover:border-[#39FF14]/30 transition-all"
+                                                                    className="p-2 md:p-3 rounded-lg md:rounded-xl bg-zinc-950 border border-zinc-900 text-zinc-700 hover:text-[#39FF14] hover:border-[#39FF14]/30 transition-all"
                                                                     title="Gerar PDF / Imprimir"
                                                                 >
-                                                                    <FileText size={16} />
+                                                                    <FileText size={14} />
                                                                 </button>
                                                                 <button
                                                                     onClick={() => handleDeleteOrder(order.id, order.order_number)}
-                                                                    className="p-3 rounded-xl bg-zinc-950 border border-zinc-900 text-zinc-700 hover:text-[#FF3D00] hover:border-[#FF3D00]/30 transition-all"
+                                                                    className="p-2 md:p-3 rounded-lg md:rounded-xl bg-zinc-950 border border-zinc-900 text-zinc-700 hover:text-[#FF3D00] hover:border-[#FF3D00]/30 transition-all"
                                                                     title="Excluir Pedido"
                                                                 >
-                                                                    <Trash2 size={16} />
+                                                                    <Trash2 size={14} />
                                                                 </button>
                                                             </div>
                                                         </div>
@@ -1576,8 +1576,8 @@ export default function DashboardPage() {
                                                     </div>
 
                                                     {/* Visual Stepper */}
-                                                    <div className="mb-10 mt-6 px-2 overflow-x-auto pb-8 mask-fade">
-                                                        <div className="relative flex justify-between items-center h-1 bg-zinc-900 rounded-full min-w-[700px] mx-4">
+                                                    <div className="mb-8 mt-4 md:mt-6 px-0 overflow-x-auto pb-6 mask-fade">
+                                                        <div className="relative flex justify-between items-center h-1 bg-zinc-900 rounded-full min-w-[550px] mx-2">
                                                             {/* Progress Line */}
                                                             <div
                                                                 className="absolute left-0 top-0 h-full bg-[#39FF14] rounded-full transition-all duration-500 shadow-[0_0_10px_rgba(57,255,20,0.5)]"
