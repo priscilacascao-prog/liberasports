@@ -1236,7 +1236,8 @@ export default function DashboardPage() {
                     "Transformamos tecido em identidade.",
                     "Seja a energia que você quer atrair.",
                     "Quando parece impossível, é porque está perto de acontecer.",
-                    "De Goiânia para o mundo. Sem limites."
+                    "De Goiânia para o mundo. Sem limites.",
+                    "Seja mais forte que sua melhor desculpa."
                 ];
                 const todayIndex = Math.floor(Date.now() / 86400000) % phrases.length;
                 const phrase = phrases[todayIndex];
