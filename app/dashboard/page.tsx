@@ -331,8 +331,8 @@ export default function DashboardPage() {
         toast.success(`${qty}x ${product.name} adicionado!`);
     };
 
-    const updateCartQuantity = (id: string, newQty: number, maxStock: number) => {
-        if (newQty <= 0) {
+    const updateCartQuantity = (id: string, newQty: number, maxStock: number, fromButton: boolean = false) => {
+        if (fromButton && newQty <= 0) {
             setCart(cart.filter(item => item.id !== id));
             return;
         }
@@ -340,7 +340,7 @@ export default function DashboardPage() {
             toast.error(`Estoque máximo: ${maxStock}`);
             return;
         }
-        setCart(cart.map(item => item.id === id ? { ...item, quantity: newQty } : item));
+        setCart(cart.map(item => item.id === id ? { ...item, quantity: Math.max(newQty, 0) } : item));
     };
 
     const removeFromCart = (id: string) => {
@@ -1875,17 +1875,29 @@ export default function DashboardPage() {
                                                 </div>
                                                 <div className="flex items-center gap-1.5 shrink-0">
                                                     <button
-                                                        onClick={() => updateCartQuantity(item.id, item.quantity - 1, item.stock)}
+                                                        onClick={() => updateCartQuantity(item.id, item.quantity - 1, item.stock, true)}
                                                         className="w-7 h-7 rounded-lg bg-zinc-800 text-white font-black text-sm flex items-center justify-center hover:bg-zinc-700 transition-colors"
                                                     >−</button>
                                                     <input
                                                         type="number"
-                                                        value={item.quantity}
-                                                        onChange={e => updateCartQuantity(item.id, parseInt(e.target.value) || 0, item.stock)}
+                                                        value={item.quantity || ''}
+                                                        onChange={e => {
+                                                            const val = e.target.value;
+                                                            if (val === '') {
+                                                                setCart(cart.map(c => c.id === item.id ? { ...c, quantity: 0 } : c));
+                                                            } else {
+                                                                updateCartQuantity(item.id, parseInt(val), item.stock);
+                                                            }
+                                                        }}
+                                                        onBlur={() => {
+                                                            if (item.quantity <= 0) {
+                                                                updateCartQuantity(item.id, 1, item.stock);
+                                                            }
+                                                        }}
                                                         className="w-10 h-7 rounded-lg bg-zinc-900 border border-zinc-800 text-white text-center text-[11px] font-black outline-none focus:border-[#39FF14]"
                                                     />
                                                     <button
-                                                        onClick={() => updateCartQuantity(item.id, item.quantity + 1, item.stock)}
+                                                        onClick={() => updateCartQuantity(item.id, item.quantity + 1, item.stock, true)}
                                                         className="w-7 h-7 rounded-lg bg-zinc-800 text-white font-black text-sm flex items-center justify-center hover:bg-zinc-700 transition-colors"
                                                     >+</button>
                                                     <button onClick={() => removeFromCart(item.id)} className="w-7 h-7 rounded-lg text-zinc-700 hover:text-red-500 hover:bg-red-500/10 flex items-center justify-center transition-all">
