@@ -1247,24 +1247,25 @@ export default function DashboardPage() {
                 return (
                     <div className="max-w-5xl mx-auto px-6 flex flex-col items-center justify-center" style={{ minHeight: 'calc(100vh - 65px)' }}>
                         {/* Módulos */}
-                        <div className="w-full mb-16 animate-fade-in-up">
-                            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                        <div className="w-full mb-12 md:mb-16 animate-fade-in-up">
+                            <div className="grid grid-cols-3 gap-2.5 md:gap-3 max-w-md md:max-w-2xl mx-auto">
                                 {[
+                                    { id: 'HOME', icon: Home, label: 'Início', color: 'group-hover:text-white' },
                                     { id: 'VENDAS', icon: ShoppingCart, label: 'Vendas', color: 'group-hover:text-blue-400' },
                                     { id: 'PRODUÇÃO', icon: Layers, label: 'Fábrica', color: 'group-hover:text-[#39FF14]' },
                                     { id: 'ESTOQUE', icon: Box, label: 'Estoque', color: 'group-hover:text-purple-400' },
                                     { id: 'FINANCEIRO', icon: Wallet, label: 'Financeiro', color: 'group-hover:text-orange-400' },
-                                    { id: 'CAIXA', icon: DollarSign, label: 'Fluxo de Caixa', color: 'group-hover:text-emerald-400' },
+                                    { id: 'CAIXA', icon: DollarSign, label: 'Caixa', color: 'group-hover:text-emerald-400' },
                                 ].map((mod) => {
                                     const Icon = mod.icon;
                                     return (
                                         <button
                                             key={mod.id}
                                             onClick={() => setActiveTab(mod.id as any)}
-                                            className="group bg-zinc-950 border border-zinc-900 rounded-2xl p-5 flex flex-col items-center gap-3 hover:border-zinc-700 hover:bg-zinc-900/50 transition-all hover:scale-[1.03] active:scale-95"
+                                            className="group bg-zinc-950 border border-zinc-900 rounded-2xl py-4 px-2 flex flex-col items-center gap-2 hover:border-zinc-700 hover:bg-zinc-900/50 transition-all hover:scale-[1.03] active:scale-95"
                                         >
-                                            <Icon size={22} className={`text-zinc-600 transition-colors ${mod.color}`} />
-                                            <span className="text-[9px] font-black uppercase tracking-widest text-zinc-500 group-hover:text-white transition-colors">
+                                            <Icon size={20} className={`text-zinc-600 transition-colors ${mod.color}`} />
+                                            <span className="text-[10px] font-black uppercase tracking-wider text-zinc-500 group-hover:text-white transition-colors">
                                                 {mod.label}
                                             </span>
                                         </button>
@@ -1311,7 +1312,7 @@ export default function DashboardPage() {
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id as any)}
                                     className={`
-                                        flex items-center gap-1.5 px-3 md:px-5 py-2.5 rounded-xl font-black uppercase text-[9px] md:text-[10px] tracking-widest transition-all shrink-0
+                                        flex items-center gap-1.5 px-3.5 md:px-5 py-2.5 rounded-xl font-black uppercase text-[10px] md:text-[11px] tracking-wider transition-all shrink-0
                                         ${isActive
                                             ? 'bg-[#39FF14] text-black shadow-lg shadow-[#39FF14]/20'
                                             : 'text-zinc-500 hover:text-white hover:bg-zinc-900'
@@ -1819,7 +1820,7 @@ export default function DashboardPage() {
                     <div className="space-y-6">
                         <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 gap-4">
                             <div className="pl-1">
-                                <h1 className="text-4xl font-black italic uppercase tracking-tighter">PDV / CHECKOUT</h1>
+                                <h1 className="text-2xl md:text-4xl font-black italic uppercase tracking-tighter">CHECKOUT</h1>
                                 <p className="text-zinc-500 text-sm mt-1">Registro rápido de vendas</p>
                             </div>
                         </div>
