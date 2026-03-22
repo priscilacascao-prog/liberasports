@@ -220,12 +220,18 @@ export default function DashboardPage() {
         return () => unsubscribe();
     }, [authChecking]);
 
-    // Auto-mark overdue financial items as ATRASADO
+    // Auto-mark overdue financial items as ATRASADO (runs once on load)
+    const overdueCheckedRef = React.useRef(false);
     useEffect(() => {
+        if (overdueCheckedRef.current || financialItems.length === 0) return;
+        overdueCheckedRef.current = true;
         const today = new Date().toISOString().split('T')[0];
         financialItems.forEach(item => {
-            if ((item.status === 'A PAGAR' || item.status === 'A RECEBER' || item.status === 'PENDENTE') && item.due_date && item.due_date < today) {
-                handleUpdateFinanceEntry(item.id, { status: 'ATRASADO' });
+            if ((item.status === 'A PAGAR' || item.status === 'A RECEBER' || item.status === 'PENDENTE') && item.due_date) {
+                const dueDatePart = item.due_date.split('T')[0];
+                if (dueDatePart < today) {
+                    handleUpdateFinanceEntry(item.id, { status: 'ATRASADO' });
+                }
             }
         });
     }, [financialItems]);
@@ -2158,9 +2164,12 @@ export default function DashboardPage() {
                                                     </div>
                                                 </div>
                                                 <button onClick={async () => {
-                                                    if (confirm('Tem certeza que deseja excluir esta conta?')) {
+                                                    try {
                                                         await deleteDoc(doc(db, financeCollectionPath, item.id));
                                                         toast.success('Conta excluída!');
+                                                    } catch (err) {
+                                                        console.error('Erro ao excluir:', err);
+                                                        toast.error('Erro ao excluir conta');
                                                     }
                                                 }} className="text-zinc-600 hover:text-red-500 transition-colors p-2" title="Excluir conta">
                                                     <Trash2 size={18} />
