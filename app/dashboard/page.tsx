@@ -976,82 +976,33 @@ export default function DashboardPage() {
                     <title>Pedido ${order.order_number} - Libera Sports</title>
                     <style>
                         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
-                        body { 
-                            font-family: 'Inter', sans-serif; 
-                            padding: 40px; 
-                            color: #111;
-                            background: white;
-                        }
-                        .header {
-                            display: flex;
-                            justify-content: space-between;
-                            align-items: center;
-                            border-bottom: 3px solid #111;
-                            padding-bottom: 20px;
-                            margin-bottom: 40px;
-                        }
-                        .stepper { display: flex; align-items: center; margin: 30px 0; gap: 0; }
+                        * { margin: 0; padding: 0; box-sizing: border-box; }
+                        body { font-family: 'Inter', sans-serif; padding: 24px; color: #111; background: white; }
+                        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #111; padding-bottom: 12px; margin-bottom: 20px; }
+                        .logo { font-size: 22px; font-weight: 900; font-style: italic; }
+                        .os-title { text-align: right; }
+                        .os-title h1 { font-size: 16px; font-weight: 900; }
+                        .os-title p { font-size: 10px; color: #666; font-weight: 700; margin-top: 2px; }
+                        .section { margin-bottom: 16px; }
+                        .section-title { font-size: 9px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.1em; color: #666; margin-bottom: 6px; border-bottom: 1px solid #eee; padding-bottom: 3px; }
+                        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+                        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+                        .info-block { margin-bottom: 8px; }
+                        .info-label { font-size: 8px; font-weight: 700; color: #999; text-transform: uppercase; }
+                        .info-value { font-size: 13px; font-weight: 700; margin-top: 1px; }
+                        .description-box { background: #f9f9f9; padding: 12px; border-radius: 8px; white-space: pre-wrap; font-size: 11px; line-height: 1.5; border: 1px solid #eee; }
+                        .footer { margin-top: 20px; padding-top: 10px; border-top: 1px solid #eee; font-size: 8px; color: #999; text-align: center; }
+                        .stepper { display: flex; align-items: center; margin: 16px 0; }
                         .step { display: flex; flex-direction: column; align-items: center; flex: 1; position: relative; }
-                        .step-dot { width: 14px; height: 14px; border-radius: 50%; border: 2px solid #ddd; background: #fff; z-index: 1; }
+                        .step-dot { width: 12px; height: 12px; border-radius: 50%; border: 2px solid #ddd; background: #fff; z-index: 1; }
                         .step-dot.completed { background: #111; border-color: #111; }
-                        .step-dot.current { background: #111; border-color: #111; box-shadow: 0 0 0 3px #ccc; }
-                        .step-label { font-size: 7px; font-weight: 800; text-transform: uppercase; color: #bbb; margin-top: 6px; text-align: center; letter-spacing: 0.5px; }
+                        .step-dot.current { background: #f97316; border-color: #f97316; box-shadow: 0 0 0 3px #fed7aa; }
+                        .step-label { font-size: 6px; font-weight: 800; text-transform: uppercase; color: #ccc; margin-top: 4px; text-align: center; }
                         .step-label.completed { color: #111; }
-                        .step-label.current { color: #111; font-weight: 900; }
-                        .step-line { flex: 1; height: 2px; background: #ddd; margin-top: -7px; z-index: 0; }
+                        .step-label.current { color: #f97316; font-weight: 900; }
+                        .step-line { flex: 1; height: 2px; background: #ddd; margin-top: -6px; z-index: 0; }
                         .step-line.completed { background: #111; }
-                        .logo { 
-                            font-size: 32px; 
-                            font-weight: 900; 
-                            font-style: italic;
-                            color: black;
-                        }
-                        .os-title {
-                            text-align: right;
-                        }
-                        .os-title h1 { margin: 0; font-size: 24px; font-weight: 900; }
-                        .os-title p { margin: 5px 0 0; font-size: 12px; color: #666; font-weight: 700; }
-                        
-                        .section { margin-bottom: 30px; }
-                        .section-title { 
-                            font-size: 10px; 
-                            font-weight: 900; 
-                            text-transform: uppercase; 
-                            letter-spacing: 0.1em;
-                            color: #666;
-                            margin-bottom: 10px;
-                            border-bottom: 1px solid #eee;
-                            padding-bottom: 5px;
-                        }
-                        
-                        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-                        .info-block { margin-bottom: 15px; }
-                        .info-label { font-size: 10px; font-weight: 700; color: #999; text-transform: uppercase; }
-                        .info-value { font-size: 16px; font-weight: 700; margin-top: 2px; }
-                        
-                        .description-box {
-                            background: #f9f9f9;
-                            padding: 20px;
-                            border-radius: 10px;
-                            white-space: pre-wrap;
-                            font-size: 14px;
-                            line-height: 1.6;
-                            border: 1px solid #eee;
-                        }
-                        
-                        .footer {
-                            margin-top: 60px;
-                            padding-top: 20px;
-                            border-top: 1px solid #eee;
-                            font-size: 10px;
-                            color: #999;
-                            text-align: center;
-                        }
-
-                        @media print {
-                            body { padding: 20px; }
-                            button { display: none; }
-                        }
+                        @media print { body { padding: 16px; } button { display: none; } @page { margin: 10mm; } }
                     </style>
                 </head>
                 <body>
@@ -1078,31 +1029,31 @@ export default function DashboardPage() {
                     </div>
 
                     <div class="section">
-                        <div class="section-title">Detalhes da Entrega</div>
-                        <div class="grid">
+                        <div class="section-title">Detalhes do Pedido</div>
+                        <div class="grid-3">
                             <div class="info-block">
-                                <div class="info-label">📅 Data de Entrega</div>
+                                <div class="info-label">Data de Entrega</div>
                                 <div class="info-value">${new Date(order.deadline).toLocaleDateString('pt-BR')}</div>
                             </div>
                             <div class="info-block">
-                                <div class="info-label">🚚 Método de Entrega</div>
+                                <div class="info-label">Método de Entrega</div>
                                 <div class="info-value">${order.delivery_method}</div>
                             </div>
                             <div class="info-block">
-                                <div class="info-label">💰 Forma de Pagamento</div>
+                                <div class="info-label">Pagamento</div>
                                 <div class="info-value">${order.payment_method || 'PIX'}</div>
                             </div>
                         </div>
                     </div>
 
                     <div class="section">
-                        <div class="section-title">Grade e Descrição do Pedido</div>
+                        <div class="section-title">Grade / Descrição</div>
                         <div class="description-box">${order.description}</div>
                     </div>
 
                     ${order.observations ? `
                     <div class="section">
-                        <div class="section-title">Observações Internas</div>
+                        <div class="section-title">Observações</div>
                         <div class="description-box" style="background: #fff8f8; border-color: #ffeaea;">${order.observations}</div>
                     </div>
                     ` : ''}
@@ -1126,19 +1077,19 @@ export default function DashboardPage() {
                         </div>
                     </div>
 
-                    <div class="grid" style="margin-top: 20px; border-top: 2px solid #eee; padding-top: 20px;">
+                    <div class="grid" style="margin-top: 12px; border-top: 2px solid #eee; padding-top: 12px;">
                         <div class="info-block">
                             <div class="info-label">Status Atual</div>
-                            <div class="info-value" style="color: #000; font-weight: bold;">${order.status}</div>
+                            <div class="info-value" style="font-weight: 900;">${order.status}</div>
                         </div>
                         <div class="info-block">
                             <div class="info-label">Valor Total</div>
-                            <div class="info-value">R$ ${parseFloat(order.value).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+                            <div class="info-value" style="font-weight: 900;">R$ ${parseFloat(order.value).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
                         </div>
                     </div>
 
                     <div class="footer">
-                        Documento gerado em ${new Date().toLocaleString('pt-BR')} por Libera Sports Production System
+                        Gerado em ${new Date().toLocaleString('pt-BR')} • Libera Sports
                     </div>
 
                     <script>
