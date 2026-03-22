@@ -1219,6 +1219,7 @@ export default function DashboardPage() {
                 const phrases = [
                     "O sucesso é a soma de pequenos esforços repetidos dia após dia.",
                     "Quem veste Libera, veste atitude.",
+                    "Mas os que esperam no Senhor renovam as suas forças; sobem com asas como águias… — Isaías 40:31",
                     "A disciplina é a ponte entre metas e conquistas.",
                     "Cada peça costurada carrega uma história.",
                     "O extraordinário nasce do compromisso com o ordinário.",
