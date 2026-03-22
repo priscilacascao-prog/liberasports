@@ -101,6 +101,7 @@ export default function DashboardPage() {
     // Form Estado - Produtos
     const [isProductModalOpen, setIsProductModalOpen] = useState(false);
     const [prodName, setProdName] = useState('');
+    const [prodImage, setProdImage] = useState('');
     const [prodSalePrice, setProdSalePrice] = useState('');
     const [prodCostPrice, setProdCostPrice] = useState('');
     const [prodStock, setProdStock] = useState('');
@@ -291,7 +292,7 @@ export default function DashboardPage() {
         if (!userId) return;
         setLoading(true);
         try {
-            const newProduct = {
+            const newProduct: any = {
                 name: prodName.toUpperCase(),
                 sale_price: parseBRL(prodSalePrice),
                 cost_price: parseBRL(prodCostPrice),
@@ -299,6 +300,7 @@ export default function DashboardPage() {
                 created_at: new Date().toISOString(),
                 user_id: userId
             };
+            if (prodImage) newProduct.image = prodImage;
             await addDoc(collection(db, productsCollectionPath), newProduct);
             toast.success('Produto adicionado ao estoque!');
             setIsProductModalOpen(false);
@@ -306,6 +308,7 @@ export default function DashboardPage() {
             setProdSalePrice('');
             setProdCostPrice('');
             setProdStock('');
+            setProdImage('');
         } catch (err) {
             console.error(err);
             toast.error('Erro ao adicionar produto');
@@ -1798,9 +1801,15 @@ export default function DashboardPage() {
                                 {products.map((p) => (
                                     <div key={p.id} className="bg-zinc-900/50 border border-zinc-800 p-6 rounded-[32px] hover:border-[#39FF14]/30 transition-all">
                                         <div className="flex justify-between items-start mb-4">
-                                            <div className="p-3 bg-zinc-950 rounded-2xl border border-zinc-800">
-                                                <Box size={20} className="text-[#39FF14]" />
-                                            </div>
+                                            {p.image ? (
+                                                <div className="w-14 h-14 rounded-2xl overflow-hidden border border-zinc-800 shrink-0">
+                                                    <img src={p.image} alt={p.name} className="w-full h-full object-cover" />
+                                                </div>
+                                            ) : (
+                                                <div className="p-3 bg-zinc-950 rounded-2xl border border-zinc-800">
+                                                    <Box size={20} className="text-[#39FF14]" />
+                                                </div>
+                                            )}
                                             <div className="text-right">
                                                 <p className="text-[10px] text-zinc-500 font-black uppercase tracking-widest">Em Estoque</p>
                                                 <p className={`text-xl font-black ${p.stock <= 5 ? 'text-orange-500' : 'text-white'}`}>{p.stock} un</p>
@@ -1847,9 +1856,16 @@ export default function DashboardPage() {
                                             disabled={p.stock <= 0}
                                             className="bg-zinc-950 border border-zinc-900 p-4 rounded-2xl flex items-center justify-between hover:border-[#39FF14]/30 transition-all group disabled:opacity-50"
                                         >
-                                            <div className="text-left">
+                                            <div className="flex items-center gap-3 text-left">
+                                                {p.image ? (
+                                                    <div className="w-10 h-10 rounded-xl overflow-hidden border border-zinc-800 shrink-0">
+                                                        <img src={p.image} alt={p.name} className="w-full h-full object-cover" />
+                                                    </div>
+                                                ) : null}
+                                                <div>
                                                 <p className="text-sm font-black text-white group-hover:text-[#39FF14] transition-colors">{p.name}</p>
                                                 <p className="text-[10px] text-zinc-500 font-bold uppercase">R$ {p.sale_price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} • {p.stock} un</p>
+                                                </div>
                                             </div>
                                             <Plus size={16} className="text-zinc-700 group-hover:text-[#39FF14]" />
                                         </button>
@@ -2445,14 +2461,14 @@ export default function DashboardPage() {
                                     <ArrowUpCircle size={40} className="text-blue-500" />
                                 </div>
                                 <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest mb-1">Vendas Hoje</p>
-                                <p className="text-4xl font-black text-white tabular-nums">R$ {financeStats.todaySales.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                                <p className="text-4xl font-black text-[#39FF14] tabular-nums">R$ {financeStats.todaySales.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                             </div>
                             <div className="bg-zinc-950 p-8 rounded-[32px] border border-zinc-900 shadow-2xl relative overflow-hidden group">
                                 <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
-                                    <ArrowDownCircle size={40} className="text-orange-500" />
+                                    <ArrowDownCircle size={40} className="text-[#39FF14]" />
                                 </div>
                                 <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest mb-1">Previsão Recebiveis</p>
-                                <p className="text-4xl font-black text-orange-500 tabular-nums">R$ {financeStats.pendingReceivables.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                                <p className="text-4xl font-black text-[#39FF14] tabular-nums">R$ {financeStats.pendingReceivables.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                             </div>
                         </div>
 
@@ -3066,6 +3082,43 @@ export default function DashboardPage() {
                                         required
                                         className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all font-bold placeholder:text-zinc-700"
                                     />
+                                </div>
+
+                                <div>
+                                    <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-zinc-500">Foto do Produto</label>
+                                    <div className="flex items-center gap-4">
+                                        {prodImage ? (
+                                            <div className="relative w-16 h-16 rounded-xl overflow-hidden border border-zinc-800 shrink-0">
+                                                <img src={prodImage} alt="Preview" className="w-full h-full object-cover" />
+                                                <button type="button" onClick={() => setProdImage('')}
+                                                    className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px]">
+                                                    <X size={10} />
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <div className="w-16 h-16 rounded-xl border border-dashed border-zinc-700 flex items-center justify-center shrink-0">
+                                                <Package size={20} className="text-zinc-700" />
+                                            </div>
+                                        )}
+                                        <label className="flex-1 cursor-pointer">
+                                            <div className="bg-zinc-950/80 border border-dashed border-zinc-700 rounded-2xl p-3 text-center hover:border-[#39FF14]/50 transition-all">
+                                                <p className="text-[10px] font-bold text-zinc-500 uppercase">
+                                                    {prodImage ? 'Trocar foto' : 'Escolher foto'}
+                                                </p>
+                                            </div>
+                                            <input type="file" accept="image/*" className="hidden" onChange={e => {
+                                                const file = e.target.files?.[0];
+                                                if (!file) return;
+                                                if (file.size > 500000) {
+                                                    toast.error('Imagem muito grande (máx 500KB)');
+                                                    return;
+                                                }
+                                                const reader = new FileReader();
+                                                reader.onload = () => setProdImage(reader.result as string);
+                                                reader.readAsDataURL(file);
+                                            }} />
+                                        </label>
+                                    </div>
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4">
