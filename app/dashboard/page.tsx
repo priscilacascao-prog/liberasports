@@ -314,20 +314,33 @@ export default function DashboardPage() {
         }
     };
 
-    const addToCart = (product: any) => {
+    const addToCart = (product: any, qty: number = 1) => {
         const existing = cart.find(item => item.id === product.id);
+        const currentQty = existing ? existing.quantity : 0;
+        if (currentQty + qty > product.stock) {
+            toast.error(`Estoque insuficiente (disponível: ${product.stock - currentQty})`);
+            return;
+        }
         if (existing) {
-            if (existing.quantity >= product.stock) {
-                toast.error('Estoque insuficiente');
-                return;
-            }
             setCart(cart.map(item =>
-                item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+                item.id === product.id ? { ...item, quantity: item.quantity + qty } : item
             ));
         } else {
-            setCart([...cart, { ...product, quantity: 1 }]);
+            setCart([...cart, { ...product, quantity: qty }]);
         }
-        toast.success(`${product.name} adicionado!`);
+        toast.success(`${qty}x ${product.name} adicionado!`);
+    };
+
+    const updateCartQuantity = (id: string, newQty: number, maxStock: number) => {
+        if (newQty <= 0) {
+            setCart(cart.filter(item => item.id !== id));
+            return;
+        }
+        if (newQty > maxStock) {
+            toast.error(`Estoque máximo: ${maxStock}`);
+            return;
+        }
+        setCart(cart.map(item => item.id === id ? { ...item, quantity: newQty } : item));
     };
 
     const removeFromCart = (id: string) => {
@@ -1855,14 +1868,30 @@ export default function DashboardPage() {
                                         <p className="text-zinc-700 text-[10px] font-bold uppercase text-center py-6">Carrinho vazio</p>
                                     ) : (
                                         cart.map(item => (
-                                            <div key={item.id} className="flex justify-between items-center group">
-                                                <div>
-                                                    <p className="text-[11px] font-black text-white uppercase">{item.name}</p>
-                                                    <p className="text-[9px] text-zinc-500 font-bold uppercase">{item.quantity}x R$ {item.sale_price.toLocaleString('pt-BR')}</p>
+                                            <div key={item.id} className="flex justify-between items-center gap-3">
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-[11px] font-black text-white uppercase truncate">{item.name}</p>
+                                                    <p className="text-[9px] text-zinc-500 font-bold uppercase">R$ {item.sale_price.toLocaleString('pt-BR')} un</p>
                                                 </div>
-                                                <button onClick={() => removeFromCart(item.id)} className="text-zinc-800 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all">
-                                                    <Trash2 size={12} />
-                                                </button>
+                                                <div className="flex items-center gap-1.5 shrink-0">
+                                                    <button
+                                                        onClick={() => updateCartQuantity(item.id, item.quantity - 1, item.stock)}
+                                                        className="w-7 h-7 rounded-lg bg-zinc-800 text-white font-black text-sm flex items-center justify-center hover:bg-zinc-700 transition-colors"
+                                                    >−</button>
+                                                    <input
+                                                        type="number"
+                                                        value={item.quantity}
+                                                        onChange={e => updateCartQuantity(item.id, parseInt(e.target.value) || 0, item.stock)}
+                                                        className="w-10 h-7 rounded-lg bg-zinc-900 border border-zinc-800 text-white text-center text-[11px] font-black outline-none focus:border-[#39FF14]"
+                                                    />
+                                                    <button
+                                                        onClick={() => updateCartQuantity(item.id, item.quantity + 1, item.stock)}
+                                                        className="w-7 h-7 rounded-lg bg-zinc-800 text-white font-black text-sm flex items-center justify-center hover:bg-zinc-700 transition-colors"
+                                                    >+</button>
+                                                    <button onClick={() => removeFromCart(item.id)} className="w-7 h-7 rounded-lg text-zinc-700 hover:text-red-500 hover:bg-red-500/10 flex items-center justify-center transition-all">
+                                                        <Trash2 size={12} />
+                                                    </button>
+                                                </div>
                                             </div>
                                         ))
                                     )}
