@@ -937,6 +937,7 @@ export default function DashboardPage() {
                 description,
                 user_id: userId,
                 operator_name: operatorName,
+                linked_sale_id: linkedSaleId || null,
                 created_at: new Date().toISOString(),
                 order_logs: [
                     {
@@ -1049,6 +1050,17 @@ export default function DashboardPage() {
                     <div class="section">
                         <div class="section-title">Grade / Descrição</div>
                         <div class="description-box">${order.description}</div>
+                        ${(() => {
+                            const linkedSale = order.linked_sale_id ? sales.find((s: any) => s.id === order.linked_sale_id) : null;
+                            if (!linkedSale?.items?.length) return '';
+                            return `<div style="margin-top: 8px; background: #f0f0f0; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
+                                <div style="font-size: 8px; font-weight: 800; text-transform: uppercase; color: #888; margin-bottom: 6px;">Itens da Venda Vinculada (${linkedSale.sale_number})</div>
+                                ${linkedSale.items.map((i: any) => `<div style="display: flex; justify-content: space-between; font-size: 11px; padding: 3px 0; border-bottom: 1px solid #e5e5e5;">
+                                    <span style="font-weight: 700;">${i.quantity}x ${i.name}</span>
+                                    <span style="color: #666;">R$ ${((i.sale_price || i.price || 0) * i.quantity).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                                </div>`).join('')}
+                            </div>`;
+                        })()}
                     </div>
 
                     ${order.observations ? `
