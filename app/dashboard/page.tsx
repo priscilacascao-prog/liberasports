@@ -986,12 +986,21 @@ export default function DashboardPage() {
                 `_Libera Sports - Vista Libera e viva a liberdade_`
             );
 
-            if (whatsappPhone) {
-                window.open(`https://wa.me/${whatsappPhone}?text=${whatsappMsg}`, '_blank');
-            }
+            const whatsappLink = whatsappPhone ? `https://wa.me/${whatsappPhone}?text=${whatsappMsg}` : '';
 
             toast.success('Pedido criado com sucesso!');
             setIsModalOpen(false);
+
+            if (whatsappLink) {
+                // Pequeno delay para o modal fechar antes de redirecionar
+                setTimeout(() => {
+                    const opened = window.open(whatsappLink, '_blank');
+                    if (!opened) {
+                        // Fallback: se popup bloqueado, redireciona direto
+                        window.location.href = whatsappLink;
+                    }
+                }, 500);
+            }
             setPaymentMethod('PIX');
             setDescription('');
             setTransactionDate(new Date().toISOString().split('T')[0]);
