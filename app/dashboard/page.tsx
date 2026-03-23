@@ -990,6 +990,7 @@ export default function DashboardPage() {
 
             toast.success('Pedido criado com sucesso!');
             setIsModalOpen(false);
+            resetForm();
 
             if (whatsappLink) {
                 // Pequeno delay para o modal fechar antes de redirecionar
@@ -1188,8 +1189,13 @@ export default function DashboardPage() {
         setClientWhatsapp('');
         setValue('');
         setDeadline(addBusinessDays(new Date(), 20));
+        setDeliveryMethod('MOTOBOY');
         setPaymentMethod('PIX');
         setDescription('');
+        setTransactionDate(new Date().toISOString().split('T')[0]);
+        setInstallments(1);
+        setLinkSale(false);
+        setLinkedSaleId('');
     };
 
     const logout = async () => {
@@ -1398,7 +1404,7 @@ export default function DashboardPage() {
                                 </div>
                             </div>
                             <button
-                                onClick={() => setIsModalOpen(true)}
+                                onClick={() => { resetForm(); setIsModalOpen(true); }}
                                 className="bg-[#39FF14] text-black px-8 py-4 rounded-2xl font-black hover:scale-105 transition-all uppercase text-sm shadow-xl shadow-[#39FF14]/10"
                             >
                                 + Novo Pedido
