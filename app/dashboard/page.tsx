@@ -1126,7 +1126,7 @@ export default function DashboardPage() {
                         <div class="stepper">
                             ${(() => {
                                 const steps = ['PEDIDO FEITO', 'GRÁFICA', 'CORTE', 'COSTURA', 'REVISÃO', 'EM FASE DE ENTREGA', 'PEDIDO ENTREGUE'];
-                                const labels: Record<string, string> = { 'PEDIDO FEITO': 'PEDIDO', 'GRÁFICA': 'GRÁFICA', 'CORTE': 'CORTE', 'COSTURA': 'COSTURA', 'REVISÃO': 'REVISÃO', 'EM FASE DE ENTREGA': 'SAIU P/ ENTREGA', 'PEDIDO ENTREGUE': 'ENTREGUE' };
+                                const labels: Record<string, string> = { 'PEDIDO FEITO': 'PEDIDO', 'GRÁFICA': 'GRÁFICA', 'CORTE': 'CORTE', 'COSTURA': 'COSTURA', 'REVISÃO': 'REVISÃO', 'EM FASE DE ENTREGA': 'ENVIO', 'PEDIDO ENTREGUE': 'ENTREGUE' };
                                 const currentStepIdx = steps.indexOf(order.status);
                                 return steps.map((step, idx) => {
                                     const isCompleted = idx < currentStepIdx;
@@ -1658,8 +1658,8 @@ export default function DashboardPage() {
                                                     </div>
 
                                                     {/* Visual Stepper - sem scroll, responsivo */}
-                                                    <div className="mb-4 mt-1">
-                                                        <div className="relative flex justify-between items-center h-1 bg-zinc-900 rounded-full mx-1">
+                                                    <div className="mb-4 mt-1 px-4">
+                                                        <div className="relative flex justify-between items-center h-1 bg-zinc-900 rounded-full">
                                                             <div
                                                                 className="absolute left-0 top-0 h-full bg-[#39FF14] rounded-full transition-all duration-500 shadow-[0_0_8px_rgba(57,255,20,0.4)]"
                                                                 style={{ width: `${(currentIdx / (workflow.length - 1)) * 100}%` }}
@@ -1674,7 +1674,7 @@ export default function DashboardPage() {
                                                                     'CORTE': 'CORTE',
                                                                     'COSTURA': 'COSTURA',
                                                                     'REVISÃO': 'REVISÃO',
-                                                                    'EM FASE DE ENTREGA': 'SAIU P/ ENTREGA',
+                                                                    'EM FASE DE ENTREGA': 'ENVIO',
                                                                     'PEDIDO ENTREGUE': 'ENTREGUE',
                                                                 };
 
