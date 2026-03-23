@@ -120,6 +120,8 @@ export default function DashboardPage() {
     const [finDebitRecurrent, setFinDebitRecurrent] = useState(false);
     const [isFinanceModalOpen, setIsFinanceModalOpen] = useState(false);
     const [editingFinanceItem, setEditingFinanceItem] = useState<any>(null);
+    const [editingProductId, setEditingProductId] = useState<string | null>(null);
+    const [editProductStock, setEditProductStock] = useState('');
     const [expandedSaleIds, setExpandedSaleIds] = useState<Record<string, boolean>>({});
 
     // Finance View State
@@ -1832,8 +1834,35 @@ export default function DashboardPage() {
                                             <div className="flex-1 min-w-0">
                                                 <h3 className="text-base font-black italic uppercase text-white leading-tight">{p.name}</h3>
                                                 <div className="mt-2">
-                                                    <p className="text-[13px] text-white/70 font-bold uppercase">Em Estoque</p>
-                                                    <p className={`text-2xl font-black ${p.stock <= 5 ? 'text-orange-500' : 'text-white'}`}>{p.stock} un</p>
+                                                    <p className="text-[13px] text-white/70 font-bold uppercase mb-1">Em Estoque</p>
+                                                    {editingProductId === p.id ? (
+                                                        <div className="flex items-center gap-1.5">
+                                                            <button onClick={() => setEditProductStock(String(Math.max(0, parseInt(editProductStock || '0') - 1)))}
+                                                                className="w-8 h-8 rounded-lg bg-zinc-800 text-white font-black flex items-center justify-center hover:bg-zinc-700">−</button>
+                                                            <input type="number" value={editProductStock}
+                                                                onChange={e => setEditProductStock(e.target.value)}
+                                                                className="w-16 h-8 rounded-lg bg-zinc-900 border border-zinc-700 text-white text-center text-sm font-black outline-none focus:border-[#39FF14]" />
+                                                            <button onClick={() => setEditProductStock(String(parseInt(editProductStock || '0') + 1))}
+                                                                className="w-8 h-8 rounded-lg bg-zinc-800 text-white font-black flex items-center justify-center hover:bg-zinc-700">+</button>
+                                                            <button onClick={async () => {
+                                                                try {
+                                                                    const { doc: firestoreDoc, updateDoc: firestoreUpdate } = await import('firebase/firestore');
+                                                                    await firestoreUpdate(firestoreDoc(db, productsCollectionPath, p.id), { stock: parseInt(editProductStock) || 0 });
+                                                                    toast.success('Estoque atualizado!');
+                                                                    setEditingProductId(null);
+                                                                } catch (err) { toast.error('Erro ao atualizar'); }
+                                                            }}
+                                                                className="px-3 h-8 rounded-lg bg-[#39FF14] text-black text-[11px] font-black uppercase hover:scale-105 transition-all">OK</button>
+                                                            <button onClick={() => setEditingProductId(null)}
+                                                                className="px-2 h-8 rounded-lg text-white/50 hover:text-white text-[11px] font-black">
+                                                                <X size={14} /></button>
+                                                        </div>
+                                                    ) : (
+                                                        <p className={`text-2xl font-black cursor-pointer hover:text-[#39FF14] transition-colors ${p.stock <= 5 ? 'text-orange-500' : 'text-white'}`}
+                                                            onClick={() => { setEditingProductId(p.id); setEditProductStock(String(p.stock)); }}>
+                                                            {p.stock} un <Pencil size={12} className="inline ml-1 opacity-50" />
+                                                        </p>
+                                                    )}
                                                 </div>
                                             </div>
                                         </div>
