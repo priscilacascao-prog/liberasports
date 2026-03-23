@@ -1881,15 +1881,33 @@ export default function DashboardPage() {
                                                 </div>
                                             </div>
                                         </div>
-                                        <div className="grid grid-cols-2 gap-4 pt-4 border-t border-zinc-800">
-                                            <div>
-                                                <p className="text-[13px] text-white/70 font-bold uppercase">Preço Venda</p>
-                                                <p className="text-lg font-black text-[#39FF14]">R$ {p.sale_price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                                        <div className="flex items-end justify-between pt-4 border-t border-zinc-800">
+                                            <div className="grid grid-cols-2 gap-4 flex-1">
+                                                <div>
+                                                    <p className="text-[13px] text-white/70 font-bold uppercase">Preço Venda</p>
+                                                    <p className="text-lg font-black text-[#39FF14]">R$ {p.sale_price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-[13px] text-white/70 font-bold uppercase">Preço Custo</p>
+                                                    <p className="text-lg font-black text-white/70">R$ {p.cost_price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <p className="text-[13px] text-white/70 font-bold uppercase">Preço Custo</p>
-                                                <p className="text-lg font-black text-white/70">R$ {p.cost_price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-                                            </div>
+                                            <button
+                                                onClick={async () => {
+                                                    if (confirm(`Excluir ${p.name} do estoque?`)) {
+                                                        try {
+                                                            await deleteDoc(doc(db, productsCollectionPath, p.id));
+                                                            toast.success('Produto excluído!');
+                                                        } catch (err) {
+                                                            toast.error('Erro ao excluir produto');
+                                                        }
+                                                    }
+                                                }}
+                                                className="p-2 rounded-lg text-white/40 hover:text-red-500 hover:bg-red-500/10 transition-all shrink-0 ml-2"
+                                                title="Excluir produto"
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
                                         </div>
                                     </div>
                                 ))}
