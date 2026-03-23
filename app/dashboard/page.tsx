@@ -969,6 +969,25 @@ export default function DashboardPage() {
             const docRef = await addDoc(collection(db, ordersCollectionPath), newOrder);
             await generateFinancialEntries(docRef.id, nextOrderNumber, description, parseFloat(normalizedValue), paymentMethod, transactionDate, installments, userId);
 
+            // Gerar link de rastreio e enviar WhatsApp
+            const trackingUrl = `${window.location.origin}/rastreio?id=${docRef.id}`;
+            const whatsappPhone = clientWhatsapp.replace(/\D/g, '');
+            const deliveryDate = deadline.split('-').reverse().join('/');
+            const whatsappMsg = encodeURIComponent(
+                `Olá *${client}*! Seu pedido na *Libera Sports* foi cadastrado com sucesso!\n\n` +
+                `*Pedido:* ${nextOrderNumber}\n` +
+                `*Valor:* R$ ${parseFloat(normalizedValue).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}\n` +
+                `*Entrega prevista:* ${deliveryDate}\n` +
+                `*Método:* ${deliveryMethod}\n` +
+                `*Pagamento:* ${paymentMethod}\n\n` +
+                `Acompanhe seu pedido em tempo real:\n${trackingUrl}\n\n` +
+                `_Libera Sports - Vista Libera e viva a liberdade_`
+            );
+
+            if (whatsappPhone) {
+                window.open(`https://wa.me/${whatsappPhone}?text=${whatsappMsg}`, '_blank');
+            }
+
             toast.success('Pedido criado com sucesso!');
             setIsModalOpen(false);
             setPaymentMethod('PIX');
