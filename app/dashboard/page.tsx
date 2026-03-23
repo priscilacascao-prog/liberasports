@@ -1193,12 +1193,12 @@ export default function DashboardPage() {
                     LIBERA SPORTS
                 </button>
                 <div className="flex items-center gap-6">
-                    <div className="hidden md:flex items-center gap-2 text-zinc-500 text-[10px] font-black uppercase tracking-widest">
+                    <div className="hidden md:flex items-center gap-2 text-zinc-300 text-[12px] font-black uppercase tracking-widest">
                         <User size={12} className="text-[#39FF14]" /> {operatorName}
                     </div>
                     <button
                         onClick={logout}
-                        className="text-zinc-600 hover:text-white text-[10px] font-black uppercase transition-colors"
+                        className="text-zinc-400 hover:text-white text-[12px] font-black uppercase transition-colors"
                     >
                         Sair
                     </button>
@@ -1288,7 +1288,7 @@ export default function DashboardPage() {
                                             className="group bg-white border border-zinc-200 rounded-2xl py-4 px-2 flex flex-col items-center gap-2 hover:border-zinc-400 hover:shadow-lg hover:shadow-black/10 transition-all hover:scale-[1.03] active:scale-95"
                                         >
                                             <Icon size={20} className="text-zinc-800 transition-colors" />
-                                            <span className="text-[10px] font-black uppercase tracking-wider text-zinc-800 transition-colors">
+                                            <span className="text-[12px] font-black uppercase tracking-wider text-zinc-800 transition-colors">
                                                 {mod.label}
                                             </span>
                                         </button>
@@ -1299,11 +1299,11 @@ export default function DashboardPage() {
 
                         {/* Frase motivacional */}
                         <div className="text-center max-w-lg animate-fade-in-up-delay">
-                            <p className="text-zinc-600 text-lg md:text-2xl font-light italic leading-relaxed tracking-wide">
+                            <p className="text-zinc-400 text-lg md:text-2xl font-light italic leading-relaxed tracking-wide">
                                 &ldquo;{phrase}&rdquo;
                             </p>
                             <div className="mt-6 w-12 h-[2px] bg-zinc-800 mx-auto rounded-full" />
-                            <p className="mt-4 text-zinc-800 text-[9px] font-black uppercase tracking-[0.3em]">
+                            <p className="mt-4 text-zinc-800 text-[11px] font-black uppercase tracking-[0.3em]">
                                 Libera Sports
                             </p>
                         </div>
@@ -1317,7 +1317,7 @@ export default function DashboardPage() {
                     <div className="flex gap-1.5 p-1 bg-zinc-950 rounded-2xl border border-zinc-900 overflow-x-auto mask-fade">
                         <button
                             onClick={() => setActiveTab('HOME')}
-                            className="flex items-center gap-1 px-3 py-2.5 rounded-xl font-black uppercase text-[9px] tracking-widest transition-all text-zinc-500 hover:text-white hover:bg-zinc-900 shrink-0"
+                            className="flex items-center gap-1 px-3 py-2.5 rounded-xl font-black uppercase text-[11px] tracking-widest transition-all text-zinc-300 hover:text-white hover:bg-zinc-900 shrink-0"
                         >
                             <Home size={12} />
                         </button>
@@ -1335,10 +1335,10 @@ export default function DashboardPage() {
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id as any)}
                                     className={`
-                                        flex items-center gap-1.5 px-3.5 md:px-5 py-2.5 rounded-xl font-black uppercase text-[10px] md:text-[11px] tracking-wider transition-all shrink-0
+                                        flex items-center gap-1.5 px-3.5 md:px-5 py-2.5 rounded-xl font-black uppercase text-[12px] md:text-[11px] tracking-wider transition-all shrink-0
                                         ${isActive
                                             ? 'bg-[#39FF14] text-black shadow-lg shadow-[#39FF14]/20'
-                                            : 'text-zinc-500 hover:text-white hover:bg-zinc-900'
+                                            : 'text-zinc-300 hover:text-white hover:bg-zinc-900'
                                         }
                                     `}
                                 >
@@ -1357,12 +1357,12 @@ export default function DashboardPage() {
                         <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 gap-6">
                             <div className="pl-1">
                                 <h2 className="text-4xl font-black italic uppercase leading-none tracking-tighter">PAINEL DE PRODUÇÃO</h2>
-                                <p className="text-zinc-500 text-sm mt-2">Acompanhamento de etapas em tempo real</p>
+                                <p className="text-zinc-300 text-sm mt-2">Acompanhamento de etapas em tempo real</p>
                                 <div className="mt-4 flex flex-col items-start gap-1">
-                                    <p className="text-zinc-500 text-[10px] uppercase font-bold tracking-widest">
+                                    <p className="text-zinc-300 text-[12px] uppercase font-bold tracking-widest">
                                         De Goiânia-GO para o mundo
                                     </p>
-                                    <p className="text-zinc-600 text-[8px] uppercase font-bold tracking-[0.2em]">
+                                    <p className="text-zinc-400 text-[12px] uppercase font-bold tracking-[0.2em]">
                                         Confecção de produtos personalizados
                                     </p>
                                 </div>
@@ -1399,7 +1399,7 @@ export default function DashboardPage() {
                                     ${step === 'PENDÊNCIA' && isBottomRow ? 'col-span-1' : ''}
                                 `}
                                     >
-                                        <span className={`text-[9px] font-black uppercase tracking-widest mb-1 transition-colors ${isActive ? (step === 'PENDÊNCIA' ? 'text-black' : 'text-black') : 'text-zinc-500 group-hover:text-white'}`}>
+                                        <span className={`text-[11px] font-black uppercase tracking-widest mb-1 transition-colors ${isActive ? (step === 'PENDÊNCIA' ? 'text-black' : 'text-black') : 'text-zinc-300 group-hover:text-white'}`}>
                                             {step}
                                         </span>
 
@@ -1421,18 +1421,18 @@ export default function DashboardPage() {
                         {/* Search Bar */}
                         <div className="mb-8 p-1 bg-zinc-950 rounded-2xl border border-zinc-900 group focus-within:border-[#39FF14]/50 transition-all">
                             <div className="flex items-center px-4 py-3 gap-3">
-                                <Package size={18} className="text-zinc-500 group-focus-within:text-[#39FF14] transition-colors" />
+                                <Package size={18} className="text-zinc-300 group-focus-within:text-[#39FF14] transition-colors" />
                                 <input
                                     type="text"
                                     placeholder="Pesquisar por número do pedido ou nome do cliente..."
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="bg-transparent border-none outline-none text-white text-sm w-full placeholder:text-zinc-700 font-bold"
+                                    className="bg-transparent border-none outline-none text-white text-sm w-full placeholder:text-zinc-600 font-bold"
                                 />
                                 {searchTerm && (
                                     <button
                                         onClick={() => setSearchTerm('')}
-                                        className="text-zinc-600 hover:text-white transition-colors"
+                                        className="text-zinc-400 hover:text-white transition-colors"
                                     >
                                         <X size={16} />
                                     </button>
@@ -1443,7 +1443,7 @@ export default function DashboardPage() {
                         {/* Orders List */}
                         <div className="space-y-6">
                             {loading && orders.length === 0 ? (
-                                <div className="flex flex-col items-center justify-center py-20 animate-pulse text-zinc-700">
+                                <div className="flex flex-col items-center justify-center py-20 animate-pulse text-zinc-300">
                                     <Loader2 className="w-10 h-10 mb-4 animate-spin" />
                                     <p className="font-black uppercase italic tracking-widest text-xs">Sincronizando com a fábrica...</p>
                                 </div>
@@ -1468,26 +1468,26 @@ export default function DashboardPage() {
                                                         <Package className="text-[#39FF14]/50 group-hover:text-[#39FF14]" size={16} />
                                                     </div>
                                                     <div className="flex flex-col">
-                                                        <span className="text-zinc-600 text-[9px] font-black uppercase tracking-widest">{order.order_number}</span>
+                                                        <span className="text-zinc-400 text-[11px] font-black uppercase tracking-widest">{order.order_number}</span>
                                                         <h3 className="text-sm font-black text-white group-hover:text-[#39FF14] transition-colors truncate">{order.client}</h3>
                                                     </div>
                                                     <div className="hidden md:flex flex-col">
-                                                        <span className="text-zinc-700 text-[9px] font-black uppercase tracking-widest">Entrega</span>
-                                                        <span className="text-[10px] text-zinc-400 font-bold">{order.deadline.split('-').reverse().join('/')}</span>
+                                                        <span className="text-zinc-300 text-[11px] font-black uppercase tracking-widest">Entrega</span>
+                                                        <span className="text-[12px] text-zinc-400 font-bold">{order.deadline.split('-').reverse().join('/')}</span>
                                                     </div>
                                                     <div className="hidden lg:flex flex-col max-w-[200px]">
-                                                        <span className="text-zinc-700 text-[9px] font-black uppercase tracking-widest">Grade</span>
-                                                        <span className="text-[10px] text-zinc-500 font-medium truncate">{order.description}</span>
+                                                        <span className="text-zinc-300 text-[11px] font-black uppercase tracking-widest">Grade</span>
+                                                        <span className="text-[12px] text-zinc-300 font-medium truncate">{order.description}</span>
                                                     </div>
                                                 </div>
                                                 <div className="flex items-center gap-6 shrink-0">
                                                     <div className="text-right">
-                                                        <span className="block text-[8px] text-zinc-600 font-bold uppercase tracking-widest">Valor</span>
+                                                        <span className="block text-[12px] text-zinc-400 font-bold uppercase tracking-widest">Valor</span>
                                                         <span className="text-xs font-black text-[#39FF14]">
                                                             R$ {Number(order.value).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                                         </span>
                                                     </div>
-                                                    <div className="p-2 rounded-lg bg-zinc-950 border border-zinc-900 text-zinc-700 group-hover:text-white transition-all">
+                                                    <div className="p-2 rounded-lg bg-zinc-950 border border-zinc-900 text-zinc-300 group-hover:text-white transition-all">
                                                         <ChevronDown size={14} />
                                                     </div>
                                                 </div>
@@ -1500,7 +1500,7 @@ export default function DashboardPage() {
                                             {order.status === 'PEDIDO ENTREGUE' && (
                                                 <button
                                                     onClick={() => setExpandedOrderIds(prev => ({ ...prev, [order.id]: false }))}
-                                                    className="absolute top-6 right-20 p-2 rounded-xl bg-zinc-950 border border-zinc-900 text-zinc-500 hover:text-white transition-all flex items-center gap-2 text-[10px] font-black uppercase"
+                                                    className="absolute top-6 right-20 p-2 rounded-xl bg-zinc-950 border border-zinc-900 text-zinc-300 hover:text-white transition-all flex items-center gap-2 text-[12px] font-black uppercase"
                                                 >
                                                     <ChevronUp size={14} /> Resumir
                                                 </button>
@@ -1508,19 +1508,19 @@ export default function DashboardPage() {
                                             <div className="flex flex-col md:flex-row justify-between gap-6">
                                                 <div className="flex-grow">
                                                     <div className="flex flex-wrap items-center gap-1.5 mb-3">
-                                                        <span className="text-zinc-600 text-[10px] font-black uppercase tracking-widest">
+                                                        <span className="text-zinc-400 text-[12px] font-black uppercase tracking-widest">
                                                             {order.order_number || `#${order.id.slice(0, 5).toUpperCase()}`}
                                                         </span>
-                                                        <span className="bg-zinc-900 text-zinc-400 px-1.5 py-0.5 rounded text-[9px] font-bold flex items-center gap-1">
+                                                        <span className="bg-zinc-900 text-zinc-400 px-1.5 py-0.5 rounded text-[11px] font-bold flex items-center gap-1">
                                                             <Clock size={9} /> {new Date(order.created_at).toLocaleDateString('pt-BR')}
                                                         </span>
-                                                        <span className="bg-zinc-900 text-zinc-400 px-1.5 py-0.5 rounded text-[9px] font-bold flex items-center gap-1">
+                                                        <span className="bg-zinc-900 text-zinc-400 px-1.5 py-0.5 rounded text-[11px] font-bold flex items-center gap-1">
                                                             <Calendar size={9} /> {order.deadline.split('-').reverse().join('/')}
                                                         </span>
-                                                        <span className="bg-zinc-900 text-[#39FF14] px-1.5 py-0.5 rounded text-[9px] font-bold flex items-center gap-1 uppercase">
+                                                        <span className="bg-zinc-900 text-[#39FF14] px-1.5 py-0.5 rounded text-[11px] font-bold flex items-center gap-1 uppercase">
                                                             <Truck size={9} /> {order.delivery_method}
                                                         </span>
-                                                        <span className="bg-zinc-900 text-orange-500 px-1.5 py-0.5 rounded text-[9px] font-bold flex items-center gap-1 uppercase">
+                                                        <span className="bg-zinc-900 text-orange-500 px-1.5 py-0.5 rounded text-[11px] font-bold flex items-center gap-1 uppercase">
                                                             <TrendingUp size={9} /> {order.payment_method || 'PIX'}
                                                         </span>
                                                     </div>
@@ -1536,9 +1536,9 @@ export default function DashboardPage() {
                                                                         {order.client}
                                                                     </h3>
                                                                     <div className="flex items-center gap-2 mt-1">
-                                                                        <span className="text-zinc-600 text-[10px] font-black uppercase tracking-widest">{order.order_number}</span>
+                                                                        <span className="text-zinc-400 text-[12px] font-black uppercase tracking-widest">{order.order_number}</span>
                                                                         <span className="w-1 h-1 rounded-full bg-zinc-800" />
-                                                                        <span className="text-zinc-700 text-[10px] font-bold uppercase flex items-center gap-1">
+                                                                        <span className="text-zinc-300 text-[12px] font-bold uppercase flex items-center gap-1">
                                                                             <Truck size={10} /> {order.delivery_method}
                                                                         </span>
                                                                         {order.client_whatsapp && (
@@ -1558,7 +1558,7 @@ export default function DashboardPage() {
                                                             <div className="bg-[#FF3D00]/10 border border-[#FF3D00]/20 p-3 rounded-xl mb-3 mt-2 flex items-start gap-2">
                                                                 <AlertCircle className="text-[#FF3D00] shrink-0" size={14} />
                                                                 <div>
-                                                                    <p className="text-[#FF3D00] text-[9px] font-black uppercase tracking-widest mb-0.5">Pendência</p>
+                                                                    <p className="text-[#FF3D00] text-[11px] font-black uppercase tracking-widest mb-0.5">Pendência</p>
                                                                     <p className="text-zinc-300 text-[11px] font-medium">{order.pending_reason}</p>
                                                                 </div>
                                                             </div>
@@ -1568,22 +1568,22 @@ export default function DashboardPage() {
                                                     {/* Valor */}
                                                     <div className="flex items-center justify-between mt-1 mb-2">
                                                         <div>
-                                                            <span className="block text-[8px] text-zinc-600 font-bold uppercase tracking-widest">Valor Total</span>
+                                                            <span className="block text-[12px] text-zinc-400 font-bold uppercase tracking-widest">Valor Total</span>
                                                             <span className="text-lg font-black text-[#39FF14]">
                                                                 R$ {Number(order.value).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                                             </span>
                                                         </div>
                                                         <div className="flex items-center gap-1.5">
                                                             <button onClick={() => { toast.info('Edição completa em breve'); }}
-                                                                className="p-2 rounded-lg bg-zinc-950 border border-zinc-900 text-zinc-600 hover:text-white transition-all" title="Editar">
+                                                                className="p-2 rounded-lg bg-zinc-950 border border-zinc-900 text-zinc-400 hover:text-white transition-all" title="Editar">
                                                                 <Pencil size={13} />
                                                             </button>
                                                             <button onClick={() => handlePrintOrder(order)}
-                                                                className="p-2 rounded-lg bg-zinc-950 border border-zinc-900 text-zinc-600 hover:text-[#39FF14] transition-all" title="PDF">
+                                                                className="p-2 rounded-lg bg-zinc-950 border border-zinc-900 text-zinc-400 hover:text-[#39FF14] transition-all" title="PDF">
                                                                 <FileText size={13} />
                                                             </button>
                                                             <button onClick={() => handleDeleteOrder(order.id, order.order_number)}
-                                                                className="p-2 rounded-lg bg-zinc-950 border border-zinc-900 text-zinc-600 hover:text-[#FF3D00] transition-all" title="Excluir">
+                                                                className="p-2 rounded-lg bg-zinc-950 border border-zinc-900 text-zinc-400 hover:text-[#FF3D00] transition-all" title="Excluir">
                                                                 <Trash2 size={13} />
                                                             </button>
                                                         </div>
@@ -1594,7 +1594,7 @@ export default function DashboardPage() {
                                                         {order.status !== 'PEDIDO ENTREGUE' && (
                                                             <button
                                                                 onClick={() => advanceStep(order.id, order.status)}
-                                                                className="flex-1 bg-[#39FF14] text-black px-3 py-2.5 rounded-xl font-black text-[10px] uppercase hover:scale-[1.01] transition-all shadow-lg shadow-[#39FF14]/10 flex items-center justify-center gap-1.5"
+                                                                className="flex-1 bg-[#39FF14] text-black px-3 py-2.5 rounded-xl font-black text-[12px] uppercase hover:scale-[1.01] transition-all shadow-lg shadow-[#39FF14]/10 flex items-center justify-center gap-1.5"
                                                             >
                                                                 {order.status === 'PENDÊNCIA'
                                                                     ? 'Resolver'
@@ -1607,14 +1607,14 @@ export default function DashboardPage() {
                                                             </button>
                                                         )}
                                                         {order.status === 'PEDIDO ENTREGUE' && (
-                                                            <div className="flex-1 bg-zinc-950 text-[#39FF14] px-3 py-2.5 rounded-xl font-black text-[10px] uppercase border border-[#39FF14]/20 flex items-center justify-center gap-1.5">
+                                                            <div className="flex-1 bg-zinc-950 text-[#39FF14] px-3 py-2.5 rounded-xl font-black text-[12px] uppercase border border-[#39FF14]/20 flex items-center justify-center gap-1.5">
                                                                 <Check size={12} /> Entregue
                                                             </div>
                                                         )}
                                                         {order.status !== 'PENDÊNCIA' && order.status !== 'PEDIDO ENTREGUE' && (
                                                             <button
                                                                 onClick={() => { setPendingOrderId(order.id); setIsPendingModalOpen(true); }}
-                                                                className="px-3 py-2.5 rounded-xl bg-zinc-950 border border-orange-500/30 text-orange-500 hover:bg-orange-500/10 transition-all text-[10px] font-black uppercase flex items-center gap-1.5"
+                                                                className="px-3 py-2.5 rounded-xl bg-zinc-950 border border-orange-500/30 text-orange-500 hover:bg-orange-500/10 transition-all text-[12px] font-black uppercase flex items-center gap-1.5"
                                                             >
                                                                 <AlertCircle size={12} /> Pendência
                                                             </button>
@@ -1649,8 +1649,8 @@ export default function DashboardPage() {
                                                                     ${isCompleted ? 'bg-[#39FF14]' : isCurrent ? 'bg-white scale-125 shadow-[0_0_10px_white]' : 'bg-zinc-800'}
                                                                 `} />
                                                                         <span className={`
-                                                                    absolute top-4 text-[6px] md:text-[8px] font-black uppercase tracking-tight whitespace-nowrap transition-colors
-                                                                    ${isCurrent ? 'text-white' : isCompleted ? 'text-[#39FF14]' : 'text-zinc-700'}
+                                                                    absolute top-4 text-[6px] md:text-[12px] font-black uppercase tracking-tight whitespace-nowrap transition-colors
+                                                                    ${isCurrent ? 'text-white' : isCompleted ? 'text-[#39FF14]' : 'text-zinc-300'}
                                                                 `}>
                                                                             {shortNames[step] || step}
                                                                         </span>
@@ -1664,7 +1664,7 @@ export default function DashboardPage() {
                                                     <div className="mt-4 border-t border-zinc-900 pt-4">
                                                         <button
                                                             onClick={() => setExpandedObs(prev => ({ ...prev, [order.id]: !prev[order.id] }))}
-                                                            className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-[#39FF14] transition-colors"
+                                                            className="flex items-center gap-2 text-[12px] font-black uppercase tracking-widest text-zinc-300 hover:text-[#39FF14] transition-colors"
                                                         >
                                                             {expandedObs[order.id] ? <X size={12} /> : <Plus size={12} />}
                                                             {expandedObs[order.id] ? 'Fechar Observações' : 'Ver Observações Internas'}
@@ -1676,13 +1676,13 @@ export default function DashboardPage() {
                                                         {expandedObs[order.id] && (
                                                             <div className="mt-4 bg-black/50 border border-zinc-950 rounded-2xl p-4 animate-in slide-in-from-top-2 duration-300">
                                                                 <div className="flex justify-between items-center mb-3">
-                                                                    <label className="text-[9px] font-black uppercase tracking-[0.2em] text-[#39FF14]/70">Notas de Produção</label>
+                                                                    <label className="text-[11px] font-black uppercase tracking-[0.2em] text-[#39FF14]/70">Notas de Produção</label>
                                                                     <button
                                                                         onClick={() => {
                                                                             setEditingObsId(order.id);
                                                                             setObsValue(order.observations || '');
                                                                         }}
-                                                                        className="text-[9px] font-black uppercase text-zinc-500 hover:text-[#39FF14] transition-colors"
+                                                                        className="text-[11px] font-black uppercase text-zinc-300 hover:text-[#39FF14] transition-colors"
                                                                     >
                                                                         {order.observations ? 'Editar' : 'Adicionar'}
                                                                     </button>
@@ -1699,13 +1699,13 @@ export default function DashboardPage() {
                                                                         <div className="flex gap-2">
                                                                             <button
                                                                                 onClick={() => handleUpdateObservations(order.id)}
-                                                                                className="px-4 py-2 bg-[#39FF14] text-black text-[10px] font-black uppercase rounded-lg hover:scale-105 transition-all"
+                                                                                className="px-4 py-2 bg-[#39FF14] text-black text-[12px] font-black uppercase rounded-lg hover:scale-105 transition-all"
                                                                             >
                                                                                 Salvar
                                                                             </button>
                                                                             <button
                                                                                 onClick={() => setEditingObsId(null)}
-                                                                                className="px-4 py-2 bg-zinc-800 text-white text-[10px] font-black uppercase rounded-lg hover:bg-zinc-700 transition-all"
+                                                                                className="px-4 py-2 bg-zinc-800 text-white text-[12px] font-black uppercase rounded-lg hover:bg-zinc-700 transition-all"
                                                                             >
                                                                                 Cancelar
                                                                             </button>
@@ -1721,16 +1721,16 @@ export default function DashboardPage() {
                                                     </div>
 
                                                     <div className="flex items-center justify-between mt-4">
-                                                        <p className="text-zinc-600 text-[10px] italic line-clamp-1">Grade: {order.description}</p>
+                                                        <p className="text-zinc-400 text-[12px] italic line-clamp-1">Grade: {order.description}</p>
                                                         <div className="flex items-center gap-4">
                                                             <button
                                                                 onClick={() => setExpandedHistoryIds(prev => ({ ...prev, [order.id]: !prev[order.id] }))}
-                                                                className="text-[9px] font-black uppercase tracking-widest text-zinc-500 hover:text-[#39FF14] transition-colors flex items-center gap-1"
+                                                                className="text-[11px] font-black uppercase tracking-widest text-zinc-300 hover:text-[#39FF14] transition-colors flex items-center gap-1"
                                                             >
                                                                 <History size={10} /> {expandedHistoryIds[order.id] ? 'Ocultar Histórico' : 'Ver Histórico'}
                                                             </button>
                                                             {order.order_logs && order.order_logs.length > 0 && (
-                                                                <div className="text-[8px] text-zinc-700 font-bold uppercase flex items-center gap-1">
+                                                                <div className="text-[12px] text-zinc-300 font-bold uppercase flex items-center gap-1">
                                                                     <Info size={10} /> Ultima mov. {new Date(order.order_logs[order.order_logs.length - 1].created_at).toLocaleString('pt-BR')}
                                                                 </div>
                                                             )}
@@ -1740,7 +1740,7 @@ export default function DashboardPage() {
                                                     {/* History Timeline */}
                                                     {expandedHistoryIds[order.id] && (
                                                         <div className="mt-4 bg-zinc-950/50 border border-zinc-900 rounded-2xl p-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                                                            <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 mb-4 flex items-center gap-2">
+                                                            <h4 className="text-[12px] font-black uppercase tracking-[0.2em] text-zinc-300 mb-4 flex items-center gap-2">
                                                                 <History size={12} className="text-[#39FF14]" /> Linha do Tempo
                                                             </h4>
                                                             <div className="space-y-4 relative before:absolute before:left-2 before:top-2 before:bottom-2 before:w-[1px] before:bg-zinc-900">
@@ -1749,12 +1749,12 @@ export default function DashboardPage() {
                                                                         <div className={`absolute left-0 top-1.5 w-4 h-4 rounded-full border-2 border-black ${lIdx === 0 ? 'bg-[#39FF14]' : 'bg-zinc-800'}`} />
                                                                         <div className="flex flex-col">
                                                                             <div className="flex items-center gap-2">
-                                                                                <span className="text-[10px] font-black text-white uppercase tracking-tighter">
-                                                                                    {log.old_status} <ArrowRight size={8} className="inline mx-1 text-zinc-600" /> {log.new_status}
+                                                                                <span className="text-[12px] font-black text-white uppercase tracking-tighter">
+                                                                                    {log.old_status} <ArrowRight size={8} className="inline mx-1 text-zinc-400" /> {log.new_status}
                                                                                 </span>
-                                                                                <span className="text-[8px] text-zinc-600 font-bold uppercase">{new Date(log.created_at).toLocaleString('pt-BR')}</span>
+                                                                                <span className="text-[12px] text-zinc-400 font-bold uppercase">{new Date(log.created_at).toLocaleString('pt-BR')}</span>
                                                                             </div>
-                                                                            <span className="text-[9px] text-zinc-500 font-bold uppercase mt-0.5">Operador: <span className="text-zinc-300">{log.operator_name}</span></span>
+                                                                            <span className="text-[11px] text-zinc-300 font-bold uppercase mt-0.5">Operador: <span className="text-zinc-300">{log.operator_name}</span></span>
                                                                         </div>
                                                                     </div>
                                                                 ))}
@@ -1777,11 +1777,11 @@ export default function DashboardPage() {
                         <div className="flex justify-between items-end mb-6">
                             <div>
                                 <h1 className="text-4xl font-black italic uppercase tracking-tighter">ESTOQUE DE VAREJO</h1>
-                                <p className="text-zinc-500 text-sm mt-1">Gestão de produtos e preços</p>
+                                <p className="text-zinc-300 text-sm mt-1">Gestão de produtos e preços</p>
                             </div>
                             <button
                                 onClick={() => setIsProductModalOpen(true)}
-                                className="bg-[#39FF14] text-black px-6 py-3 rounded-xl font-black uppercase text-[10px] hover:scale-105 transition-all"
+                                className="bg-[#39FF14] text-black px-6 py-3 rounded-xl font-black uppercase text-[12px] hover:scale-105 transition-all"
                             >
                                 + Novo Produto
                             </button>
@@ -1794,7 +1794,7 @@ export default function DashboardPage() {
                         ) : products.length === 0 ? (
                             <div className="bg-zinc-950 rounded-3xl border border-zinc-900 p-8 text-center border-dashed">
                                 <Box size={40} className="text-zinc-800 mx-auto mb-4" />
-                                <p className="text-zinc-500 font-bold uppercase text-[10px] tracking-widest">Nenhum produto cadastrado no estoque.</p>
+                                <p className="text-zinc-300 font-bold uppercase text-[12px] tracking-widest">Nenhum produto cadastrado no estoque.</p>
                             </div>
                         ) : (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -1811,18 +1811,18 @@ export default function DashboardPage() {
                                                 </div>
                                             )}
                                             <div className="text-right">
-                                                <p className="text-[10px] text-zinc-500 font-black uppercase tracking-widest">Em Estoque</p>
+                                                <p className="text-[12px] text-zinc-300 font-black uppercase tracking-widest">Em Estoque</p>
                                                 <p className={`text-xl font-black ${p.stock <= 5 ? 'text-orange-500' : 'text-white'}`}>{p.stock} un</p>
                                             </div>
                                         </div>
                                         <h3 className="text-xl font-black italic uppercase text-white mb-2">{p.name}</h3>
                                         <div className="grid grid-cols-2 gap-4 mt-6">
                                             <div>
-                                                <p className="text-[9px] text-zinc-600 font-bold uppercase">Preço Venda</p>
+                                                <p className="text-[11px] text-zinc-400 font-bold uppercase">Preço Venda</p>
                                                 <p className="text-lg font-black text-[#39FF14]">R$ {p.sale_price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                                             </div>
                                             <div>
-                                                <p className="text-[9px] text-zinc-600 font-bold uppercase">Preço Custo</p>
+                                                <p className="text-[11px] text-zinc-400 font-bold uppercase">Preço Custo</p>
                                                 <p className="text-lg font-black text-zinc-400">R$ {p.cost_price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                                             </div>
                                         </div>
@@ -1838,14 +1838,14 @@ export default function DashboardPage() {
                         <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 gap-4">
                             <div className="pl-1">
                                 <h1 className="text-2xl md:text-4xl font-black italic uppercase tracking-tighter">CHECKOUT</h1>
-                                <p className="text-zinc-500 text-sm mt-1">Registro rápido de vendas</p>
+                                <p className="text-zinc-300 text-sm mt-1">Registro rápido de vendas</p>
                             </div>
                         </div>
 
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                             {/* Product Selection List */}
                             <div className="lg:col-span-2 space-y-4">
-                                <h3 className="text-zinc-500 text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                                <h3 className="text-zinc-300 text-[12px] font-black uppercase tracking-widest flex items-center gap-2">
                                     <Plus size={12} className="text-[#39FF14]" /> Selecione os Produtos
                                 </h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -1864,10 +1864,10 @@ export default function DashboardPage() {
                                                 ) : null}
                                                 <div>
                                                 <p className="text-sm font-black text-white group-hover:text-[#39FF14] transition-colors">{p.name}</p>
-                                                <p className="text-[10px] text-zinc-500 font-bold uppercase">R$ {p.sale_price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} • {p.stock} un</p>
+                                                <p className="text-[12px] text-zinc-300 font-bold uppercase">R$ {p.sale_price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} • {p.stock} un</p>
                                                 </div>
                                             </div>
-                                            <Plus size={16} className="text-zinc-700 group-hover:text-[#39FF14]" />
+                                            <Plus size={16} className="text-zinc-300 group-hover:text-[#39FF14]" />
                                         </button>
                                     ))}
                                 </div>
@@ -1875,19 +1875,19 @@ export default function DashboardPage() {
 
                             {/* Cart / Checkout Summary */}
                             <div className="bg-zinc-950 border border-zinc-900 rounded-[32px] p-6 h-fit sticky top-24">
-                                <h3 className="text-zinc-500 text-[10px] font-black uppercase tracking-widest mb-6 flex items-center gap-2">
+                                <h3 className="text-zinc-300 text-[12px] font-black uppercase tracking-widest mb-6 flex items-center gap-2">
                                     <ShoppingCart size={12} className="text-[#39FF14]" /> Resumo da Venda
                                 </h3>
 
                                 <div className="space-y-4 mb-8">
                                     {cart.length === 0 ? (
-                                        <p className="text-zinc-700 text-[10px] font-bold uppercase text-center py-6">Carrinho vazio</p>
+                                        <p className="text-zinc-300 text-[12px] font-bold uppercase text-center py-6">Carrinho vazio</p>
                                     ) : (
                                         cart.map(item => (
                                             <div key={item.id} className="flex justify-between items-center gap-3">
                                                 <div className="flex-1 min-w-0">
                                                     <p className="text-[11px] font-black text-white uppercase truncate">{item.name}</p>
-                                                    <p className="text-[9px] text-zinc-500 font-bold uppercase">R$ {item.sale_price.toLocaleString('pt-BR')} un</p>
+                                                    <p className="text-[11px] text-zinc-300 font-bold uppercase">R$ {item.sale_price.toLocaleString('pt-BR')} un</p>
                                                 </div>
                                                 <div className="flex items-center gap-1.5 shrink-0">
                                                     <button
@@ -1916,7 +1916,7 @@ export default function DashboardPage() {
                                                         onClick={() => updateCartQuantity(item.id, item.quantity + 1, item.stock, true)}
                                                         className="w-7 h-7 rounded-lg bg-zinc-800 text-white font-black text-sm flex items-center justify-center hover:bg-zinc-700 transition-colors"
                                                     >+</button>
-                                                    <button onClick={() => removeFromCart(item.id)} className="w-7 h-7 rounded-lg text-zinc-700 hover:text-red-500 hover:bg-red-500/10 flex items-center justify-center transition-all">
+                                                    <button onClick={() => removeFromCart(item.id)} className="w-7 h-7 rounded-lg text-zinc-300 hover:text-red-500 hover:bg-red-500/10 flex items-center justify-center transition-all">
                                                         <Trash2 size={12} />
                                                     </button>
                                                 </div>
@@ -1926,7 +1926,7 @@ export default function DashboardPage() {
                                 </div>
 
                                 <div className="space-y-4 mb-6">
-                                    <label className="block text-[10px] font-black uppercase tracking-widest text-[#39FF14] mb-2 font-bold italic">Forma de Pagamento</label>
+                                    <label className="block text-[12px] font-black uppercase tracking-widest text-[#39FF14] mb-2 font-bold italic">Forma de Pagamento</label>
                                     <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                                         {['PIX', 'BOLETO', 'CARTÃO CRÉDITO', 'CARTÃO DÉBITO', 'OUTROS'].map((m) => (
                                             <button
@@ -1936,9 +1936,9 @@ export default function DashboardPage() {
                                                     setPaymentMethod(m as any);
                                                     if (m !== 'CARTÃO CRÉDITO') setInstallments(1);
                                                 }}
-                                                className={`p-2 rounded-xl border text-[9px] font-black uppercase tracking-widest transition-all ${paymentMethod === m
+                                                className={`p-2 rounded-xl border text-[11px] font-black uppercase tracking-widest transition-all ${paymentMethod === m
                                                     ? 'border-[#39FF14] bg-[#39FF14]/10 text-[#39FF14]'
-                                                    : 'border-zinc-800 bg-zinc-900/50 text-zinc-500 hover:border-zinc-700'
+                                                    : 'border-zinc-800 bg-zinc-900/50 text-zinc-300 hover:border-zinc-700'
                                                     }`}
                                             >
                                                 {m}
@@ -1947,7 +1947,7 @@ export default function DashboardPage() {
                                     </div>
                                     <div className="grid grid-cols-2 gap-4">
                                         <div>
-                                            <label className="block text-[9px] font-black uppercase tracking-widest mb-1 text-zinc-500">
+                                            <label className="block text-[11px] font-black uppercase tracking-widest mb-1 text-zinc-300">
                                                 Data
                                             </label>
                                             <input
@@ -1960,7 +1960,7 @@ export default function DashboardPage() {
                                         </div>
                                         {paymentMethod === 'CARTÃO CRÉDITO' && (
                                             <div>
-                                                <label className="block text-[9px] font-black uppercase tracking-widest mb-1 text-[#39FF14]">
+                                                <label className="block text-[11px] font-black uppercase tracking-widest mb-1 text-[#39FF14]">
                                                     Parcelas
                                                 </label>
                                                 <select
@@ -1981,7 +1981,7 @@ export default function DashboardPage() {
 
                                 <div className="border-t border-zinc-900 pt-6 mt-6">
                                     <div className="flex justify-between items-end mb-6">
-                                        <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">Total</p>
+                                        <p className="text-zinc-300 text-[12px] font-black uppercase tracking-widest">Total</p>
                                         <p className="text-2xl font-black text-[#39FF14]">R$ {cartTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                                     </div>
                                     <button
@@ -1998,7 +1998,7 @@ export default function DashboardPage() {
                         {/* Histórico de Vendas */}
                         <div className="mt-12 space-y-4">
                             <div className="flex justify-between items-center">
-                                <h3 className="text-zinc-500 text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                                <h3 className="text-zinc-300 text-[12px] font-black uppercase tracking-widest flex items-center gap-2">
                                     <History size={12} className="text-[#39FF14]" /> Histórico Recente de Vendas
                                 </h3>
                                 {sales.length > 0 && (
@@ -2041,7 +2041,7 @@ export default function DashboardPage() {
                                             const w = window.open('', '_blank');
                                             if (w) { w.document.write(printContent); w.document.close(); w.print(); }
                                         }}
-                                        className="text-[9px] font-black uppercase tracking-widest text-zinc-500 hover:text-[#39FF14] transition-colors flex items-center gap-1.5 px-3 py-2 rounded-xl border border-zinc-800 hover:border-[#39FF14]/50"
+                                        className="text-[11px] font-black uppercase tracking-widest text-zinc-300 hover:text-[#39FF14] transition-colors flex items-center gap-1.5 px-3 py-2 rounded-xl border border-zinc-800 hover:border-[#39FF14]/50"
                                     >
                                         <FileText size={12} /> Relatório PDF
                                     </button>
@@ -2049,7 +2049,7 @@ export default function DashboardPage() {
                             </div>
                             <div className="bg-zinc-950 border border-zinc-900 rounded-2xl md:rounded-[32px] overflow-hidden">
                                 {sales.length === 0 ? (
-                                    <div className="p-12 text-center text-zinc-700 font-bold uppercase text-[10px] tracking-widest italic">Nenhuma venda registrada até o momento</div>
+                                    <div className="p-12 text-center text-zinc-300 font-bold uppercase text-[12px] tracking-widest italic">Nenhuma venda registrada até o momento</div>
                                 ) : (
                                     <div className="divide-y divide-zinc-900">
                                         {sales.map(sale => {
@@ -2060,10 +2060,10 @@ export default function DashboardPage() {
                                                     <div className="flex justify-between items-start gap-3">
                                                         <div className="flex-1 min-w-0 cursor-pointer" onClick={() => setExpandedSaleIds(prev => prev[sale.id] ? {} : { [sale.id]: true })}>
                                                             <div className="flex items-center gap-2 flex-wrap">
-                                                                <span className="text-[10px] font-black uppercase tracking-widest text-[#39FF14]">{sale.sale_number}</span>
-                                                                <span className="text-[10px] text-zinc-600 font-bold">•</span>
-                                                                <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">{new Date(sale.created_at).toLocaleDateString('pt-BR')}</span>
-                                                                <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-600">{sale.payment_method}</span>
+                                                                <span className="text-[12px] font-black uppercase tracking-widest text-[#39FF14]">{sale.sale_number}</span>
+                                                                <span className="text-[12px] text-zinc-400 font-bold">•</span>
+                                                                <span className="text-[12px] font-bold uppercase tracking-widest text-zinc-300">{new Date(sale.created_at).toLocaleDateString('pt-BR')}</span>
+                                                                <span className="text-[12px] font-bold uppercase tracking-widest text-zinc-400">{sale.payment_method}</span>
                                                             </div>
                                                             {!isExpanded ? (
                                                                 <p className="text-[11px] font-bold text-zinc-300 italic mt-1 line-clamp-1">
@@ -2079,7 +2079,7 @@ export default function DashboardPage() {
                                                                     ))}
                                                                 </div>
                                                             )}
-                                                            <p className="text-[9px] text-zinc-600 mt-1">
+                                                            <p className="text-[11px] text-zinc-400 mt-1">
                                                                 {isExpanded ? 'Toque para fechar' : 'Toque para ver detalhes'}
                                                             </p>
                                                         </div>
@@ -2114,12 +2114,12 @@ export default function DashboardPage() {
                         <div className="flex justify-between items-start gap-3">
                             <div>
                                 <h1 className="text-2xl md:text-4xl font-black italic uppercase tracking-tighter">FINANCEIRO</h1>
-                                <p className="text-zinc-500 text-[11px] md:text-sm mt-0.5">Gestão de contas a pagar e a receber</p>
+                                <p className="text-zinc-300 text-[11px] md:text-sm mt-0.5">Gestão de contas a pagar e a receber</p>
                             </div>
                             {financeView === 'A PAGAR' && (
                                 <button
                                     onClick={() => setIsFinanceModalOpen(true)}
-                                    className="bg-[#39FF14] text-black px-4 md:px-6 py-2.5 md:py-3 rounded-2xl font-black uppercase text-[9px] md:text-[10px] tracking-widest hover:scale-105 transition-all shadow-lg shadow-[#39FF14]/20 flex items-center gap-1.5 shrink-0"
+                                    className="bg-[#39FF14] text-black px-4 md:px-6 py-2.5 md:py-3 rounded-2xl font-black uppercase text-[11px] md:text-[12px] tracking-widest hover:scale-105 transition-all shadow-lg shadow-[#39FF14]/20 flex items-center gap-1.5 shrink-0"
                                 >
                                     <Plus size={14} /> Nova Conta
                                 </button>
@@ -2130,13 +2130,13 @@ export default function DashboardPage() {
                         <div className="flex gap-2 p-1 bg-zinc-950 rounded-2xl">
                             <button
                                 onClick={() => setFinanceView('A PAGAR')}
-                                className={`flex-1 py-3 rounded-xl font-black uppercase text-[10px] tracking-widest transition-all flex items-center justify-center gap-2 ${financeView === 'A PAGAR' ? 'bg-red-500 text-white shadow-lg shadow-red-500/20' : 'text-zinc-500 hover:text-white'}`}
+                                className={`flex-1 py-3 rounded-xl font-black uppercase text-[12px] tracking-widest transition-all flex items-center justify-center gap-2 ${financeView === 'A PAGAR' ? 'bg-red-500 text-white shadow-lg shadow-red-500/20' : 'text-zinc-300 hover:text-white'}`}
                             >
                                 <ArrowDownLeft size={14} /> Contas a Pagar
                             </button>
                             <button
                                 onClick={() => setFinanceView('A RECEBER')}
-                                className={`flex-1 py-3 rounded-xl font-black uppercase text-[10px] tracking-widest transition-all flex items-center justify-center gap-2 ${financeView === 'A RECEBER' ? 'bg-[#39FF14] text-black shadow-lg shadow-[#39FF14]/20' : 'text-zinc-500 hover:text-white'}`}
+                                className={`flex-1 py-3 rounded-xl font-black uppercase text-[12px] tracking-widest transition-all flex items-center justify-center gap-2 ${financeView === 'A RECEBER' ? 'bg-[#39FF14] text-black shadow-lg shadow-[#39FF14]/20' : 'text-zinc-300 hover:text-white'}`}
                             >
                                 <ArrowUpRight size={14} /> Contas a Receber
                             </button>
@@ -2147,19 +2147,19 @@ export default function DashboardPage() {
                             {financeView === 'A PAGAR' ? (
                                 <>
                                     <div className="bg-zinc-950 p-3 md:p-6 rounded-2xl md:rounded-[32px] border border-zinc-900">
-                                        <p className="text-zinc-500 text-[8px] md:text-[10px] font-black uppercase tracking-widest mb-0.5">Total a Pagar</p>
+                                        <p className="text-zinc-300 text-[12px] md:text-[12px] font-black uppercase tracking-widest mb-0.5">Total a Pagar</p>
                                         <p className="text-lg md:text-3xl font-black text-red-500 tabular-nums">
                                             R$ {financialItems.filter(i => i.type === 'OUTFLOW' && (i.status === 'A PAGAR' || i.status === 'ATRASADO')).reduce((a: number, i: any) => a + i.amount, 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                         </p>
                                     </div>
                                     <div className="bg-zinc-950 p-3 md:p-6 rounded-2xl md:rounded-[32px] border border-zinc-900">
-                                        <p className="text-zinc-500 text-[8px] md:text-[10px] font-black uppercase tracking-widest mb-0.5">Atrasadas</p>
+                                        <p className="text-zinc-300 text-[12px] md:text-[12px] font-black uppercase tracking-widest mb-0.5">Atrasadas</p>
                                         <p className="text-lg md:text-3xl font-black text-orange-500 tabular-nums">
                                             {financialItems.filter(i => i.type === 'OUTFLOW' && i.status === 'ATRASADO').length}
                                         </p>
                                     </div>
                                     <div className="bg-zinc-950 p-3 md:p-6 rounded-2xl md:rounded-[32px] border border-zinc-900">
-                                        <p className="text-zinc-500 text-[8px] md:text-[10px] font-black uppercase tracking-widest mb-0.5">Pagas este mês</p>
+                                        <p className="text-zinc-300 text-[12px] md:text-[12px] font-black uppercase tracking-widest mb-0.5">Pagas este mês</p>
                                         <p className="text-lg md:text-3xl font-black text-[#39FF14] tabular-nums">
                                             R$ {financialItems.filter(i => {
                                                 if (i.type !== 'OUTFLOW' || i.status !== 'PAGO' || !i.paid_at) return false;
@@ -2172,19 +2172,19 @@ export default function DashboardPage() {
                             ) : (
                                 <>
                                     <div className="bg-zinc-950 p-3 md:p-6 rounded-2xl md:rounded-[32px] border border-zinc-900">
-                                        <p className="text-zinc-500 text-[8px] md:text-[10px] font-black uppercase tracking-widest mb-0.5">Total a Receber</p>
+                                        <p className="text-zinc-300 text-[12px] md:text-[12px] font-black uppercase tracking-widest mb-0.5">Total a Receber</p>
                                         <p className="text-lg md:text-3xl font-black text-[#39FF14] tabular-nums">
                                             R$ {financialItems.filter(i => i.type === 'INFLOW' && (i.status === 'A RECEBER' || i.status === 'PENDENTE' || i.status === 'ATRASADO')).reduce((a: number, i: any) => a + i.amount, 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                         </p>
                                     </div>
                                     <div className="bg-zinc-950 p-3 md:p-6 rounded-2xl md:rounded-[32px] border border-zinc-900">
-                                        <p className="text-zinc-500 text-[8px] md:text-[10px] font-black uppercase tracking-widest mb-0.5">Atrasadas</p>
+                                        <p className="text-zinc-300 text-[12px] md:text-[12px] font-black uppercase tracking-widest mb-0.5">Atrasadas</p>
                                         <p className="text-lg md:text-3xl font-black text-orange-500 tabular-nums">
                                             {financialItems.filter(i => i.type === 'INFLOW' && i.status === 'ATRASADO').length}
                                         </p>
                                     </div>
                                     <div className="bg-zinc-950 p-3 md:p-6 rounded-2xl md:rounded-[32px] border border-zinc-900">
-                                        <p className="text-zinc-500 text-[8px] md:text-[10px] font-black uppercase tracking-widest mb-0.5">Recebidas este mês</p>
+                                        <p className="text-zinc-300 text-[12px] md:text-[12px] font-black uppercase tracking-widest mb-0.5">Recebidas este mês</p>
                                         <p className="text-3xl font-black text-[#39FF14] tabular-nums">
                                             R$ {financialItems.filter(i => {
                                                 if (i.type !== 'INFLOW' || (i.status !== 'RECEBIDO' && i.status !== 'PAGO') || !i.paid_at) return false;
@@ -2200,14 +2200,14 @@ export default function DashboardPage() {
                         {/* Lista de contas */}
                         <div className="bg-zinc-950 border border-zinc-900 rounded-2xl md:rounded-[32px] overflow-hidden">
                             <div className="p-4 md:p-6 border-b border-zinc-900 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
-                                <h3 className="text-zinc-500 text-[9px] md:text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                                <h3 className="text-zinc-300 text-[11px] md:text-[12px] font-black uppercase tracking-widest flex items-center gap-2">
                                     {financeView === 'A PAGAR' ? <><ArrowDownLeft size={11} /> Contas a Pagar</> : <><ArrowUpRight size={11} /> Contas a Receber</>}
                                 </h3>
                                 <div className="flex flex-wrap items-center gap-2">
                                     <select
                                         value={financeFilterYear}
                                         onChange={e => setFinanceFilterYear(parseInt(e.target.value))}
-                                        className="bg-zinc-900 text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-xl border border-zinc-800 outline-none text-white focus:border-[#39FF14] transition-colors appearance-none"
+                                        className="bg-zinc-900 text-[12px] font-black uppercase tracking-widest px-4 py-2 rounded-xl border border-zinc-800 outline-none text-white focus:border-[#39FF14] transition-colors appearance-none"
                                     >
                                         {[financeFilterYear - 1, financeFilterYear, financeFilterYear + 1].map(y => (
                                             <option key={y} value={y}>{y}</option>
@@ -2216,7 +2216,7 @@ export default function DashboardPage() {
                                     <select
                                         value={financeFilterMonth}
                                         onChange={e => setFinanceFilterMonth(parseInt(e.target.value))}
-                                        className="bg-zinc-900 text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-xl border border-zinc-800 outline-none text-white focus:border-[#39FF14] transition-colors appearance-none"
+                                        className="bg-zinc-900 text-[12px] font-black uppercase tracking-widest px-4 py-2 rounded-xl border border-zinc-800 outline-none text-white focus:border-[#39FF14] transition-colors appearance-none"
                                     >
                                         <option value={-1}>Ano todo</option>
                                         {Array.from({ length: 12 }, (_, i) => {
@@ -2244,7 +2244,7 @@ export default function DashboardPage() {
                                     });
 
                                     if (filtered.length === 0) {
-                                        return <div className="p-12 text-center text-zinc-700 font-bold uppercase text-[10px] tracking-widest italic">Nenhuma conta no período</div>;
+                                        return <div className="p-12 text-center text-zinc-300 font-bold uppercase text-[12px] tracking-widest italic">Nenhuma conta no período</div>;
                                     }
 
                                     return filtered.map(item => (
@@ -2255,11 +2255,11 @@ export default function DashboardPage() {
                                                 </div>
                                                 <div className="flex-1 min-w-0">
                                                     <p className="text-[12px] md:text-sm font-black text-white uppercase truncate">{item.description}</p>
-                                                    <p className="text-[9px] md:text-[10px] text-zinc-500 font-semibold uppercase">
+                                                    <p className="text-[11px] md:text-[12px] text-zinc-300 font-semibold uppercase">
                                                         Venc: {new Date(item.due_date || item.transaction_date || item.created_at).toLocaleDateString('pt-BR')}
-                                                        {item.payment_method && <span className="ml-1.5 text-zinc-600">• {item.payment_method}</span>}
+                                                        {item.payment_method && <span className="ml-1.5 text-zinc-400">• {item.payment_method}</span>}
                                                     </p>
-                                                    {item.observations && <p className="text-[9px] text-zinc-600 italic mt-0.5 truncate">{item.observations}</p>}
+                                                    {item.observations && <p className="text-[11px] text-zinc-400 italic mt-0.5 truncate">{item.observations}</p>}
                                                 </div>
                                             </div>
 
@@ -2270,12 +2270,12 @@ export default function DashboardPage() {
                                                     </p>
                                                     <div className="flex justify-end mt-1 gap-1.5 items-center">
                                                         {item.status === 'PAGO' || item.status === 'RECEBIDO' ? (
-                                                            <span className="text-[8px] font-black uppercase px-3 py-1 rounded-full bg-green-500/20 text-green-400">
+                                                            <span className="text-[12px] font-black uppercase px-3 py-1 rounded-full bg-green-500/20 text-green-400">
                                                                 {item.status} {item.paid_at ? `em ${new Date(item.paid_at).toLocaleDateString('pt-BR')}` : ''}
                                                             </span>
                                                         ) : (
                                                             <>
-                                                                <span className={`text-[8px] font-black uppercase px-3 py-1 rounded-full ${item.status === 'ATRASADO' ? 'bg-red-500/20 text-red-400' : 'bg-orange-500/20 text-orange-400'}`}>
+                                                                <span className={`text-[12px] font-black uppercase px-3 py-1 rounded-full ${item.status === 'ATRASADO' ? 'bg-red-500/20 text-red-400' : 'bg-orange-500/20 text-orange-400'}`}>
                                                                     {item.status}
                                                                 </span>
                                                                 <button
@@ -2283,7 +2283,7 @@ export default function DashboardPage() {
                                                                         status: item.type === 'OUTFLOW' ? 'PAGO' : 'RECEBIDO',
                                                                         paid_at: new Date().toISOString()
                                                                     })}
-                                                                    className={`text-[8px] font-black uppercase px-3 py-1 rounded-full transition-all hover:scale-105 ${item.type === 'OUTFLOW' ? 'bg-green-500 text-black' : 'bg-[#39FF14] text-black'}`}
+                                                                    className={`text-[12px] font-black uppercase px-3 py-1 rounded-full transition-all hover:scale-105 ${item.type === 'OUTFLOW' ? 'bg-green-500 text-black' : 'bg-[#39FF14] text-black'}`}
                                                                 >
                                                                     {item.type === 'OUTFLOW' ? 'PAGAR' : 'RECEBER'}
                                                                 </button>
@@ -2301,7 +2301,7 @@ export default function DashboardPage() {
                                                             editPayMethod: item.payment_method || 'PIX',
                                                             editObs: item.observations || '',
                                                         });
-                                                    }} className="text-zinc-600 hover:text-[#39FF14] transition-colors p-2" title="Editar conta">
+                                                    }} className="text-zinc-400 hover:text-[#39FF14] transition-colors p-2" title="Editar conta">
                                                         <Pencil size={16} />
                                                     </button>
                                                     <button onClick={async () => {
@@ -2312,7 +2312,7 @@ export default function DashboardPage() {
                                                             console.error('Erro ao excluir:', err);
                                                             toast.error('Erro ao excluir conta');
                                                         }
-                                                    }} className="text-zinc-600 hover:text-red-500 transition-colors p-2" title="Excluir conta">
+                                                    }} className="text-zinc-400 hover:text-red-500 transition-colors p-2" title="Excluir conta">
                                                         <Trash2 size={16} />
                                                     </button>
                                                 </div>
@@ -2331,7 +2331,7 @@ export default function DashboardPage() {
                         <div className="bg-zinc-900 w-full max-w-xl p-8 rounded-[32px] border border-zinc-800 shadow-2xl relative text-white max-h-[90vh] overflow-y-auto">
                             <button
                                 onClick={() => setEditingFinanceItem(null)}
-                                className="absolute right-6 top-6 text-zinc-500 hover:text-white transition-colors"
+                                className="absolute right-6 top-6 text-zinc-300 hover:text-white transition-colors"
                             >
                                 <X size={24} />
                             </button>
@@ -2359,7 +2359,7 @@ export default function DashboardPage() {
                                 }
                             }} className="space-y-5">
                                 <div>
-                                    <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-zinc-500">Descrição</label>
+                                    <label className="block text-[12px] font-black uppercase tracking-widest mb-2 text-zinc-300">Descrição</label>
                                     <input
                                         type="text"
                                         value={editingFinanceItem.editDesc}
@@ -2370,7 +2370,7 @@ export default function DashboardPage() {
                                 </div>
 
                                 <div>
-                                    <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-zinc-500">Valor (R$)</label>
+                                    <label className="block text-[12px] font-black uppercase tracking-widest mb-2 text-zinc-300">Valor (R$)</label>
                                     <input
                                         type="text"
                                         value={editingFinanceItem.editAmount}
@@ -2381,7 +2381,7 @@ export default function DashboardPage() {
                                 </div>
 
                                 <div>
-                                    <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-zinc-500">Data de Vencimento</label>
+                                    <label className="block text-[12px] font-black uppercase tracking-widest mb-2 text-zinc-300">Data de Vencimento</label>
                                     <input
                                         type="date"
                                         value={editingFinanceItem.editDueDate}
@@ -2392,14 +2392,14 @@ export default function DashboardPage() {
                                 </div>
 
                                 <div>
-                                    <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-zinc-500">Forma de Pagamento</label>
+                                    <label className="block text-[12px] font-black uppercase tracking-widest mb-2 text-zinc-300">Forma de Pagamento</label>
                                     <div className="flex flex-wrap gap-2">
                                         {['PIX', 'BOLETO', 'CARTÃO CRÉDITO', 'CARTÃO DÉBITO', 'OUTRO'].map(pm => (
                                             <button
                                                 key={pm}
                                                 type="button"
                                                 onClick={() => setEditingFinanceItem({ ...editingFinanceItem, editPayMethod: pm })}
-                                                className={`px-4 py-3 rounded-xl font-black uppercase text-[10px] tracking-widest transition-all ${editingFinanceItem.editPayMethod === pm ? 'bg-[#39FF14] text-black shadow-lg shadow-[#39FF14]/20' : 'bg-zinc-950 text-zinc-500 hover:text-white'}`}
+                                                className={`px-4 py-3 rounded-xl font-black uppercase text-[12px] tracking-widest transition-all ${editingFinanceItem.editPayMethod === pm ? 'bg-[#39FF14] text-black shadow-lg shadow-[#39FF14]/20' : 'bg-zinc-950 text-zinc-300 hover:text-white'}`}
                                             >
                                                 {pm}
                                             </button>
@@ -2408,13 +2408,13 @@ export default function DashboardPage() {
                                 </div>
 
                                 <div>
-                                    <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-zinc-500">Observação</label>
+                                    <label className="block text-[12px] font-black uppercase tracking-widest mb-2 text-zinc-300">Observação</label>
                                     <textarea
                                         value={editingFinanceItem.editObs}
                                         onChange={e => setEditingFinanceItem({ ...editingFinanceItem, editObs: e.target.value })}
                                         placeholder="Informações adicionais..."
                                         rows={2}
-                                        className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all font-bold placeholder:text-zinc-700 resize-none"
+                                        className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all font-bold placeholder:text-zinc-600 resize-none"
                                     />
                                 </div>
 
@@ -2444,7 +2444,7 @@ export default function DashboardPage() {
                         <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 gap-4">
                             <div className="pl-1">
                                 <h1 className="text-4xl font-black italic uppercase tracking-tighter">FLUXO DE CAIXA</h1>
-                                <p className="text-zinc-500 text-sm mt-1">Visão geral de entradas e saídas</p>
+                                <p className="text-zinc-300 text-sm mt-1">Visão geral de entradas e saídas</p>
                             </div>
                         </div>
 
@@ -2453,35 +2453,35 @@ export default function DashboardPage() {
                                 <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
                                     <Wallet size={40} className="text-[#39FF14]" />
                                 </div>
-                                <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest mb-1">Saldo em Caixa</p>
+                                <p className="text-zinc-300 text-[12px] font-black uppercase tracking-widest mb-1">Saldo em Caixa</p>
                                 <p className="text-4xl font-black text-[#39FF14] tabular-nums">R$ {financeStats.balance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                             </div>
                             <div className="bg-zinc-950 p-8 rounded-[32px] border border-zinc-900 shadow-2xl relative overflow-hidden group">
                                 <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
                                     <ArrowUpCircle size={40} className="text-blue-500" />
                                 </div>
-                                <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest mb-1">Vendas Hoje</p>
+                                <p className="text-zinc-300 text-[12px] font-black uppercase tracking-widest mb-1">Vendas Hoje</p>
                                 <p className="text-4xl font-black text-[#39FF14] tabular-nums">R$ {financeStats.todaySales.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                             </div>
                             <div className="bg-zinc-950 p-8 rounded-[32px] border border-zinc-900 shadow-2xl relative overflow-hidden group">
                                 <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
                                     <ArrowDownCircle size={40} className="text-[#39FF14]" />
                                 </div>
-                                <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest mb-1">Previsão Recebiveis</p>
+                                <p className="text-zinc-300 text-[12px] font-black uppercase tracking-widest mb-1">Previsão Recebiveis</p>
                                 <p className="text-4xl font-black text-[#39FF14] tabular-nums">R$ {financeStats.pendingReceivables.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                             </div>
                         </div>
 
                         <div className="bg-zinc-950 border border-zinc-900 rounded-[32px] overflow-hidden">
                             <div className="p-6 border-b border-zinc-900 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                                <h3 className="text-zinc-500 text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                                <h3 className="text-zinc-300 text-[12px] font-black uppercase tracking-widest flex items-center gap-2">
                                     <Clock size={12} /> Movimentações por Período
                                 </h3>
                                 <div className="flex flex-wrap items-center gap-2">
                                     <select
                                         value={financeGrouping}
                                         onChange={e => setFinanceGrouping(e.target.value as any)}
-                                        className="bg-zinc-900 text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-xl border border-zinc-800 outline-none text-white focus:border-[#39FF14] transition-colors appearance-none"
+                                        className="bg-zinc-900 text-[12px] font-black uppercase tracking-widest px-4 py-2 rounded-xl border border-zinc-800 outline-none text-white focus:border-[#39FF14] transition-colors appearance-none"
                                     >
                                         <option value="DAILY">Diário</option>
                                         <option value="WEEKLY">Semanal</option>
@@ -2493,7 +2493,7 @@ export default function DashboardPage() {
                                         <select
                                             value={financeFilterMonth}
                                             onChange={e => setFinanceFilterMonth(parseInt(e.target.value))}
-                                            className="bg-zinc-900 text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-xl border border-zinc-800 outline-none text-white focus:border-[#39FF14] transition-colors appearance-none"
+                                            className="bg-zinc-900 text-[12px] font-black uppercase tracking-widest px-4 py-2 rounded-xl border border-zinc-800 outline-none text-white focus:border-[#39FF14] transition-colors appearance-none"
                                         >
                                             {Array.from({ length: 12 }, (_, i) => {
                                                 const date = new Date(2000, i, 1);
@@ -2505,7 +2505,7 @@ export default function DashboardPage() {
                                     <select
                                         value={financeFilterYear}
                                         onChange={e => setFinanceFilterYear(parseInt(e.target.value))}
-                                        className="bg-zinc-900 text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-xl border border-zinc-800 outline-none text-white focus:border-[#39FF14] transition-colors appearance-none"
+                                        className="bg-zinc-900 text-[12px] font-black uppercase tracking-widest px-4 py-2 rounded-xl border border-zinc-800 outline-none text-white focus:border-[#39FF14] transition-colors appearance-none"
                                     >
                                         {[financeFilterYear - 1, financeFilterYear, financeFilterYear + 1].map(y => (
                                             <option key={y} value={y}>{y}</option>
@@ -2516,11 +2516,11 @@ export default function DashboardPage() {
 
                             <div className="divide-y divide-zinc-900">
                                 {groupedFinancialItems.length === 0 ? (
-                                    <div className="p-12 text-center text-zinc-700 font-bold uppercase text-[10px] tracking-widest italic">Nenhuma movimentação no período</div>
+                                    <div className="p-12 text-center text-zinc-300 font-bold uppercase text-[12px] tracking-widest italic">Nenhuma movimentação no período</div>
                                 ) : (
                                     groupedFinancialItems.map(({ group, items, total }: { group: string, items: any[], total: number }) => (
                                         <div key={group}>
-                                            <div className="bg-zinc-900/40 px-6 py-3 flex justify-between items-center text-[10px] font-black uppercase tracking-widest border-y border-zinc-900">
+                                            <div className="bg-zinc-900/40 px-6 py-3 flex justify-between items-center text-[12px] font-black uppercase tracking-widest border-y border-zinc-900">
                                                 <span className="text-zinc-400">{group}</span>
                                                 <span className={total >= 0 ? 'text-[#39FF14]' : 'text-red-500'}>
                                                     R$ {total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
@@ -2534,7 +2534,7 @@ export default function DashboardPage() {
                                                         </div>
                                                         <div className="flex-1">
                                                             <p className="text-sm font-black text-white uppercase">{item.description}</p>
-                                                            <p className="text-[10px] text-zinc-500 font-bold uppercase">
+                                                            <p className="text-[12px] text-zinc-300 font-bold uppercase">
                                                                 {new Date(item.due_date || item.transaction_date || item.created_at).toLocaleDateString('pt-BR')}
                                                             </p>
                                                         </div>
@@ -2545,7 +2545,7 @@ export default function DashboardPage() {
                                                             <p className={`text-lg font-black ${item.type === 'INFLOW' ? 'text-[#39FF14]' : 'text-red-500'}`}>
                                                                 {item.type === 'INFLOW' ? '+' : '-'} R$ {item.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                                             </p>
-                                                            <span className={`text-[8px] font-black uppercase px-3 py-1 rounded-full ${
+                                                            <span className={`text-[12px] font-black uppercase px-3 py-1 rounded-full ${
                                                                 item.status === 'PAGO' || item.status === 'RECEBIDO' ? 'bg-green-500/20 text-green-400' :
                                                                 item.status === 'ATRASADO' ? 'bg-red-500/20 text-red-400' : 'bg-orange-500/20 text-orange-400'
                                                             }`}>
@@ -2598,11 +2598,11 @@ export default function DashboardPage() {
                             <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
                                 <div>
                                     <h2 className="text-3xl font-black italic uppercase tracking-tighter flex items-center gap-3">✂️ Contas a Pagar</h2>
-                                    <p className="text-zinc-500 text-sm mt-1">Gestão de contas a pagar da confecção</p>
+                                    <p className="text-zinc-300 text-sm mt-1">Gestão de contas a pagar da confecção</p>
                                 </div>
                                 <button
                                     onClick={() => { resetContaForm(); setContaModalOpen(true); }}
-                                    className="bg-[#39FF14] text-black px-6 py-3 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:scale-105 transition-all shadow-lg shadow-[#39FF14]/20 flex items-center gap-2"
+                                    className="bg-[#39FF14] text-black px-6 py-3 rounded-2xl font-black uppercase text-[12px] tracking-widest hover:scale-105 transition-all shadow-lg shadow-[#39FF14]/20 flex items-center gap-2"
                                 >
                                     <Plus size={16} /> Nova Conta
                                 </button>
@@ -2611,13 +2611,13 @@ export default function DashboardPage() {
                             {/* Month selector */}
                             <div className="flex flex-wrap gap-2">
                                 <select value={contaMonthFilter} onChange={e => setContaMonthFilter(parseInt(e.target.value))}
-                                    className="bg-zinc-900 text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-xl border border-zinc-800 outline-none text-white focus:border-[#39FF14] appearance-none">
+                                    className="bg-zinc-900 text-[12px] font-black uppercase tracking-widest px-4 py-2 rounded-xl border border-zinc-800 outline-none text-white focus:border-[#39FF14] appearance-none">
                                     {Array.from({ length: 12 }, (_, i) => (
                                         <option key={i} value={i}>{new Date(2000, i, 1).toLocaleString('pt-BR', { month: 'long' })}</option>
                                     ))}
                                 </select>
                                 <select value={contaYearFilter} onChange={e => setContaYearFilter(parseInt(e.target.value))}
-                                    className="bg-zinc-900 text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-xl border border-zinc-800 outline-none text-white focus:border-[#39FF14] appearance-none">
+                                    className="bg-zinc-900 text-[12px] font-black uppercase tracking-widest px-4 py-2 rounded-xl border border-zinc-800 outline-none text-white focus:border-[#39FF14] appearance-none">
                                     {[contaYearFilter - 1, contaYearFilter, contaYearFilter + 1].map(y => <option key={y} value={y}>{y}</option>)}
                                 </select>
                             </div>
@@ -2630,7 +2630,7 @@ export default function DashboardPage() {
                                     { label: 'Pago', value: totalPago, color: 'text-[#39FF14]' },
                                 ].map(s => (
                                     <div key={s.label} className="bg-zinc-950 rounded-[24px] border border-zinc-900 p-5 text-center">
-                                        <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-2">{s.label}</p>
+                                        <p className="text-[12px] font-black uppercase tracking-widest text-zinc-300 mb-2">{s.label}</p>
                                         <p className={`text-2xl font-black tabular-nums ${s.color}`}>{fmtBRL(s.value)}</p>
                                     </div>
                                 ))}
@@ -2639,7 +2639,7 @@ export default function DashboardPage() {
                             {/* Group breakdown */}
                             {groupTotals.length > 0 && (
                                 <div className="bg-zinc-950 border border-zinc-900 rounded-[24px] p-5">
-                                    <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-4">Por Categoria</p>
+                                    <p className="text-[12px] font-black uppercase tracking-widest text-zinc-300 mb-4">Por Categoria</p>
                                     <div className="space-y-2">
                                         {groupTotals.map(g => (
                                             <div key={g.group} className="flex items-center justify-between rounded-xl px-4 py-2.5" style={{ backgroundColor: g.color + '18' }}>
@@ -2655,18 +2655,18 @@ export default function DashboardPage() {
                             <div className="flex flex-wrap gap-2">
                                 {(['TODAS', 'PENDENTES', 'PAGAS'] as const).map(s => (
                                     <button key={s} onClick={() => setContaStatusFilter(s)}
-                                        className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border ${contaStatusFilter === s
+                                        className={`px-4 py-2 rounded-xl text-[12px] font-black uppercase tracking-widest transition-all border ${contaStatusFilter === s
                                             ? 'bg-[#39FF14] text-black border-[#39FF14]'
                                             : 'bg-zinc-900 text-zinc-400 border-zinc-800 hover:border-[#39FF14]/50'}`}
                                     >{s}</button>
                                 ))}
                                 <div className="w-px bg-zinc-800 mx-1" />
                                 <button onClick={() => setContaGroupFilter('TODOS')}
-                                    className={`px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border ${contaGroupFilter === 'TODOS' ? 'bg-zinc-700 text-white border-zinc-600' : 'bg-zinc-900 text-zinc-500 border-zinc-800 hover:border-zinc-600'}`}
+                                    className={`px-3 py-2 rounded-xl text-[12px] font-black uppercase tracking-widest transition-all border ${contaGroupFilter === 'TODOS' ? 'bg-zinc-700 text-white border-zinc-600' : 'bg-zinc-900 text-zinc-300 border-zinc-800 hover:border-zinc-600'}`}
                                 >Todos</button>
                                 {CONFECCAO_GROUPS.map(g => (
                                     <button key={g.group} onClick={() => setContaGroupFilter(contaGroupFilter === g.group ? 'TODOS' : g.group)}
-                                        className="px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border"
+                                        className="px-3 py-2 rounded-xl text-[12px] font-black uppercase tracking-widest transition-all border"
                                         style={contaGroupFilter === g.group
                                             ? { backgroundColor: g.color, color: '#000', borderColor: g.color }
                                             : { backgroundColor: 'transparent', color: g.color, borderColor: g.color + '40' }}
@@ -2677,7 +2677,7 @@ export default function DashboardPage() {
                             {/* List */}
                             <div className="bg-zinc-950 border border-zinc-900 rounded-[32px] overflow-hidden">
                                 {visibleContas.length === 0 ? (
-                                    <div className="p-12 text-center text-zinc-700 font-bold uppercase text-[10px] tracking-widest italic">
+                                    <div className="p-12 text-center text-zinc-300 font-bold uppercase text-[12px] tracking-widest italic">
                                         {monthContas.length === 0 ? 'Nenhuma conta neste mês — clique em "Nova Conta" para começar.' : 'Nenhuma conta com esse filtro.'}
                                     </div>
                                 ) : (
@@ -2694,14 +2694,14 @@ export default function DashboardPage() {
                                                         <div className="flex-1 min-w-0">
                                                             <div className="flex flex-wrap items-center gap-2 mb-1">
                                                                 <span className="text-sm font-black text-white uppercase">{conta.description}</span>
-                                                                <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full" style={{ backgroundColor: (grp?.color || '#6B7280') + '20', color: grp?.color || '#6B7280' }}>
+                                                                <span className="text-[11px] font-black uppercase px-2 py-0.5 rounded-full" style={{ backgroundColor: (grp?.color || '#6B7280') + '20', color: grp?.color || '#6B7280' }}>
                                                                     {conta.category}
                                                                 </span>
-                                                                <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full ${conta.recurrence === 'FIXA' ? 'bg-blue-500/10 text-blue-400' : conta.recurrence === 'VARIAVEL' ? 'bg-orange-500/10 text-orange-400' : 'bg-zinc-800 text-zinc-400'}`}>
+                                                                <span className={`text-[11px] font-black uppercase px-2 py-0.5 rounded-full ${conta.recurrence === 'FIXA' ? 'bg-blue-500/10 text-blue-400' : conta.recurrence === 'VARIAVEL' ? 'bg-orange-500/10 text-orange-400' : 'bg-zinc-800 text-zinc-400'}`}>
                                                                     {conta.recurrence === 'FIXA' ? '🔄 Fixa' : conta.recurrence === 'VARIAVEL' ? '📊 Variável' : '1️⃣ Única'}
                                                                 </span>
                                                             </div>
-                                                            <div className="flex flex-wrap gap-x-4 gap-y-0.5 text-[10px] text-zinc-500 font-bold uppercase">
+                                                            <div className="flex flex-wrap gap-x-4 gap-y-0.5 text-[12px] text-zinc-300 font-bold uppercase">
                                                                 <span>Venc: {new Date(conta.due_date + 'T12:00:00').toLocaleDateString('pt-BR')}</span>
                                                                 <span>{conta.payment_method}</span>
                                                                 {conta.status === 'PAGO' && conta.paid_date && (
@@ -2709,7 +2709,7 @@ export default function DashboardPage() {
                                                                 )}
                                                                 {isOverdue && <span className="text-red-400">⚠️ ATRASADO</span>}
                                                             </div>
-                                                            {conta.notes && <p className="text-[10px] text-zinc-600 mt-1 italic">{conta.notes}</p>}
+                                                            {conta.notes && <p className="text-[12px] text-zinc-400 mt-1 italic">{conta.notes}</p>}
                                                         </div>
                                                     </div>
                                                     <div className="flex items-center gap-3 shrink-0 justify-between md:justify-end">
@@ -2719,12 +2719,12 @@ export default function DashboardPage() {
                                                         <div className="flex items-center gap-1">
                                                             {conta.status !== 'PAGO' ? (
                                                                 <button onClick={() => handleMarkContaPaid(conta.id)}
-                                                                    className="bg-[#39FF14] text-black px-3 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest hover:scale-105 transition-all flex items-center gap-1">
+                                                                    className="bg-[#39FF14] text-black px-3 py-2 rounded-xl text-[11px] font-black uppercase tracking-widest hover:scale-105 transition-all flex items-center gap-1">
                                                                     <Check size={12} /> Pagar
                                                                 </button>
                                                             ) : (
                                                                 <button onClick={() => handleUndoContaPaid(conta.id)}
-                                                                    className="text-zinc-600 hover:text-orange-400 transition-colors px-2 py-2 rounded-xl text-[9px] font-black uppercase">
+                                                                    className="text-zinc-400 hover:text-orange-400 transition-colors px-2 py-2 rounded-xl text-[11px] font-black uppercase">
                                                                     Desfazer
                                                                 </button>
                                                             )}
@@ -2740,10 +2740,10 @@ export default function DashboardPage() {
                                                                 setContaRecurrence(conta.recurrence);
                                                                 setContaNotes(conta.notes || '');
                                                                 setContaModalOpen(true);
-                                                            }} className="text-zinc-600 hover:text-white transition-colors p-2 rounded-xl">
+                                                            }} className="text-zinc-400 hover:text-white transition-colors p-2 rounded-xl">
                                                                 <Pencil size={14} />
                                                             </button>
-                                                            <button onClick={() => setConfirmDeleteContaId(conta.id)} className="text-zinc-600 hover:text-red-500 transition-colors p-2 rounded-xl">
+                                                            <button onClick={() => setConfirmDeleteContaId(conta.id)} className="text-zinc-400 hover:text-red-500 transition-colors p-2 rounded-xl">
                                                                 <Trash2 size={14} />
                                                             </button>
                                                         </div>
@@ -2766,14 +2766,14 @@ export default function DashboardPage() {
                         <div className="bg-zinc-900 w-full max-w-xl p-6 md:p-8 rounded-[32px] border border-zinc-800 shadow-2xl relative my-auto">
                             <button
                                 onClick={() => setIsModalOpen(false)}
-                                className="absolute top-6 right-6 text-zinc-500 hover:text-white transition-colors"
+                                className="absolute top-6 right-6 text-zinc-300 hover:text-white transition-colors"
                             >
                                 <X size={24} />
                             </button>
 
                             <div className="mb-8">
                                 <h3 className="text-2xl font-black italic uppercase text-[#39FF14]">CADASTRO DE PEDIDO</h3>
-                                <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mt-1">
+                                <p className="text-zinc-300 text-[12px] font-bold uppercase tracking-widest mt-1">
                                     {nextOrderNumber ? `INICIAR PRODUÇÃO ${nextOrderNumber}` : 'INICIAR NOVA PRODUÇÃO'}
                                 </p>
                             </div>
@@ -2781,7 +2781,7 @@ export default function DashboardPage() {
                             <form onSubmit={handleCreateOrder} className="space-y-6">
                                 <div className="space-y-4">
                                     <div>
-                                        <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-zinc-500">
+                                        <label className="block text-[12px] font-black uppercase tracking-widest mb-2 text-zinc-300">
                                             Nome do Cliente / Academia
                                         </label>
                                         <input
@@ -2790,31 +2790,31 @@ export default function DashboardPage() {
                                             onChange={e => setClient(e.target.value)}
                                             placeholder="Nome do cliente..."
                                             required
-                                            className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all placeholder:text-zinc-700"
+                                            className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all placeholder:text-zinc-600"
                                         />
                                     </div>
 
                                     <div className="grid grid-cols-2 gap-4">
                                         <div>
-                                            <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-2">WhatsApp</label>
+                                            <label className="block text-[12px] font-black uppercase tracking-widest text-zinc-300 mb-2">WhatsApp</label>
                                             <input
                                                 type="text"
                                                 value={clientWhatsapp}
                                                 onChange={e => setClientWhatsapp(e.target.value)}
-                                                className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all placeholder:text-zinc-700"
+                                                className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all placeholder:text-zinc-600"
                                                 placeholder="(00) 00000-0000"
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-[10px] font-black uppercase tracking-widest text-[#39FF14] mb-2 font-bold italic">
-                                                Valor Total {linkedSaleId && <span className="text-zinc-500 normal-case">(via venda vinculada)</span>}
+                                            <label className="block text-[12px] font-black uppercase tracking-widest text-[#39FF14] mb-2 font-bold italic">
+                                                Valor Total {linkedSaleId && <span className="text-zinc-300 normal-case">(via venda vinculada)</span>}
                                             </label>
                                             <input
                                                 type="text"
                                                 value={value}
                                                 onChange={e => handleValueChange(e.target.value)}
                                                 disabled={!!linkedSaleId}
-                                                className={`w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all placeholder:text-zinc-700 ${linkedSaleId ? 'opacity-60 cursor-not-allowed' : ''}`}
+                                                className={`w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all placeholder:text-zinc-600 ${linkedSaleId ? 'opacity-60 cursor-not-allowed' : ''}`}
                                                 placeholder="0,00"
                                                 required
                                             />
@@ -2822,7 +2822,7 @@ export default function DashboardPage() {
                                     </div>
 
                                     <div>
-                                        <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-zinc-500">
+                                        <label className="block text-[12px] font-black uppercase tracking-widest mb-2 text-zinc-300">
                                             Data de Entrega
                                         </label>
                                         <input
@@ -2834,7 +2834,7 @@ export default function DashboardPage() {
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-zinc-500">
+                                        <label className="block text-[12px] font-black uppercase tracking-widest mb-2 text-zinc-300">
                                             Método de Entrega
                                         </label>
                                         <select
@@ -2850,7 +2850,7 @@ export default function DashboardPage() {
 
                                     {/* Forma de Pagamento */}
                                     <div className="space-y-4">
-                                        <label className="block text-[10px] font-black uppercase tracking-widest text-[#39FF14] mb-2 font-bold italic">Forma de Pagamento</label>
+                                        <label className="block text-[12px] font-black uppercase tracking-widest text-[#39FF14] mb-2 font-bold italic">Forma de Pagamento</label>
                                         <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                                             {['PIX', 'BOLETO', 'CARTÃO CRÉDITO', 'CARTÃO DÉBITO', 'OUTROS'].map((m) => (
                                                 <button
@@ -2860,9 +2860,9 @@ export default function DashboardPage() {
                                                         setPaymentMethod(m as any);
                                                         if (m !== 'CARTÃO CRÉDITO') setInstallments(1);
                                                     }}
-                                                    className={`p-3 rounded-2xl border text-[10px] font-black uppercase tracking-widest transition-all ${paymentMethod === m
+                                                    className={`p-3 rounded-2xl border text-[12px] font-black uppercase tracking-widest transition-all ${paymentMethod === m
                                                         ? 'border-[#39FF14] bg-[#39FF14]/10 text-[#39FF14]'
-                                                        : 'border-zinc-800 bg-zinc-900/50 text-zinc-500 hover:border-zinc-700'
+                                                        : 'border-zinc-800 bg-zinc-900/50 text-zinc-300 hover:border-zinc-700'
                                                         }`}
                                                 >
                                                     {m}
@@ -2872,7 +2872,7 @@ export default function DashboardPage() {
                                     </div>
 
                                     <div>
-                                        <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-zinc-500">
+                                        <label className="block text-[12px] font-black uppercase tracking-widest mb-2 text-zinc-300">
                                             Data da Transação
                                         </label>
                                         <input
@@ -2885,7 +2885,7 @@ export default function DashboardPage() {
                                     </div>
                                     {paymentMethod === 'CARTÃO CRÉDITO' && (
                                         <div>
-                                            <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-[#39FF14]">
+                                            <label className="block text-[12px] font-black uppercase tracking-widest mb-2 text-[#39FF14]">
                                                 Parcelas
                                             </label>
                                             <select
@@ -2904,7 +2904,7 @@ export default function DashboardPage() {
 
                                     <div>
                                         <div className="flex items-center justify-between mb-2">
-                                            <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-500">
+                                            <label className="block text-[12px] font-black uppercase tracking-widest text-zinc-300">
                                                 Grade / Descrição
                                             </label>
                                             <label className="flex items-center gap-2 cursor-pointer group">
@@ -2920,7 +2920,7 @@ export default function DashboardPage() {
                                                     }}
                                                     className="w-3 h-3 appearance-none border border-zinc-700 rounded-sm bg-zinc-900 checked:bg-[#39FF14] checked:border-[#39FF14] transition-colors"
                                                 />
-                                                <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 group-hover:text-white transition-colors">
+                                                <span className="text-[12px] font-bold uppercase tracking-widest text-zinc-300 group-hover:text-white transition-colors">
                                                     Vincular Venda PDV
                                                 </span>
                                             </label>
@@ -2954,7 +2954,7 @@ export default function DashboardPage() {
                                                             setValue('');
                                                         }
                                                     }}
-                                                    className="w-full bg-zinc-950/80 border text-[10px] font-black uppercase tracking-widest border-zinc-800 rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all appearance-none"
+                                                    className="w-full bg-zinc-950/80 border text-[12px] font-black uppercase tracking-widest border-zinc-800 rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all appearance-none"
                                                 >
                                                     <option value="">Selecione uma Venda Recente...</option>
                                                     {sales.slice(0, 50).map(s => (
@@ -2972,7 +2972,7 @@ export default function DashboardPage() {
                                             placeholder="Ex: 5P, 10M, 5G..."
                                             rows={3}
                                             required
-                                            className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all placeholder:text-zinc-700"
+                                            className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all placeholder:text-zinc-600"
                                         />
                                     </div>
                                 </div>
@@ -3006,14 +3006,14 @@ export default function DashboardPage() {
                             <h3 className="text-2xl font-black italic uppercase text-red-500 flex items-center gap-3">
                                 <Info size={24} /> REGISTRAR PENDÊNCIA
                             </h3>
-                            <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mt-1">
+                            <p className="text-zinc-300 text-[12px] font-bold uppercase tracking-widest mt-1">
                                 Descreva o motivo do atraso ou problema
                             </p>
                         </div>
 
                         <form onSubmit={handlePendingSubmit} className="space-y-6">
                             <div>
-                                <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-zinc-500">
+                                <label className="block text-[12px] font-black uppercase tracking-widest mb-2 text-zinc-300">
                                     Motivo da Pendência
                                 </label>
                                 <textarea
@@ -3022,7 +3022,7 @@ export default function DashboardPage() {
                                     placeholder="Ex: Falta de tecido, botão quebrado, erro na estampa..."
                                     rows={4}
                                     required
-                                    className="w-full bg-zinc-950/80 border-transparent rounded-[24px] p-6 text-white outline-none focus:ring-1 focus:ring-red-500 focus:bg-zinc-900 transition-all font-semibold placeholder:text-zinc-700"
+                                    className="w-full bg-zinc-950/80 border-transparent rounded-[24px] p-6 text-white outline-none focus:ring-1 focus:ring-red-500 focus:bg-zinc-900 transition-all font-semibold placeholder:text-zinc-600"
                                 />
                             </div>
 
@@ -3056,7 +3056,7 @@ export default function DashboardPage() {
                     <div className="bg-zinc-900 w-full max-w-xl p-8 rounded-[32px] border border-zinc-800 shadow-2xl relative max-h-[90vh] overflow-y-auto text-white">
                         <button
                             onClick={() => setIsProductModalOpen(false)}
-                            className="absolute right-6 top-6 text-zinc-500 hover:text-white transition-colors"
+                            className="absolute right-6 top-6 text-zinc-300 hover:text-white transition-colors"
                         >
                             <X size={24} />
                         </button>
@@ -3065,7 +3065,7 @@ export default function DashboardPage() {
                             <h3 className="text-3xl font-black italic uppercase text-white flex items-center gap-3">
                                 <Box size={28} className="text-[#39FF14]" /> NOVO PRODUTO
                             </h3>
-                            <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mt-1">
+                            <p className="text-zinc-300 text-[12px] font-bold uppercase tracking-widest mt-1">
                                 Cadastro de item para o estoque de varejo
                             </p>
                         </div>
@@ -3073,36 +3073,36 @@ export default function DashboardPage() {
                         <form onSubmit={handleAddProduct} className="space-y-6">
                             <div className="grid grid-cols-1 gap-6 text-left">
                                 <div>
-                                    <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-zinc-500">Nome do Produto</label>
+                                    <label className="block text-[12px] font-black uppercase tracking-widest mb-2 text-zinc-300">Nome do Produto</label>
                                     <input
                                         type="text"
                                         value={prodName}
                                         onChange={e => setProdName(e.target.value)}
                                         placeholder="Ex: Camiseta Libera Basic"
                                         required
-                                        className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all font-bold placeholder:text-zinc-700"
+                                        className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all font-bold placeholder:text-zinc-600"
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-zinc-500">Foto do Produto</label>
+                                    <label className="block text-[12px] font-black uppercase tracking-widest mb-2 text-zinc-300">Foto do Produto</label>
                                     <div className="flex items-center gap-4">
                                         {prodImage ? (
                                             <div className="relative w-16 h-16 rounded-xl overflow-hidden border border-zinc-800 shrink-0">
                                                 <img src={prodImage} alt="Preview" className="w-full h-full object-cover" />
                                                 <button type="button" onClick={() => setProdImage('')}
-                                                    className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px]">
+                                                    className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-[12px]">
                                                     <X size={10} />
                                                 </button>
                                             </div>
                                         ) : (
                                             <div className="w-16 h-16 rounded-xl border border-dashed border-zinc-700 flex items-center justify-center shrink-0">
-                                                <Package size={20} className="text-zinc-700" />
+                                                <Package size={20} className="text-zinc-300" />
                                             </div>
                                         )}
                                         <label className="flex-1 cursor-pointer">
                                             <div className="bg-zinc-950/80 border border-dashed border-zinc-700 rounded-2xl p-3 text-center hover:border-[#39FF14]/50 transition-all">
-                                                <p className="text-[10px] font-bold text-zinc-500 uppercase">
+                                                <p className="text-[12px] font-bold text-zinc-300 uppercase">
                                                     {prodImage ? 'Trocar foto' : 'Escolher foto'}
                                                 </p>
                                             </div>
@@ -3123,38 +3123,38 @@ export default function DashboardPage() {
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-zinc-500">Preço de Venda (R$)</label>
+                                        <label className="block text-[12px] font-black uppercase tracking-widest mb-2 text-zinc-300">Preço de Venda (R$)</label>
                                         <input
                                             type="text"
                                             value={prodSalePrice}
                                             onChange={e => setProdSalePrice(formatCurrency(e.target.value))}
                                             placeholder="0,00"
                                             required
-                                            className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all font-bold placeholder:text-zinc-700"
+                                            className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all font-bold placeholder:text-zinc-600"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-zinc-500">Preço de Custo (R$)</label>
+                                        <label className="block text-[12px] font-black uppercase tracking-widest mb-2 text-zinc-300">Preço de Custo (R$)</label>
                                         <input
                                             type="text"
                                             value={prodCostPrice}
                                             onChange={e => setProdCostPrice(formatCurrency(e.target.value))}
                                             placeholder="0,00"
                                             required
-                                            className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-zinc-500 focus:bg-zinc-900 transition-all font-bold placeholder:text-zinc-700"
+                                            className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-zinc-500 focus:bg-zinc-900 transition-all font-bold placeholder:text-zinc-600"
                                         />
                                     </div>
                                 </div>
 
                                 <div>
-                                    <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-zinc-500">Quantidade em Estoque</label>
+                                    <label className="block text-[12px] font-black uppercase tracking-widest mb-2 text-zinc-300">Quantidade em Estoque</label>
                                     <input
                                         type="number"
                                         value={prodStock}
                                         onChange={e => setProdStock(e.target.value)}
                                         placeholder="0"
                                         required
-                                        className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all font-bold placeholder:text-zinc-700"
+                                        className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all font-bold placeholder:text-zinc-600"
                                     />
                                 </div>
                             </div>
@@ -3185,7 +3185,7 @@ export default function DashboardPage() {
             {contaModalOpen && (
                 <div className="fixed inset-0 bg-black/95 z-[600] flex items-center justify-center p-4 backdrop-blur-xl animate-in fade-in duration-300 overflow-y-auto">
                     <div className="bg-zinc-900 w-full max-w-xl p-8 rounded-[32px] border border-zinc-800 shadow-2xl relative text-white my-auto">
-                        <button onClick={() => { setContaModalOpen(false); resetContaForm(); }} className="absolute right-6 top-6 text-zinc-500 hover:text-white transition-colors">
+                        <button onClick={() => { setContaModalOpen(false); resetContaForm(); }} className="absolute right-6 top-6 text-zinc-300 hover:text-white transition-colors">
                             <X size={24} />
                         </button>
 
@@ -3193,26 +3193,26 @@ export default function DashboardPage() {
                             <h3 className="text-3xl font-black italic uppercase text-[#39FF14] flex items-center gap-3">
                                 ✂️ {editingConta ? 'EDITAR CONTA' : 'NOVA CONTA A PAGAR'}
                             </h3>
-                            <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mt-1">Contas a Pagar – Confecção</p>
+                            <p className="text-zinc-300 text-[12px] font-bold uppercase tracking-widest mt-1">Contas a Pagar – Confecção</p>
                         </div>
 
                         <form onSubmit={handleSaveConta} className="space-y-5">
                             {/* Descrição */}
                             <div>
-                                <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-zinc-500">Descrição *</label>
+                                <label className="block text-[12px] font-black uppercase tracking-widest mb-2 text-zinc-300">Descrição *</label>
                                 <input type="text" value={contaDesc} onChange={e => setContaDesc(e.target.value)}
                                     placeholder="Ex: Frete Correios, Costureira Lena..."
-                                    className="w-full bg-zinc-950/80 rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all placeholder:text-zinc-700 uppercase" required />
+                                    className="w-full bg-zinc-950/80 rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all placeholder:text-zinc-600 uppercase" required />
                             </div>
 
                             {/* Categoria */}
                             <div>
-                                <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-zinc-500">Grupo *</label>
+                                <label className="block text-[12px] font-black uppercase tracking-widest mb-2 text-zinc-300">Grupo *</label>
                                 <div className="grid grid-cols-2 gap-2">
                                     {CONFECCAO_GROUPS.map(g => (
                                         <button key={g.group} type="button"
                                             onClick={() => { setContaGroup(g.group); setContaCategory(''); }}
-                                            className="p-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all text-left border"
+                                            className="p-3 rounded-2xl text-[12px] font-black uppercase tracking-widest transition-all text-left border"
                                             style={contaGroup === g.group
                                                 ? { backgroundColor: g.color, color: '#000', borderColor: g.color }
                                                 : { backgroundColor: 'transparent', color: g.color, borderColor: g.color + '30' }}
@@ -3224,12 +3224,12 @@ export default function DashboardPage() {
                             {/* Sub-categoria */}
                             {contaGroup && (
                                 <div>
-                                    <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-zinc-500">Categoria *</label>
+                                    <label className="block text-[12px] font-black uppercase tracking-widest mb-2 text-zinc-300">Categoria *</label>
                                     <div className="flex flex-wrap gap-2">
                                         {CONFECCAO_GROUPS.find(g => g.group === contaGroup)?.items.map(item => (
                                             <button key={item} type="button"
                                                 onClick={() => setContaCategory(item)}
-                                                className="px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border"
+                                                className="px-4 py-2 rounded-xl text-[12px] font-black uppercase tracking-widest transition-all border"
                                                 style={contaCategory === item
                                                     ? { backgroundColor: CONFECCAO_GROUPS.find(g => g.group === contaGroup)?.color, color: '#000', borderColor: CONFECCAO_GROUPS.find(g => g.group === contaGroup)?.color }
                                                     : { backgroundColor: 'transparent', color: '#a1a1aa', borderColor: '#3f3f46' }}
@@ -3242,27 +3242,27 @@ export default function DashboardPage() {
                             <div className="grid grid-cols-2 gap-4">
                                 {/* Valor */}
                                 <div>
-                                    <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-[#39FF14]">Valor (R$) *</label>
+                                    <label className="block text-[12px] font-black uppercase tracking-widest mb-2 text-[#39FF14]">Valor (R$) *</label>
                                     <input type="text" value={contaAmount} onChange={e => setContaAmount(formatCurrency(e.target.value))}
                                         placeholder="0,00"
-                                        className="w-full bg-zinc-950/80 rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all placeholder:text-zinc-700" required />
+                                        className="w-full bg-zinc-950/80 rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all placeholder:text-zinc-600" required />
                                 </div>
                                 {/* Dia de vencimento */}
                                 <div>
-                                    <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-zinc-500">Dia Vencimento *</label>
+                                    <label className="block text-[12px] font-black uppercase tracking-widest mb-2 text-zinc-300">Dia Vencimento *</label>
                                     <input type="number" min="1" max="31" value={contaDueDay} onChange={e => setContaDueDay(e.target.value)}
                                         placeholder="Ex: 10"
-                                        className="w-full bg-zinc-950/80 rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all placeholder:text-zinc-700" required />
+                                        className="w-full bg-zinc-950/80 rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all placeholder:text-zinc-600" required />
                                 </div>
                             </div>
 
                             {/* Recorrência */}
                             <div>
-                                <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-zinc-500">Tipo de Conta *</label>
+                                <label className="block text-[12px] font-black uppercase tracking-widest mb-2 text-zinc-300">Tipo de Conta *</label>
                                 <div className="flex gap-2">
                                     {([['UNICA', '1️⃣ Única'], ['FIXA', '🔄 Fixa (ano todo)'], ['VARIAVEL', '📊 Variável (ano todo)']] as const).map(([val, label]) => (
                                         <button key={val} type="button" onClick={() => setContaRecurrence(val)}
-                                            className={`flex-1 p-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border ${contaRecurrence === val ? 'bg-zinc-700 text-white border-zinc-600' : 'bg-zinc-950 text-zinc-500 border-zinc-800 hover:border-zinc-600'}`}>
+                                            className={`flex-1 p-3 rounded-2xl text-[12px] font-black uppercase tracking-widest transition-all border ${contaRecurrence === val ? 'bg-zinc-700 text-white border-zinc-600' : 'bg-zinc-950 text-zinc-300 border-zinc-800 hover:border-zinc-600'}`}>
                                             {label}
                                         </button>
                                     ))}
@@ -3271,11 +3271,11 @@ export default function DashboardPage() {
 
                             {/* Forma de pagamento */}
                             <div>
-                                <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-zinc-500">Forma de Pagamento</label>
+                                <label className="block text-[12px] font-black uppercase tracking-widest mb-2 text-zinc-300">Forma de Pagamento</label>
                                 <div className="flex flex-wrap gap-2">
                                     {['PIX', 'DINHEIRO', 'BOLETO', 'CARTÃO CRÉDITO', 'CARTÃO DÉBITO'].map(pm => (
                                         <button key={pm} type="button" onClick={() => setContaPayMethod(pm)}
-                                            className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border ${contaPayMethod === pm ? 'bg-[#39FF14] text-black border-[#39FF14]' : 'bg-zinc-950 text-zinc-500 border-zinc-800 hover:border-zinc-600'}`}>
+                                            className={`px-4 py-2 rounded-xl text-[12px] font-black uppercase tracking-widest transition-all border ${contaPayMethod === pm ? 'bg-[#39FF14] text-black border-[#39FF14]' : 'bg-zinc-950 text-zinc-300 border-zinc-800 hover:border-zinc-600'}`}>
                                             {pm}
                                         </button>
                                     ))}
@@ -3284,11 +3284,11 @@ export default function DashboardPage() {
 
                             {/* Observações */}
                             <div>
-                                <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-zinc-500">Observações</label>
+                                <label className="block text-[12px] font-black uppercase tracking-widest mb-2 text-zinc-300">Observações</label>
                                 <textarea value={contaNotes} onChange={e => setContaNotes(e.target.value)}
                                     placeholder="Notas adicionais..."
                                     rows={2}
-                                    className="w-full bg-zinc-950/80 rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all placeholder:text-zinc-700 resize-none" />
+                                    className="w-full bg-zinc-950/80 rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all placeholder:text-zinc-600 resize-none" />
                             </div>
 
                             <button type="submit"
@@ -3307,14 +3307,14 @@ export default function DashboardPage() {
                     <div className="bg-zinc-900 w-full max-w-sm p-8 rounded-[32px] border border-red-500/30 shadow-2xl text-center">
                         <p className="text-4xl mb-4">🗑️</p>
                         <h3 className="text-xl font-black italic uppercase text-red-400 mb-2">Apagar conta?</h3>
-                        <p className="text-zinc-500 text-sm mb-6">Essa ação não pode ser desfeita.</p>
+                        <p className="text-zinc-300 text-sm mb-6">Essa ação não pode ser desfeita.</p>
                         <div className="flex gap-3">
                             <button onClick={() => setConfirmDeleteContaId(null)}
-                                className="flex-1 py-3 rounded-2xl border border-zinc-700 text-zinc-400 font-black uppercase text-[10px] tracking-widest hover:border-zinc-500 transition-all">
+                                className="flex-1 py-3 rounded-2xl border border-zinc-700 text-zinc-400 font-black uppercase text-[12px] tracking-widest hover:border-zinc-500 transition-all">
                                 Cancelar
                             </button>
                             <button onClick={handleDeleteConta}
-                                className="flex-1 py-3 rounded-2xl bg-red-500 text-white font-black uppercase text-[10px] tracking-widest hover:bg-red-600 transition-all">
+                                className="flex-1 py-3 rounded-2xl bg-red-500 text-white font-black uppercase text-[12px] tracking-widest hover:bg-red-600 transition-all">
                                 Sim, apagar!
                             </button>
                         </div>
@@ -3329,7 +3329,7 @@ export default function DashboardPage() {
                     <div className="bg-zinc-900 w-full max-w-xl p-8 rounded-[32px] border border-zinc-800 shadow-2xl relative text-white">
                         <button
                             onClick={() => setIsFinanceModalOpen(false)}
-                            className="absolute right-6 top-6 text-zinc-500 hover:text-white transition-colors"
+                            className="absolute right-6 top-6 text-zinc-300 hover:text-white transition-colors"
                         >
                             <X size={24} />
                         </button>
@@ -3338,7 +3338,7 @@ export default function DashboardPage() {
                             <h3 className="text-3xl font-black italic uppercase text-white flex items-center gap-3">
                                 <PlusCircle size={28} className="text-red-500" /> NOVA CONTA A PAGAR
                             </h3>
-                            <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mt-1">
+                            <p className="text-zinc-300 text-[12px] font-bold uppercase tracking-widest mt-1">
                                 Registro de despesas e saídas de caixa
                             </p>
                         </div>
@@ -3346,33 +3346,33 @@ export default function DashboardPage() {
                         <form onSubmit={handleAddFinance} className="space-y-5 max-h-[70vh] overflow-y-auto pr-1">
                             {/* Descrição */}
                             <div>
-                                <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-zinc-500">Descrição</label>
+                                <label className="block text-[12px] font-black uppercase tracking-widest mb-2 text-zinc-300">Descrição</label>
                                 <input
                                     type="text"
                                     value={finDesc}
                                     onChange={e => setFinDesc(e.target.value)}
                                     placeholder="Ex: Compra de Tecido, Conta de Luz..."
                                     required
-                                    className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all font-bold placeholder:text-zinc-700"
+                                    className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all font-bold placeholder:text-zinc-600"
                                 />
                             </div>
 
                             {/* Valor */}
                             <div>
-                                <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-zinc-500">Valor (R$)</label>
+                                <label className="block text-[12px] font-black uppercase tracking-widest mb-2 text-zinc-300">Valor (R$)</label>
                                 <input
                                     type="text"
                                     value={finAmount}
                                     onChange={e => setFinAmount(formatCurrency(e.target.value))}
                                     placeholder="0,00"
                                     required
-                                    className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all font-bold placeholder:text-zinc-700"
+                                    className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all font-bold placeholder:text-zinc-600"
                                 />
                             </div>
 
                             {/* Forma de Pagamento */}
                             <div>
-                                <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-zinc-500">Forma de Pagamento</label>
+                                <label className="block text-[12px] font-black uppercase tracking-widest mb-2 text-zinc-300">Forma de Pagamento</label>
                                 <div className="flex flex-wrap gap-2">
                                     {(['PIX', 'BOLETO', 'CARTÃO CRÉDITO', 'CARTÃO DÉBITO', 'OUTRO'] as const).map(pm => (
                                         <button
@@ -3391,7 +3391,7 @@ export default function DashboardPage() {
                                                     setFinDueDate(new Date().toISOString().split('T')[0]);
                                                 }
                                             }}
-                                            className={`px-4 py-3 rounded-xl font-black uppercase text-[10px] tracking-widest transition-all ${finPayMethod === pm ? 'bg-[#39FF14] text-black shadow-lg shadow-[#39FF14]/20' : 'bg-zinc-950 text-zinc-500 hover:text-white'}`}
+                                            className={`px-4 py-3 rounded-xl font-black uppercase text-[12px] tracking-widest transition-all ${finPayMethod === pm ? 'bg-[#39FF14] text-black shadow-lg shadow-[#39FF14]/20' : 'bg-zinc-950 text-zinc-300 hover:text-white'}`}
                                         >
                                             {pm}
                                         </button>
@@ -3405,7 +3405,7 @@ export default function DashboardPage() {
                             {finPayMethod === 'PIX' && (
                                 <div className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-200">
                                     <div>
-                                        <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-zinc-500">Data de Vencimento</label>
+                                        <label className="block text-[12px] font-black uppercase tracking-widest mb-2 text-zinc-300">Data de Vencimento</label>
                                         <input
                                             type="date"
                                             value={finDueDate}
@@ -3414,7 +3414,7 @@ export default function DashboardPage() {
                                             className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all font-bold [color-scheme:dark]"
                                         />
                                     </div>
-                                    <p className="text-[10px] text-zinc-600 italic px-1">O pagamento via PIX normalmente ocorre no mesmo dia.</p>
+                                    <p className="text-[12px] text-zinc-400 italic px-1">O pagamento via PIX normalmente ocorre no mesmo dia.</p>
                                 </div>
                             )}
 
@@ -3422,7 +3422,7 @@ export default function DashboardPage() {
                             {finPayMethod === 'BOLETO' && (
                                 <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
                                     <div>
-                                        <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-zinc-500">Número de Parcelas</label>
+                                        <label className="block text-[12px] font-black uppercase tracking-widest mb-2 text-zinc-300">Número de Parcelas</label>
                                         <input
                                             type="number"
                                             min={1}
@@ -3439,7 +3439,7 @@ export default function DashboardPage() {
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-zinc-500">
+                                        <label className="block text-[12px] font-black uppercase tracking-widest mb-2 text-zinc-300">
                                             {finInstallments > 1 ? 'Vencimento do 1º Boleto' : 'Data de Vencimento'}
                                         </label>
                                         <input
@@ -3457,11 +3457,11 @@ export default function DashboardPage() {
                                     </div>
                                     {finInstallments > 1 && finInstallmentDates.length > 0 && (
                                         <div className="bg-zinc-950 rounded-2xl p-4 border border-zinc-800">
-                                            <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-3">Preview dos Vencimentos</p>
+                                            <p className="text-[12px] font-black uppercase tracking-widest text-zinc-300 mb-3">Preview dos Vencimentos</p>
                                             <div className="space-y-2">
                                                 {finInstallmentDates.map((date, i) => (
                                                     <div key={i} className="flex items-center justify-between gap-2">
-                                                        <span className="text-[10px] font-black text-zinc-400 uppercase shrink-0">
+                                                        <span className="text-[12px] font-black text-zinc-400 uppercase shrink-0">
                                                             {i + 1}ª parcela
                                                         </span>
                                                         <input
@@ -3474,7 +3474,7 @@ export default function DashboardPage() {
                                                             }}
                                                             className="bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-[11px] font-bold text-white outline-none focus:border-[#39FF14] [color-scheme:dark]"
                                                         />
-                                                        <span className="text-[10px] text-zinc-600 font-bold shrink-0">
+                                                        <span className="text-[12px] text-zinc-400 font-bold shrink-0">
                                                             R$ {(parseBRL(finAmount || '0') / finInstallments).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                                         </span>
                                                     </div>
@@ -3489,7 +3489,7 @@ export default function DashboardPage() {
                             {finPayMethod === 'CARTÃO CRÉDITO' && (
                                 <div className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-200">
                                     <div>
-                                        <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-zinc-500">Número de Parcelas</label>
+                                        <label className="block text-[12px] font-black uppercase tracking-widest mb-2 text-zinc-300">Número de Parcelas</label>
                                         <input
                                             type="number"
                                             min={1}
@@ -3500,11 +3500,11 @@ export default function DashboardPage() {
                                         />
                                     </div>
                                     {finInstallments > 1 && finAmount && (
-                                        <p className="text-[10px] text-zinc-400 font-bold px-1">
+                                        <p className="text-[12px] text-zinc-400 font-bold px-1">
                                             {finInstallments}x de R$ {(parseBRL(finAmount || '0') / finInstallments).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                         </p>
                                     )}
-                                    <p className="text-[10px] text-zinc-600 italic px-1">O pagamento seguirá o ciclo de faturamento do cartão.</p>
+                                    <p className="text-[12px] text-zinc-400 italic px-1">O pagamento seguirá o ciclo de faturamento do cartão.</p>
                                 </div>
                             )}
 
@@ -3512,7 +3512,7 @@ export default function DashboardPage() {
                             {finPayMethod === 'CARTÃO DÉBITO' && (
                                 <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
                                     <div>
-                                        <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-zinc-500">Dia do Débito</label>
+                                        <label className="block text-[12px] font-black uppercase tracking-widest mb-2 text-zinc-300">Dia do Débito</label>
                                         <input
                                             type="number"
                                             min={1}
@@ -3527,20 +3527,20 @@ export default function DashboardPage() {
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-zinc-500">Tipo de Pagamento</label>
+                                        <label className="block text-[12px] font-black uppercase tracking-widest mb-2 text-zinc-300">Tipo de Pagamento</label>
                                         <div className="flex gap-2">
                                             <button type="button" onClick={() => setFinDebitRecurrent(false)}
-                                                className={`flex-1 py-3 rounded-xl font-black uppercase text-[10px] tracking-widest transition-all ${!finDebitRecurrent ? 'bg-[#39FF14] text-black shadow-lg shadow-[#39FF14]/20' : 'bg-zinc-950 text-zinc-500 hover:text-white'}`}>
+                                                className={`flex-1 py-3 rounded-xl font-black uppercase text-[12px] tracking-widest transition-all ${!finDebitRecurrent ? 'bg-[#39FF14] text-black shadow-lg shadow-[#39FF14]/20' : 'bg-zinc-950 text-zinc-300 hover:text-white'}`}>
                                                 Único
                                             </button>
                                             <button type="button" onClick={() => setFinDebitRecurrent(true)}
-                                                className={`flex-1 py-3 rounded-xl font-black uppercase text-[10px] tracking-widest transition-all ${finDebitRecurrent ? 'bg-[#39FF14] text-black shadow-lg shadow-[#39FF14]/20' : 'bg-zinc-950 text-zinc-500 hover:text-white'}`}>
+                                                className={`flex-1 py-3 rounded-xl font-black uppercase text-[12px] tracking-widest transition-all ${finDebitRecurrent ? 'bg-[#39FF14] text-black shadow-lg shadow-[#39FF14]/20' : 'bg-zinc-950 text-zinc-300 hover:text-white'}`}>
                                                 Recorrente
                                             </button>
                                         </div>
                                     </div>
                                     <div>
-                                        <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-zinc-500">Próximo Débito</label>
+                                        <label className="block text-[12px] font-black uppercase tracking-widest mb-2 text-zinc-300">Próximo Débito</label>
                                         <input
                                             type="date"
                                             value={finDueDate}
@@ -3550,7 +3550,7 @@ export default function DashboardPage() {
                                         />
                                     </div>
                                     {finDebitRecurrent && (
-                                        <p className="text-[10px] text-zinc-600 italic px-1">O débito será repetido mensalmente no dia {finDebitDay}.</p>
+                                        <p className="text-[12px] text-zinc-400 italic px-1">O débito será repetido mensalmente no dia {finDebitDay}.</p>
                                     )}
                                 </div>
                             )}
@@ -3559,7 +3559,7 @@ export default function DashboardPage() {
                             {finPayMethod === 'OUTRO' && (
                                 <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
                                     <div>
-                                        <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-zinc-500">Data de Vencimento</label>
+                                        <label className="block text-[12px] font-black uppercase tracking-widest mb-2 text-zinc-300">Data de Vencimento</label>
                                         <input
                                             type="date"
                                             value={finDueDate}
@@ -3573,7 +3573,7 @@ export default function DashboardPage() {
 
                             {/* Observação */}
                             <div>
-                                <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-zinc-500">
+                                <label className="block text-[12px] font-black uppercase tracking-widest mb-2 text-zinc-300">
                                     Observação {finPayMethod === 'OUTRO' && <span className="text-red-400">*</span>}
                                 </label>
                                 <textarea
@@ -3582,14 +3582,14 @@ export default function DashboardPage() {
                                     placeholder={finPayMethod === 'OUTRO' ? 'Descreva a forma de pagamento...' : 'Informações adicionais...'}
                                     rows={2}
                                     required={finPayMethod === 'OUTRO'}
-                                    className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all font-bold placeholder:text-zinc-700 resize-none"
+                                    className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all font-bold placeholder:text-zinc-600 resize-none"
                                 />
                             </div>
 
                             {/* Status */}
                             <div>
-                                <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-zinc-500">Status</label>
-                                <div className="py-3 px-4 rounded-xl font-black uppercase text-[10px] tracking-widest text-center bg-red-500/20 text-red-400 border border-red-500/30">
+                                <label className="block text-[12px] font-black uppercase tracking-widest mb-2 text-zinc-300">Status</label>
+                                <div className="py-3 px-4 rounded-xl font-black uppercase text-[12px] tracking-widest text-center bg-red-500/20 text-red-400 border border-red-500/30">
                                     A PAGAR
                                 </div>
                             </div>
