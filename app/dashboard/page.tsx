@@ -1818,24 +1818,26 @@ export default function DashboardPage() {
                         ) : (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                 {products.map((p) => (
-                                    <div key={p.id} className="bg-zinc-900/50 border border-zinc-800 p-6 rounded-[32px] hover:border-[#39FF14]/30 transition-all">
-                                        <div className="flex justify-between items-start mb-4">
+                                    <div key={p.id} className="bg-zinc-900/50 border border-zinc-800 p-5 rounded-[32px] hover:border-[#39FF14]/30 transition-all">
+                                        <div className="flex gap-4 mb-4">
                                             {p.image ? (
-                                                <div className="w-14 h-14 rounded-2xl overflow-hidden border border-zinc-800 shrink-0">
+                                                <div className="w-24 h-24 rounded-2xl overflow-hidden border border-zinc-800 shrink-0">
                                                     <img src={p.image} alt={p.name} className="w-full h-full object-cover" />
                                                 </div>
                                             ) : (
-                                                <div className="p-3 bg-zinc-950 rounded-2xl border border-zinc-800">
-                                                    <Box size={20} className="text-[#39FF14]" />
+                                                <div className="w-24 h-24 rounded-2xl bg-zinc-950 border border-zinc-800 flex items-center justify-center shrink-0">
+                                                    <Box size={32} className="text-[#39FF14]/50" />
                                                 </div>
                                             )}
-                                            <div className="text-right">
-                                                <p className="text-sm text-white font-black uppercase tracking-widest">Em Estoque</p>
-                                                <p className={`text-xl font-black ${p.stock <= 5 ? 'text-orange-500' : 'text-white'}`}>{p.stock} un</p>
+                                            <div className="flex-1 min-w-0">
+                                                <h3 className="text-base font-black italic uppercase text-white leading-tight">{p.name}</h3>
+                                                <div className="mt-2">
+                                                    <p className="text-[13px] text-white/70 font-bold uppercase">Em Estoque</p>
+                                                    <p className={`text-2xl font-black ${p.stock <= 5 ? 'text-orange-500' : 'text-white'}`}>{p.stock} un</p>
+                                                </div>
                                             </div>
                                         </div>
-                                        <h3 className="text-xl font-black italic uppercase text-white mb-2">{p.name}</h3>
-                                        <div className="grid grid-cols-2 gap-4 mt-6">
+                                        <div className="grid grid-cols-2 gap-4 pt-4 border-t border-zinc-800">
                                             <div>
                                                 <p className="text-[13px] text-white/70 font-bold uppercase">Preço Venda</p>
                                                 <p className="text-lg font-black text-[#39FF14]">R$ {p.sale_price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
