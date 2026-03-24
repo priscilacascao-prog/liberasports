@@ -70,7 +70,6 @@ export default function DashboardPage() {
 
     // Configurações do AppId para o caminho solicitado
     const appId = 'libera-sports-v1';
-    const ordersCollectionPath = `artifacts/${appId}/public/data/pedidos`;
     const productsCollectionPath = `artifacts/${appId}/public/data/produtos`;
     const salesCollectionPath = `artifacts/${appId}/public/data/vendas`;
     const financeCollectionPath = `artifacts/${appId}/public/data/financeiro`;
@@ -321,36 +320,6 @@ export default function DashboardPage() {
             updateNextOrderNumber();
         }
     }, [isModalOpen]);
-
-    const handleMigrateOrders = async () => {
-        if (!confirm('Migrar todos os pedidos da collection "pedidos" para "vendas"? Isso é irreversível.')) return;
-        try {
-            toast.loading('Migrando pedidos...');
-            const oldOrdersSnap = await getDocs(query(collection(db, ordersCollectionPath), orderBy('created_at', 'asc')));
-            if (oldOrdersSnap.empty) { toast.dismiss(); toast.info('Nenhum pedido antigo para migrar'); return; }
-
-            let migrated = 0;
-            for (const oldDoc of oldOrdersSnap.docs) {
-                const data = oldDoc.data();
-                // Verificar se já existe na collection vendas com mesmo order_number
-                const exists = sales.find(s => s.order_number === data.order_number && s.client === data.client);
-                if (exists) continue;
-
-                await addDoc(collection(db, salesCollectionPath), {
-                    ...data,
-                    sale_number: data.order_number || '',
-                    total: data.value || 0,
-                    items: [],
-                    has_production: true,
-                    migrated_from: 'pedidos',
-                    migrated_at: new Date().toISOString(),
-                });
-                migrated++;
-            }
-            toast.dismiss();
-            toast.success(`${migrated} pedidos migrados para vendas!`);
-        } catch (err) { toast.dismiss(); console.error(err); toast.error('Erro ao migrar'); }
-    };
 
     const updateNextOrderNumber = async () => {
         try {
@@ -1583,12 +1552,6 @@ export default function DashboardPage() {
                     <div className="hidden md:flex items-center gap-2 text-white text-sm font-black uppercase tracking-widest">
                         <User size={12} className="text-[#39FF14]" /> {operatorName}
                     </div>
-                    <button
-                        onClick={handleMigrateOrders}
-                        className="text-orange-500 hover:text-orange-400 text-xs font-black uppercase transition-colors"
-                    >
-                        Migrar
-                    </button>
                     <button
                         onClick={logout}
                         className="text-white/70 hover:text-white text-sm font-black uppercase transition-colors"
