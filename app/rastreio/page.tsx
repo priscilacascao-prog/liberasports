@@ -95,27 +95,27 @@ function TrackingContent() {
                             <Image src="/logo.png" alt="Libera Sports" fill className="object-cover" />
                         </div>
                     </div>
-                    <h1 className="text-xl font-black uppercase italic tracking-tight">LIBERA SPORTS</h1>
-                    <p className="text-zinc-400 text-xs uppercase tracking-widest mt-1">Acompanhamento de Pedido</p>
+                    <h1 className="text-2xl font-black uppercase italic tracking-tight">LIBERA SPORTS</h1>
+                    <p className="text-white/70 text-sm uppercase tracking-widest mt-1">Acompanhamento de Pedido</p>
                 </div>
 
                 {/* Client greeting */}
                 <div className="bg-zinc-950 border border-zinc-900 rounded-2xl p-6 mb-6">
-                    <p className="text-zinc-400 text-sm mb-1">Olá,</p>
+                    <p className="text-white/70 text-base mb-1">Olá,</p>
                     <h2 className="text-2xl font-black uppercase italic text-[#39FF14] tracking-tight">{order.client}</h2>
-                    <p className="text-zinc-400 text-sm mt-2">Aqui está o status do seu pedido:</p>
+                    <p className="text-white/70 text-base mt-2">Aqui está o status do seu pedido:</p>
                 </div>
 
                 {/* Order info */}
                 <div className="bg-zinc-950 border border-zinc-900 rounded-2xl p-6 mb-6">
                     <div className="flex justify-between items-start mb-4">
                         <div>
-                            <p className="text-zinc-400 text-xs font-bold uppercase">Pedido</p>
-                            <p className="text-lg font-black text-white">{order.order_number}</p>
+                            <p className="text-white/70 text-sm font-bold uppercase">Pedido</p>
+                            <p className="text-xl font-black text-white">{order.order_number}</p>
                         </div>
                         <div className="text-right">
-                            <p className="text-zinc-400 text-xs font-bold uppercase">Valor</p>
-                            <p className="text-lg font-black text-[#39FF14]">
+                            <p className="text-white/70 text-sm font-bold uppercase">Valor</p>
+                            <p className="text-xl font-black text-[#39FF14]">
                                 R$ {Number(order.value).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                             </p>
                         </div>
@@ -123,25 +123,25 @@ function TrackingContent() {
 
                     <div className="grid grid-cols-2 gap-4 mt-4 pt-4 border-t border-zinc-900">
                         <div className="flex items-center gap-2">
-                            <Calendar size={14} className="text-[#39FF14]" />
+                            <Calendar size={16} className="text-[#39FF14]" />
                             <div>
-                                <p className="text-zinc-400 text-[10px] font-bold uppercase">Entrega prevista</p>
-                                <p className="text-sm font-bold text-white">{order.deadline?.split('-').reverse().join('/')}</p>
+                                <p className="text-white/70 text-xs font-bold uppercase">Entrega prevista</p>
+                                <p className="text-base font-bold text-white">{order.deadline?.split('-').reverse().join('/')}</p>
                             </div>
                         </div>
                         <div className="flex items-center gap-2">
-                            <Truck size={14} className="text-[#39FF14]" />
+                            <Truck size={16} className="text-[#39FF14]" />
                             <div>
-                                <p className="text-zinc-400 text-[10px] font-bold uppercase">Envio</p>
-                                <p className="text-sm font-bold text-white">{order.delivery_method}</p>
+                                <p className="text-white/70 text-xs font-bold uppercase">Envio</p>
+                                <p className="text-base font-bold text-white">{order.delivery_method}</p>
                             </div>
                         </div>
                     </div>
 
                     {order.description && (
                         <div className="mt-4 pt-4 border-t border-zinc-900">
-                            <p className="text-zinc-400 text-[10px] font-bold uppercase mb-1">Descrição</p>
-                            <p className="text-sm text-white/80">{order.description}</p>
+                            <p className="text-white/70 text-xs font-bold uppercase mb-1">Descrição</p>
+                            <p className="text-base text-white">{order.description}</p>
                         </div>
                     )}
                 </div>
@@ -152,7 +152,7 @@ function TrackingContent() {
                     isPending ? 'bg-red-500/10 border border-red-500/30' :
                     'bg-zinc-950 border border-zinc-900'
                 }`}>
-                    <p className="text-zinc-400 text-xs font-bold uppercase mb-2">Status atual</p>
+                    <p className="text-white/70 text-sm font-bold uppercase mb-2">Status atual</p>
                     <p className={`text-2xl font-black uppercase italic ${
                         isDelivered ? 'text-[#39FF14]' :
                         isPending ? 'text-red-500' :
@@ -174,7 +174,7 @@ function TrackingContent() {
                 {/* Stepper */}
                 {!isPending && (
                     <div className="bg-zinc-950 border border-zinc-900 rounded-2xl p-6 mb-6">
-                        <p className="text-zinc-400 text-xs font-bold uppercase mb-6 text-center">Evolução do Pedido</p>
+                        <p className="text-white/70 text-sm font-bold uppercase mb-6 text-center">Evolução do Pedido</p>
                         <div className="space-y-0">
                             {workflowOriginal.map((step, idx) => {
                                 const isCompleted = idx < currentIdx;
@@ -196,10 +196,10 @@ function TrackingContent() {
                                             )}
                                         </div>
                                         <div className={`pb-6 ${isFuture ? 'opacity-30' : ''}`}>
-                                            <p className={`text-sm font-black uppercase ${
+                                            <p className={`text-base font-black uppercase ${
                                                 isCurrent ? 'text-orange-500' :
                                                 isCompleted ? 'text-[#39FF14]' :
-                                                'text-zinc-500'
+                                                'text-white/40'
                                             }`}>
                                                 {stepLabels[step] || step}
                                             </p>
@@ -220,18 +220,18 @@ function TrackingContent() {
                         <History size={20} className="text-[#39FF14]" />
                         <span className="text-sm font-black uppercase italic tracking-widest text-white">Ver histórico de pedidos</span>
                     </div>
-                    <p className="text-zinc-500 text-xs mt-2">Veja todos os seus pedidos anteriores</p>
+                    <p className="text-white/50 text-sm mt-2">Veja todos os seus pedidos anteriores</p>
                 </Link>
 
                 {/* Footer */}
                 <div className="text-center mt-8 space-y-1">
-                    <p className="text-zinc-500 text-xs uppercase font-bold tracking-widest">
+                    <p className="text-white/40 text-xs uppercase font-bold tracking-widest">
                         Libera Sports
                     </p>
-                    <p className="text-zinc-600 text-[10px] uppercase tracking-[0.2em]">
+                    <p className="text-white/30 text-[11px] uppercase tracking-[0.2em]">
                         Vista Libera e viva a liberdade
                     </p>
-                    <p className="text-zinc-700 text-[9px] mt-3">
+                    <p className="text-white/20 text-[10px] mt-3">
                         Atualiza automaticamente a cada 30 segundos
                     </p>
                 </div>
