@@ -2173,7 +2173,7 @@ export default function DashboardPage() {
                                 <p className="text-white font-bold uppercase text-sm tracking-widest">Nenhum produto cadastrado no estoque.</p>
                             </div>
                         ) : (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {products.map((p) => (
                                     <div key={p.id} className="bg-zinc-900/50 border border-zinc-800 p-5 rounded-[32px] hover:border-[#39FF14]/30 transition-all">
                                         <div className="flex gap-4 mb-4">
