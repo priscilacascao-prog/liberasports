@@ -126,6 +126,8 @@ export default function DashboardPage() {
     // Form Estado - Financeiro
     const [finAmount, setFinAmount] = useState('');
     const [finDesc, setFinDesc] = useState('');
+    const [finSupplier, setFinSupplier] = useState('');
+    const [showSupplierSuggestions, setShowSupplierSuggestions] = useState(false);
     const [finType, setFinType] = useState<'INFLOW' | 'OUTFLOW'>('INFLOW');
     const [finStatus, setFinStatus] = useState<'PAGO' | 'A PAGAR' | 'A RECEBER' | 'RECEBIDO' | 'ATRASADO'>('A PAGAR');
     const [finDueDate, setFinDueDate] = useState(new Date().toISOString().split('T')[0]);
@@ -491,6 +493,8 @@ export default function DashboardPage() {
     const resetFinanceForm = () => {
         setFinAmount('');
         setFinDesc('');
+        setFinSupplier('');
+        setShowSupplierSuggestions(false);
         setFinDueDate(new Date().toISOString().split('T')[0]);
         setFinPayMethod('PIX');
         setFinObs('');
@@ -527,6 +531,7 @@ export default function DashboardPage() {
             const baseDoc = {
                 type: 'OUTFLOW' as const,
                 description: finDesc.toUpperCase(),
+                supplier_name: finSupplier.trim().toUpperCase() || '',
                 payment_method: finPayMethod,
                 observations: finObs,
                 created_at: new Date().toISOString(),
@@ -3877,6 +3882,38 @@ export default function DashboardPage() {
                                     required
                                     className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all font-bold placeholder:text-zinc-600"
                                 />
+                            </div>
+
+                            {/* Fornecedor */}
+                            <div className="relative">
+                                <label className="block text-sm font-black uppercase tracking-widest mb-2 text-white">Fornecedor / Cliente</label>
+                                <input
+                                    type="text"
+                                    value={finSupplier}
+                                    onChange={e => { setFinSupplier(e.target.value); setShowSupplierSuggestions(e.target.value.length > 0); }}
+                                    onFocus={() => { if (finSupplier.length > 0) setShowSupplierSuggestions(true); }}
+                                    onBlur={() => setTimeout(() => setShowSupplierSuggestions(false), 200)}
+                                    placeholder="Digite para buscar ou cadastrar..."
+                                    className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all font-bold placeholder:text-zinc-600"
+                                />
+                                {showSupplierSuggestions && (
+                                    <div className="absolute left-0 right-0 top-full mt-1 bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden z-50 shadow-xl max-h-[200px] overflow-y-auto">
+                                        {fornecedores.filter(f => f.name.toLowerCase().includes(finSupplier.toLowerCase())).map(f => (
+                                            <button
+                                                key={f.id}
+                                                type="button"
+                                                onMouseDown={() => { setFinSupplier(f.name); setShowSupplierSuggestions(false); }}
+                                                className="w-full text-left px-4 py-3 hover:bg-zinc-800 transition-colors"
+                                            >
+                                                <p className="text-sm font-bold text-white">{f.name}</p>
+                                                <p className="text-xs text-white/50">{f.cpf_cnpj ? (f.cpf_cnpj.length === 11 ? f.cpf_cnpj.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4') : f.cpf_cnpj.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5')) : ''} {f.whatsapp && `• ${f.whatsapp}`}</p>
+                                            </button>
+                                        ))}
+                                        {fornecedores.filter(f => f.name.toLowerCase().includes(finSupplier.toLowerCase())).length === 0 && (
+                                            <div className="px-4 py-3 text-sm text-white/50 italic">Nenhum encontrado — será cadastrado ao salvar</div>
+                                        )}
+                                    </div>
+                                )}
                             </div>
 
                             {/* Valor */}
