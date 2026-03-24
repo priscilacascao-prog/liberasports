@@ -123,6 +123,7 @@ export default function DashboardPage() {
     const [saleDescription, setSaleDescription] = useState('');
     const [saleEntersProduction, setSaleEntersProduction] = useState(true);
     const [saleManualValue, setSaleManualValue] = useState('');
+    const [productSearch, setProductSearch] = useState('');
 
     // Form Estado - Produtos
     const [isProductModalOpen, setIsProductModalOpen] = useState(false);
@@ -2288,8 +2289,15 @@ export default function DashboardPage() {
                                 <h3 className="text-white text-sm font-black uppercase tracking-widest flex items-center gap-2">
                                     <Plus size={12} className="text-[#39FF14]" /> Produtos do Estoque
                                 </h3>
+                                <input
+                                    type="text"
+                                    value={productSearch}
+                                    onChange={e => setProductSearch(e.target.value)}
+                                    placeholder="Buscar produto..."
+                                    className="w-full bg-zinc-950/80 border border-zinc-900 rounded-xl p-3 text-white outline-none focus:ring-1 focus:ring-[#39FF14] text-sm font-bold placeholder:text-zinc-600"
+                                />
                                 <div className="grid grid-cols-1 gap-3 max-h-[600px] overflow-y-auto pr-1">
-                                    {products.map(p => (
+                                    {products.filter(p => !productSearch || p.name.toLowerCase().includes(productSearch.toLowerCase())).map(p => (
                                         <button
                                             key={p.id}
                                             onClick={() => addToCart(p)}
