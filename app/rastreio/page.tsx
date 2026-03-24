@@ -29,7 +29,7 @@ function TrackingContent() {
     const [error, setError] = useState('');
 
     const appId = 'libera-sports-v1';
-    const ordersCollectionPath = `artifacts/${appId}/public/data/pedidos`;
+    const ordersCollectionPath = `artifacts/${appId}/public/data/vendas`;
 
     useEffect(() => {
         const fetchOrder = async () => {

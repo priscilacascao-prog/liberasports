@@ -24,7 +24,7 @@ function HistoricoContent() {
     const [error, setError] = useState('');
 
     const appId = 'libera-sports-v1';
-    const ordersCollectionPath = `artifacts/${appId}/public/data/pedidos`;
+    const ordersCollectionPath = `artifacts/${appId}/public/data/vendas`;
 
     useEffect(() => {
         const fetchHistory = async () => {

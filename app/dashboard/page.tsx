@@ -114,6 +114,15 @@ export default function DashboardPage() {
     // Form Estado - Vendas (PDV)
     const [cart, setCart] = useState<any[]>([]);
     const [cartTotal, setCartTotal] = useState(0);
+    const [saleClient, setSaleClient] = useState('');
+    const [saleWhatsapp, setSaleWhatsapp] = useState('');
+    const [saleCpfCnpj, setSaleCpfCnpj] = useState('');
+    const [saleCpfCnpjError, setSaleCpfCnpjError] = useState('');
+    const [saleDeadline, setSaleDeadline] = useState('');
+    const [saleDeliveryMethod, setSaleDeliveryMethod] = useState<'MOTOBOY' | 'TRANSPORTADORA' | 'RETIRADA'>('MOTOBOY');
+    const [saleDescription, setSaleDescription] = useState('');
+    const [saleEntersProduction, setSaleEntersProduction] = useState(true);
+    const [saleManualValue, setSaleManualValue] = useState('');
 
     // Form Estado - Produtos
     const [isProductModalOpen, setIsProductModalOpen] = useState(false);
@@ -203,14 +212,18 @@ export default function DashboardPage() {
     useEffect(() => {
         if (authChecking) return;
 
-        const q = query(collection(db, ordersCollectionPath), orderBy('created_at', 'desc'));
+        const q = query(collection(db, salesCollectionPath), orderBy('created_at', 'desc'));
 
         const unsubscribe = onSnapshot(q, (snapshot: any) => {
-            const ordersData = snapshot.docs.map((doc: any) => ({
+            const allSales = snapshot.docs.map((doc: any) => ({
                 id: doc.id,
                 ...doc.data()
             }));
+            // Fábrica: apenas vendas com produção ou pedidos migrados que têm status
+            const ordersData = allSales.filter((s: any) => s.has_production || s.status);
             setOrders(ordersData);
+            // Atualiza vendas também
+            setSales(allSales);
             setLoading(false);
         }, (error: any) => {
             console.error("Firestore error:", error);
@@ -229,17 +242,6 @@ export default function DashboardPage() {
             const data = snapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));
             setProducts(data);
             setStockLoading(false);
-        });
-        return () => unsubscribe();
-    }, [authChecking]);
-
-    // Real-time Sales Fetching
-    useEffect(() => {
-        if (authChecking) return;
-        const q = query(collection(db, salesCollectionPath), orderBy('created_at', 'desc'));
-        const unsubscribe = onSnapshot(q, (snapshot: any) => {
-            const data = snapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));
-            setSales(data);
         });
         return () => unsubscribe();
     }, [authChecking]);
@@ -319,9 +321,39 @@ export default function DashboardPage() {
         }
     }, [isModalOpen]);
 
+    const handleMigrateOrders = async () => {
+        if (!confirm('Migrar todos os pedidos da collection "pedidos" para "vendas"? Isso é irreversível.')) return;
+        try {
+            toast.loading('Migrando pedidos...');
+            const oldOrdersSnap = await getDocs(query(collection(db, ordersCollectionPath), orderBy('created_at', 'asc')));
+            if (oldOrdersSnap.empty) { toast.dismiss(); toast.info('Nenhum pedido antigo para migrar'); return; }
+
+            let migrated = 0;
+            for (const oldDoc of oldOrdersSnap.docs) {
+                const data = oldDoc.data();
+                // Verificar se já existe na collection vendas com mesmo order_number
+                const exists = sales.find(s => s.order_number === data.order_number && s.client === data.client);
+                if (exists) continue;
+
+                await addDoc(collection(db, salesCollectionPath), {
+                    ...data,
+                    sale_number: data.order_number || '',
+                    total: data.value || 0,
+                    items: [],
+                    has_production: true,
+                    migrated_from: 'pedidos',
+                    migrated_at: new Date().toISOString(),
+                });
+                migrated++;
+            }
+            toast.dismiss();
+            toast.success(`${migrated} pedidos migrados para vendas!`);
+        } catch (err) { toast.dismiss(); console.error(err); toast.error('Erro ao migrar'); }
+    };
+
     const updateNextOrderNumber = async () => {
         try {
-            const lastOrderQuery = query(collection(db, ordersCollectionPath), orderBy('order_number', 'desc'));
+            const lastOrderQuery = query(collection(db, salesCollectionPath), orderBy('order_number', 'desc'));
             const querySnapshot = await getDocs(lastOrderQuery); // Use getDocs for a one-time fetch
             if (!querySnapshot.empty) {
                 const lastOrder = querySnapshot.docs[0].data();
@@ -410,37 +442,76 @@ export default function DashboardPage() {
     }, [cart]);
 
     const handleCheckout = async () => {
-        if (cart.length === 0 || !userId) return;
+        if (!userId) return;
+        const finalTotal = cart.length > 0 ? cartTotal : parseBRL(saleManualValue);
+        if (finalTotal <= 0) { toast.error('Informe o valor da venda'); return; }
+        if (saleEntersProduction && !saleClient.trim()) { toast.error('Informe o nome do cliente'); return; }
+        if (saleCpfCnpj) {
+            const digits = saleCpfCnpj.replace(/\D/g, '');
+            if (digits.length >= 11 && !validateCpfCnpj(digits)) { toast.error('CPF/CNPJ inválido'); return; }
+        }
+
         setLoading(true);
         try {
-            // 0. Gerar Número da Venda
-            const maxSaleNumber = Math.max(...sales.map(s => parseInt((s.sale_number || '').replace('VENDA-', '') || '0')), 0);
-            const newSaleNumber = `VENDA-${String(maxSaleNumber + 1).padStart(4, '0')}`;
+            // 0. Gerar Número da Venda (LIBERA-XXXX)
+            const allSalesSnap = await getDocs(query(collection(db, salesCollectionPath), orderBy('created_at', 'desc')));
+            const allSalesData = allSalesSnap.docs.map(d => d.data());
+            const maxNum = Math.max(
+                ...allSalesData.map(s => parseInt((s.order_number || s.sale_number || '').replace(/\D/g, '') || '0')),
+                0
+            );
+            const newOrderNumber = `LIBERA-${String(maxNum + 1).padStart(4, '0')}`;
 
             // 1. Criar Venda
-            const saleData = {
-                sale_number: newSaleNumber,
-                items: cart,
-                total: cartTotal,
+            const saleData: any = {
+                order_number: newOrderNumber,
+                sale_number: newOrderNumber,
+                items: cart.length > 0 ? cart : [],
+                total: finalTotal,
+                value: finalTotal,
+                client: saleClient.trim().toUpperCase() || '',
+                client_whatsapp: saleWhatsapp.trim(),
+                cpf_cnpj: saleCpfCnpj.replace(/\D/g, ''),
+                deadline: saleDeadline || '',
+                delivery_method: saleDeliveryMethod,
+                description: saleDescription.trim(),
+                payment_method: paymentMethod,
+                has_production: saleEntersProduction,
                 created_at: new Date().toISOString(),
                 user_id: userId,
-                payment_method: paymentMethod // Reutilizando estado de pagamento do pedido ou definindo novo
+                operator_name: operatorName,
             };
-            await addDoc(collection(db, salesCollectionPath), saleData);
+
+            // Se entra em produção, adicionar workflow
+            if (saleEntersProduction) {
+                saleData.status = 'PEDIDO FEITO';
+                saleData.order_logs = [{
+                    id: crypto.randomUUID(),
+                    old_status: 'INÍCIO',
+                    new_status: 'PEDIDO FEITO',
+                    operator_name: operatorName,
+                    created_at: new Date().toISOString()
+                }];
+            }
+
+            const docRef = await addDoc(collection(db, salesCollectionPath), saleData);
 
             // 2. Registrar no Financeiro
+            const finDesc = cart.length > 0
+                ? `[${newOrderNumber}] ${cart.map((i: any) => `${i.quantity}x ${i.name}`).join(', ')}`
+                : `[${newOrderNumber}] ${saleDescription || saleClient}`;
             await generateFinancialEntries(
-                null,
-                '',
-                `Venda PDV: ${newSaleNumber} - ${cart.length} itens`,
-                cartTotal,
+                docRef.id,
+                newOrderNumber,
+                finDesc,
+                finalTotal,
                 paymentMethod,
                 transactionDate,
                 installments,
                 userId
             );
 
-            // 3. Baixar Estoque
+            // 3. Baixar Estoque (se tem itens do estoque)
             for (const item of cart) {
                 const productRef = doc(db, productsCollectionPath, item.id);
                 await updateDoc(productRef, {
@@ -448,8 +519,46 @@ export default function DashboardPage() {
                 });
             }
 
-            toast.success('Venda concluída com sucesso!');
+            // 4. Enviar WhatsApp (se entra em produção e tem WhatsApp)
+            if (saleEntersProduction && saleWhatsapp.trim()) {
+                const trackingUrl = `${window.location.origin}/rastreio?id=${docRef.id}`;
+                const whatsappPhone = saleWhatsapp.replace(/\D/g, '');
+                const deliveryDate = saleDeadline ? saleDeadline.split('-').reverse().join('/') : '';
+                const clientName = saleClient.trim();
+                const formattedValue = finalTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+                const msgLines = [
+                    `Olá *${clientName}*! Seu pedido na *Libera Sports* foi cadastrado com sucesso!`,
+                    '',
+                    `*Pedido:* ${newOrderNumber}`,
+                    `*Valor:* R$ ${formattedValue}`,
+                    ...(deliveryDate ? [`*Entrega prevista:* ${deliveryDate}`] : []),
+                    `*Método:* ${saleDeliveryMethod}`,
+                    `*Pagamento:* ${paymentMethod}`,
+                    '',
+                    'Acompanhe seu pedido em tempo real:',
+                    trackingUrl,
+                    '',
+                    '_Libera Sports - Vista Libera e viva a liberdade_'
+                ];
+                const whatsappMsg = msgLines.map(line => encodeURIComponent(line)).join('%0a');
+                const whatsappLink = `https://wa.me/${whatsappPhone}?text=${whatsappMsg}`;
+                setTimeout(() => {
+                    const opened = window.open(whatsappLink, '_blank');
+                    if (!opened) window.location.href = whatsappLink;
+                }, 500);
+            }
+
+            toast.success('Venda cadastrada com sucesso!');
             setCart([]);
+            setSaleClient('');
+            setSaleWhatsapp('');
+            setSaleCpfCnpj('');
+            setSaleCpfCnpjError('');
+            setSaleDeadline('');
+            setSaleDeliveryMethod('MOTOBOY');
+            setSaleDescription('');
+            setSaleEntersProduction(true);
+            setSaleManualValue('');
             setPaymentMethod('PIX');
             setTransactionDate(new Date().toISOString().split('T')[0]);
             setInstallments(1);
@@ -778,7 +887,7 @@ export default function DashboardPage() {
     const handleUpdateObservations = async (id: string) => {
         setLoading(true);
         try {
-            const orderRef = doc(db, ordersCollectionPath, id);
+            const orderRef = doc(db, salesCollectionPath, id);
             await updateDoc(orderRef, { observations: obsValue });
             setEditingObsId(null);
             toast.success('Observações atualizadas!');
@@ -793,7 +902,7 @@ export default function DashboardPage() {
     const generateOrderNumber = async () => {
         const year = new Date().getFullYear().toString().slice(-2);
         // Fetch orders from this year to count
-        const q = query(collection(db, ordersCollectionPath), orderBy('created_at', 'desc'));
+        const q = query(collection(db, salesCollectionPath), orderBy('created_at', 'desc'));
         const querySnapshot = await getDocs(q); // Use getDocs for a one-time fetch
         const count = querySnapshot.docs.filter(doc => new Date(doc.data().created_at?.toDate()).getFullYear() === new Date().getFullYear()).length;
 
@@ -808,7 +917,7 @@ export default function DashboardPage() {
             const nextStatus = workflow[currentIndex + 1];
             setLoading(true);
             try {
-                const orderRef = doc(db, ordersCollectionPath, orderId);
+                const orderRef = doc(db, salesCollectionPath, orderId);
                 const orderSnap = await getDoc(orderRef);
                 const orderData = orderSnap.data();
 
@@ -838,7 +947,7 @@ export default function DashboardPage() {
     const updateStatus = async (id: string, nextStatus: string, currentStatus: string, reason?: string) => {
         setLoading(true);
         try {
-            const orderRef = doc(db, ordersCollectionPath, id);
+            const orderRef = doc(db, salesCollectionPath, id);
             const orderSnap = await getDoc(orderRef);
             const orderData = orderSnap.data();
 
@@ -898,7 +1007,7 @@ export default function DashboardPage() {
 
         setLoading(true);
         try {
-            const orderRef = doc(db, ordersCollectionPath, pendingOrderId);
+            const orderRef = doc(db, salesCollectionPath, pendingOrderId);
             const orderSnap = await getDoc(orderRef);
             const orderData = orderSnap.data();
 
@@ -1031,7 +1140,7 @@ export default function DashboardPage() {
                 ]
             };
 
-            const docRef = await addDoc(collection(db, ordersCollectionPath), newOrder);
+            const docRef = await addDoc(collection(db, salesCollectionPath), newOrder);
             await generateFinancialEntries(docRef.id, nextOrderNumber, description, parseFloat(normalizedValue), paymentMethod, transactionDate, installments, userId);
 
             // Gerar link de rastreio e enviar WhatsApp
@@ -1248,7 +1357,7 @@ export default function DashboardPage() {
 
         setLoading(true);
         try {
-            await deleteDoc(doc(db, ordersCollectionPath, id));
+            await deleteDoc(doc(db, salesCollectionPath, id));
             toast.success('Pedido excluído com sucesso');
         } catch (error) {
             console.error('Error deleting order:', error);
@@ -1473,6 +1582,12 @@ export default function DashboardPage() {
                     <div className="hidden md:flex items-center gap-2 text-white text-sm font-black uppercase tracking-widest">
                         <User size={12} className="text-[#39FF14]" /> {operatorName}
                     </div>
+                    <button
+                        onClick={handleMigrateOrders}
+                        className="text-orange-500 hover:text-orange-400 text-xs font-black uppercase transition-colors"
+                    >
+                        Migrar
+                    </button>
                     <button
                         onClick={logout}
                         className="text-white/70 hover:text-white text-sm font-black uppercase transition-colors"
@@ -2250,6 +2365,53 @@ export default function DashboardPage() {
                                     )}
                                 </div>
 
+                                {/* Dados do Cliente e Produção */}
+                                <div className="space-y-3 mb-6 border-b border-zinc-900 pb-6">
+                                    <div>
+                                        <label className="block text-sm font-black uppercase tracking-widest text-white mb-1">Cliente</label>
+                                        <input type="text" value={saleClient} onChange={e => setSaleClient(e.target.value)} placeholder="Nome do cliente..." className="w-full bg-zinc-950/80 border-transparent rounded-xl p-3 text-white outline-none focus:ring-1 focus:ring-[#39FF14] text-sm font-bold placeholder:text-zinc-600" />
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <div>
+                                            <label className="block text-[11px] font-black uppercase tracking-widest text-white mb-1">WhatsApp</label>
+                                            <input type="text" value={saleWhatsapp} onChange={e => setSaleWhatsapp(e.target.value)} placeholder="(00) 00000-0000" className="w-full bg-zinc-950/80 border-transparent rounded-xl p-3 text-white outline-none focus:ring-1 focus:ring-[#39FF14] text-sm font-bold placeholder:text-zinc-600" />
+                                        </div>
+                                        <div>
+                                            <label className="block text-[11px] font-black uppercase tracking-widest text-white mb-1">CPF/CNPJ</label>
+                                            <input type="text" value={saleCpfCnpj} onChange={e => { const formatted = formatCpfCnpj(e.target.value); setSaleCpfCnpj(formatted); const d = e.target.value.replace(/\D/g, ''); if (d.length === 11 || d.length === 14) setSaleCpfCnpjError(validateCpfCnpj(d) ? '' : 'Inválido'); else setSaleCpfCnpjError(''); }} placeholder="000.000.000-00" className={`w-full bg-zinc-950/80 border-transparent rounded-xl p-3 text-white outline-none focus:ring-1 text-sm font-bold placeholder:text-zinc-600 ${saleCpfCnpjError ? 'ring-1 ring-red-500' : 'focus:ring-[#39FF14]'}`} />
+                                            {saleCpfCnpjError && <p className="text-red-500 text-[10px] font-bold mt-0.5">{saleCpfCnpjError}</p>}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-black uppercase tracking-widest text-white mb-1">Descrição / Grade</label>
+                                        <textarea value={saleDescription} onChange={e => setSaleDescription(e.target.value)} placeholder="Detalhes do pedido..." rows={2} className="w-full bg-zinc-950/80 border-transparent rounded-xl p-3 text-white outline-none focus:ring-1 focus:ring-[#39FF14] text-sm font-bold placeholder:text-zinc-600 resize-none" />
+                                    </div>
+                                    {cart.length === 0 && (
+                                        <div>
+                                            <label className="block text-sm font-black uppercase tracking-widest text-[#39FF14] mb-1">Valor Total (R$)</label>
+                                            <input type="text" value={saleManualValue} onChange={e => setSaleManualValue(formatCurrency(e.target.value))} placeholder="0,00" className="w-full bg-zinc-950/80 border-transparent rounded-xl p-3 text-white outline-none focus:ring-1 focus:ring-[#39FF14] text-sm font-bold placeholder:text-zinc-600" />
+                                        </div>
+                                    )}
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <div>
+                                            <label className="block text-[11px] font-black uppercase tracking-widest text-white mb-1">Prazo de Entrega</label>
+                                            <input type="date" value={saleDeadline} onChange={e => setSaleDeadline(e.target.value)} className="w-full bg-zinc-950/80 border-transparent rounded-xl p-3 text-white outline-none focus:ring-1 focus:ring-[#39FF14] text-sm font-bold [color-scheme:dark]" />
+                                        </div>
+                                        <div>
+                                            <label className="block text-[11px] font-black uppercase tracking-widest text-white mb-1">Método de Entrega</label>
+                                            <select value={saleDeliveryMethod} onChange={e => setSaleDeliveryMethod(e.target.value as any)} className="w-full bg-zinc-950/80 border-transparent rounded-xl p-3 text-white outline-none focus:ring-1 focus:ring-[#39FF14] text-sm font-bold appearance-none">
+                                                <option value="MOTOBOY">MOTOBOY</option>
+                                                <option value="TRANSPORTADORA">TRANSPORTADORA</option>
+                                                <option value="RETIRADA">RETIRADA</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <label className="flex items-center gap-3 cursor-pointer mt-2 bg-zinc-950/50 rounded-xl p-3">
+                                        <input type="checkbox" checked={saleEntersProduction} onChange={e => setSaleEntersProduction(e.target.checked)} className="w-5 h-5 rounded accent-[#39FF14]" />
+                                        <span className="text-sm font-black uppercase tracking-widest text-white">Entra em Produção</span>
+                                    </label>
+                                </div>
+
                                 <div className="space-y-4 mb-6">
                                     <label className="block text-sm font-black uppercase tracking-widest text-[#39FF14] mb-2 font-bold italic">Forma de Pagamento</label>
                                     <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
@@ -2307,14 +2469,14 @@ export default function DashboardPage() {
                                 <div className="border-t border-zinc-900 pt-6 mt-6">
                                     <div className="flex justify-between items-end mb-6">
                                         <p className="text-white text-sm font-black uppercase tracking-widest">Total</p>
-                                        <p className="text-2xl font-black text-[#39FF14]">R$ {cartTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                                        <p className="text-2xl font-black text-[#39FF14]">R$ {(cart.length > 0 ? cartTotal : parseBRL(saleManualValue)).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                                     </div>
                                     <button
                                         onClick={handleCheckout}
-                                        disabled={cart.length === 0 || loading}
+                                        disabled={(cart.length === 0 && !saleManualValue) || loading}
                                         className="w-full bg-[#39FF14] text-black py-4 rounded-2xl font-black uppercase text-sm tracking-widest hover:scale-105 transition-all shadow-xl shadow-[#39FF14]/10 disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
-                                        {loading ? 'Processando...' : 'Finalizar Venda'}
+                                        {loading ? 'Processando...' : saleEntersProduction ? 'Cadastrar Venda + Produção' : 'Finalizar Venda'}
                                     </button>
                                 </div>
                             </div>
