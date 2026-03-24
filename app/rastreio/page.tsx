@@ -223,6 +223,14 @@ function TrackingContent() {
                     <p className="text-white/70 text-sm mt-2">Veja todos os seus pedidos anteriores</p>
                 </Link>
 
+                {/* Voltar / Fechar */}
+                <button
+                    onClick={() => window.close()}
+                    className="w-full bg-zinc-950 border border-zinc-900 rounded-2xl p-4 mb-6 text-center hover:border-zinc-700 transition-colors"
+                >
+                    <span className="text-sm font-black uppercase tracking-widest text-white/70">Fechar</span>
+                </button>
+
                 {/* Footer */}
                 <div className="text-center mt-8 space-y-1">
                     <p className="text-white/60 text-xs uppercase font-bold tracking-widest">
