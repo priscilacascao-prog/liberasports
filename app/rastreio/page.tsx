@@ -120,6 +120,17 @@ function TrackingContent() {
                             </p>
                         </div>
                     </div>
+                    {order.cpf_cnpj && (
+                        <div className="mb-4 pb-4 border-b border-zinc-900">
+                            <p className="text-white/70 text-sm font-bold uppercase">CPF/CNPJ</p>
+                            <p className="text-base font-bold text-white">
+                                {order.cpf_cnpj.length === 11
+                                    ? order.cpf_cnpj.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')
+                                    : order.cpf_cnpj.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5')
+                                }
+                            </p>
+                        </div>
+                    )}
 
                     <div className="grid grid-cols-2 gap-4 mt-4 pt-4 border-t border-zinc-900">
                         <div className="flex items-center gap-2">

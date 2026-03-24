@@ -57,6 +57,8 @@ export default function DashboardPage() {
 
     // Form State
     const [client, setClient] = useState('');
+    const [clientCpfCnpj, setClientCpfCnpj] = useState('');
+    const [cpfCnpjError, setCpfCnpjError] = useState('');
     const [clientWhatsapp, setClientWhatsapp] = useState('');
     const [value, setValue] = useState('');
     const [deadline, setDeadline] = useState<string>(addBusinessDays(new Date(), 20));
@@ -943,9 +945,17 @@ export default function DashboardPage() {
             // Remove pontos de milhar e troca vírgula por ponto para o Firestore
             const normalizedValue = value.replace(/\./g, '').replace(',', '.');
 
+            const cpfCnpjDigits = clientCpfCnpj.replace(/\D/g, '');
+            if (!validateCpfCnpj(cpfCnpjDigits)) {
+                toast.error('CPF/CNPJ inválido!');
+                setLoading(false);
+                return;
+            }
+
             const newOrder = {
                 order_number: nextOrderNumber,
                 client,
+                cpf_cnpj: cpfCnpjDigits,
                 client_whatsapp: clientWhatsapp,
                 value: parseFloat(normalizedValue),
                 deadline: deadline,
@@ -1080,6 +1090,10 @@ export default function DashboardPage() {
                                 <div class="info-label">WhatsApp</div>
                                 <div class="info-value">${order.client_whatsapp || 'Não informado'}</div>
                             </div>
+                            <div class="info-block">
+                                <div class="info-label">CPF/CNPJ</div>
+                                <div class="info-value">${order.cpf_cnpj ? (order.cpf_cnpj.length === 11 ? order.cpf_cnpj.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4') : order.cpf_cnpj.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5')) : 'Não informado'}</div>
+                            </div>
                         </div>
                     </div>
 
@@ -1191,8 +1205,62 @@ export default function DashboardPage() {
         }
     };
 
+    const formatCpfCnpj = (value: string) => {
+        const digits = value.replace(/\D/g, '').slice(0, 14);
+        if (digits.length <= 11) {
+            return digits.replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+        }
+        return digits.replace(/(\d{2})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1/$2').replace(/(\d{4})(\d{1,2})$/, '$1-$2');
+    };
+
+    const validateCpfCnpj = (value: string): boolean => {
+        const digits = value.replace(/\D/g, '');
+        if (digits.length === 11) {
+            if (/^(\d)\1{10}$/.test(digits)) return false;
+            let sum = 0;
+            for (let i = 0; i < 9; i++) sum += parseInt(digits[i]) * (10 - i);
+            let rest = (sum * 10) % 11;
+            if (rest === 10) rest = 0;
+            if (rest !== parseInt(digits[9])) return false;
+            sum = 0;
+            for (let i = 0; i < 10; i++) sum += parseInt(digits[i]) * (11 - i);
+            rest = (sum * 10) % 11;
+            if (rest === 10) rest = 0;
+            return rest === parseInt(digits[10]);
+        }
+        if (digits.length === 14) {
+            if (/^(\d)\1{13}$/.test(digits)) return false;
+            const weights1 = [5,4,3,2,9,8,7,6,5,4,3,2];
+            const weights2 = [6,5,4,3,2,9,8,7,6,5,4,3,2];
+            let sum = 0;
+            for (let i = 0; i < 12; i++) sum += parseInt(digits[i]) * weights1[i];
+            let rest = sum % 11;
+            const d1 = rest < 2 ? 0 : 11 - rest;
+            if (parseInt(digits[12]) !== d1) return false;
+            sum = 0;
+            for (let i = 0; i < 13; i++) sum += parseInt(digits[i]) * weights2[i];
+            rest = sum % 11;
+            const d2 = rest < 2 ? 0 : 11 - rest;
+            return parseInt(digits[13]) === d2;
+        }
+        return false;
+    };
+
+    const handleCpfCnpjChange = (val: string) => {
+        const formatted = formatCpfCnpj(val);
+        setClientCpfCnpj(formatted);
+        const digits = val.replace(/\D/g, '');
+        if (digits.length === 11 || digits.length === 14) {
+            setCpfCnpjError(validateCpfCnpj(val) ? '' : 'CPF/CNPJ inválido');
+        } else {
+            setCpfCnpjError('');
+        }
+    };
+
     const resetForm = () => {
         setClient('');
+        setClientCpfCnpj('');
+        setCpfCnpjError('');
         setClientWhatsapp('');
         setValue('');
         setDeadline(addBusinessDays(new Date(), 20));
@@ -2893,6 +2961,20 @@ export default function DashboardPage() {
                                                 placeholder="(00) 00000-0000"
                                             />
                                         </div>
+                                        <div>
+                                            <label className="block text-sm font-black uppercase tracking-widest text-white mb-2">CPF/CNPJ</label>
+                                            <input
+                                                type="text"
+                                                value={clientCpfCnpj}
+                                                onChange={e => handleCpfCnpjChange(e.target.value)}
+                                                className={`w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 transition-all placeholder:text-zinc-600 ${cpfCnpjError ? 'focus:ring-red-500 ring-1 ring-red-500' : 'focus:ring-[#39FF14] focus:bg-zinc-900'}`}
+                                                placeholder="000.000.000-00"
+                                                required
+                                            />
+                                            {cpfCnpjError && <p className="text-red-500 text-xs font-bold mt-1">{cpfCnpjError}</p>}
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
                                         <div>
                                             <label className="block text-sm font-black uppercase tracking-widest text-[#39FF14] mb-2 font-bold italic">
                                                 Valor Total {linkedSaleId && <span className="text-white normal-case">(via venda vinculada)</span>}
