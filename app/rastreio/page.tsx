@@ -195,11 +195,11 @@ function TrackingContent() {
                                                 <div className={`w-0.5 h-8 ${isCompleted ? 'bg-[#39FF14]' : 'bg-zinc-800'}`} />
                                             )}
                                         </div>
-                                        <div className={`pb-6 ${isFuture ? 'opacity-30' : ''}`}>
+                                        <div className={`pb-6 ${isFuture ? 'opacity-60' : ''}`}>
                                             <p className={`text-base font-black uppercase ${
                                                 isCurrent ? 'text-orange-500' :
                                                 isCompleted ? 'text-[#39FF14]' :
-                                                'text-white/40'
+                                                'text-white/70'
                                             }`}>
                                                 {stepLabels[step] || step}
                                             </p>
@@ -220,18 +220,18 @@ function TrackingContent() {
                         <History size={20} className="text-[#39FF14]" />
                         <span className="text-sm font-black uppercase italic tracking-widest text-white">Ver histórico de pedidos</span>
                     </div>
-                    <p className="text-white/50 text-sm mt-2">Veja todos os seus pedidos anteriores</p>
+                    <p className="text-white/70 text-sm mt-2">Veja todos os seus pedidos anteriores</p>
                 </Link>
 
                 {/* Footer */}
                 <div className="text-center mt-8 space-y-1">
-                    <p className="text-white/40 text-xs uppercase font-bold tracking-widest">
+                    <p className="text-white/60 text-xs uppercase font-bold tracking-widest">
                         Libera Sports
                     </p>
-                    <p className="text-white/30 text-[11px] uppercase tracking-[0.2em]">
+                    <p className="text-white/50 text-[11px] uppercase tracking-[0.2em]">
                         Vista Libera e viva a liberdade
                     </p>
-                    <p className="text-white/20 text-[10px] mt-3">
+                    <p className="text-white/40 text-[10px] mt-3">
                         Atualiza automaticamente a cada 30 segundos
                     </p>
                 </div>
