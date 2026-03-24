@@ -127,6 +127,7 @@ export default function DashboardPage() {
     // Form Estado - Produtos
     const [isProductModalOpen, setIsProductModalOpen] = useState(false);
     const [prodName, setProdName] = useState('');
+    const [prodDetails, setProdDetails] = useState('');
     const [prodImage, setProdImage] = useState('');
     const [prodSalePrice, setProdSalePrice] = useState('');
     const [prodCostPrice, setProdCostPrice] = useState('');
@@ -350,6 +351,7 @@ export default function DashboardPage() {
         try {
             const newProduct: any = {
                 name: prodName.toUpperCase(),
+                details: prodDetails.trim(),
                 sale_price: parseBRL(prodSalePrice),
                 cost_price: parseBRL(prodCostPrice),
                 stock: parseInt(prodStock),
@@ -361,6 +363,7 @@ export default function DashboardPage() {
             toast.success('Produto adicionado ao estoque!');
             setIsProductModalOpen(false);
             setProdName('');
+            setProdDetails('');
             setProdSalePrice('');
             setProdCostPrice('');
             setProdStock('');
@@ -3742,6 +3745,17 @@ export default function DashboardPage() {
                                         placeholder="Ex: Camiseta Libera Basic"
                                         required
                                         className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all font-bold placeholder:text-zinc-600"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-black uppercase tracking-widest mb-2 text-white">Detalhes</label>
+                                    <textarea
+                                        value={prodDetails}
+                                        onChange={e => setProdDetails(e.target.value)}
+                                        placeholder="Ex: Tamanhos disponíveis, cores, material..."
+                                        rows={2}
+                                        className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all font-bold placeholder:text-zinc-600 resize-none"
                                     />
                                 </div>
 
