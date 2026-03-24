@@ -267,9 +267,53 @@ export default function DashboardPage() {
         }
     }, [isModalOpen]);
 
+    const handleRenumberOrders = async () => {
+        if (!confirm('Renumerar todos os pedidos por ordem de criação? Isso também atualizará as contas financeiras.')) return;
+        try {
+            toast.loading('Renumerando pedidos...');
+            const ordersSnap = await getDocs(query(collection(db, ordersCollectionPath), orderBy('created_at', 'asc')));
+            const allOrders = ordersSnap.docs.map(d => ({ id: d.id, ...d.data() })) as any[];
+
+            const finSnap = await getDocs(collection(db, financeCollectionPath));
+            const finItems = finSnap.docs.map(d => ({ id: d.id, ...d.data() })) as any[];
+
+            const renumberMap: Record<string, { oldNumber: string; newNumber: string }> = {};
+            for (let i = 0; i < allOrders.length; i++) {
+                const order = allOrders[i];
+                const newNumber = `LIBERA-${String(i + 1).padStart(4, '0')}`;
+                const oldNumber = order.order_number || 'LIBERA-0001';
+                renumberMap[order.id] = { oldNumber, newNumber };
+            }
+
+            for (const [orderId, entry] of Object.entries(renumberMap)) {
+                await updateDoc(doc(db, ordersCollectionPath, orderId), { order_number: entry.newNumber });
+            }
+
+            let updatedFin = 0;
+            for (const fin of finItems) {
+                if (fin.order_id && renumberMap[fin.order_id]) {
+                    const { oldNumber, newNumber } = renumberMap[fin.order_id];
+                    if (fin.description && fin.description.includes(`[${oldNumber}]`)) {
+                        const newDesc = fin.description.replace(`[${oldNumber}]`, `[${newNumber}]`);
+                        await updateDoc(doc(db, financeCollectionPath, fin.id), { description: newDesc });
+                        updatedFin++;
+                    }
+                }
+            }
+
+            toast.dismiss();
+            toast.success(`${allOrders.length} pedidos renumerados, ${updatedFin} contas atualizadas!`);
+            await updateNextOrderNumber();
+        } catch (err) {
+            toast.dismiss();
+            console.error('Erro ao renumerar:', err);
+            toast.error('Erro ao renumerar pedidos');
+        }
+    };
+
     const updateNextOrderNumber = async () => {
         try {
-            const lastOrderQuery = query(collection(db, ordersCollectionPath), orderBy('order_number', 'desc'), orderBy('created_at', 'desc'));
+            const lastOrderQuery = query(collection(db, ordersCollectionPath), orderBy('order_number', 'desc'));
             const querySnapshot = await getDocs(lastOrderQuery); // Use getDocs for a one-time fetch
             if (!querySnapshot.empty) {
                 const lastOrder = querySnapshot.docs[0].data();
@@ -1403,12 +1447,21 @@ export default function DashboardPage() {
                                     </p>
                                 </div>
                             </div>
-                            <button
-                                onClick={() => { resetForm(); setIsModalOpen(true); }}
-                                className="bg-[#39FF14] text-black px-8 py-4 rounded-2xl font-black hover:scale-105 transition-all uppercase text-sm shadow-xl shadow-[#39FF14]/10"
-                            >
-                                + Novo Pedido
-                            </button>
+                            <div className="flex items-center gap-3">
+                                <button
+                                    onClick={handleRenumberOrders}
+                                    className="bg-orange-500 text-black px-6 py-4 rounded-2xl font-black hover:scale-105 transition-all uppercase text-xs"
+                                    title="Renumerar pedidos por ordem de criação"
+                                >
+                                    Renumerar
+                                </button>
+                                <button
+                                    onClick={() => { resetForm(); setIsModalOpen(true); }}
+                                    className="bg-[#39FF14] text-black px-8 py-4 rounded-2xl font-black hover:scale-105 transition-all uppercase text-sm shadow-xl shadow-[#39FF14]/10"
+                                >
+                                    + Novo Pedido
+                                </button>
+                            </div>
                         </div>
 
                         {/* Status Filter Grid */}
@@ -2331,50 +2384,47 @@ export default function DashboardPage() {
                                     }
 
                                     return filtered.map(item => (
-                                        <div key={item.id} className="p-4 md:p-6 flex flex-col md:flex-row items-start md:items-center justify-between hover:bg-zinc-900/50 transition-colors gap-3 md:gap-4">
-                                            <div className="flex items-center gap-3 w-full md:w-auto">
-                                                <div className={`p-2 md:p-3 rounded-xl md:rounded-2xl shrink-0 ${item.type === 'INFLOW' ? 'bg-[#39FF14]/10 text-[#39FF14]' : 'bg-red-500/10 text-red-500'}`}>
-                                                    {item.type === 'INFLOW' ? <ArrowUpRight size={16} /> : <ArrowDownLeft size={16} />}
-                                                </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <p className="text-sm md:text-sm font-black text-white uppercase truncate">{item.description}</p>
-                                                    <p className="text-[13px] md:text-sm text-white font-semibold uppercase">
-                                                        Venc: {new Date(item.due_date || item.transaction_date || item.created_at).toLocaleDateString('pt-BR')}
-                                                        {item.payment_method && <span className="ml-1.5 text-white/70">• {item.payment_method}</span>}
-                                                    </p>
-                                                    {item.observations && <p className="text-[13px] text-white/70 italic mt-0.5 truncate">{item.observations}</p>}
-                                                </div>
-                                            </div>
-
-                                            <div className="flex items-center justify-between w-full md:w-auto md:justify-end gap-3 shrink-0 pl-10 md:pl-0">
-                                                <div className="text-right">
-                                                    <p className={`text-base md:text-lg font-black ${item.type === 'INFLOW' ? 'text-[#39FF14]' : 'text-red-500'}`}>
-                                                        {item.type === 'INFLOW' ? '+' : '-'} R$ {item.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                                                    </p>
-                                                    <div className="flex justify-end mt-1 gap-1.5 items-center">
-                                                        {item.status === 'PAGO' || item.status === 'RECEBIDO' ? (
-                                                            <span className="text-sm font-black uppercase px-3 py-1 rounded-full bg-green-500/20 text-green-400">
-                                                                {item.status} {item.paid_at ? `em ${new Date(item.paid_at).toLocaleDateString('pt-BR')}` : ''}
-                                                            </span>
-                                                        ) : (
-                                                            <>
-                                                                <span className={`text-sm font-black uppercase px-3 py-1 rounded-full ${item.status === 'ATRASADO' ? 'bg-red-500/20 text-red-400' : 'bg-orange-500/20 text-orange-400'}`}>
-                                                                    {item.status}
-                                                                </span>
-                                                                <button
-                                                                    onClick={() => handleUpdateFinanceEntry(item.id, {
-                                                                        status: item.type === 'OUTFLOW' ? 'PAGO' : 'RECEBIDO',
-                                                                        paid_at: new Date().toISOString()
-                                                                    })}
-                                                                    className={`text-sm font-black uppercase px-3 py-1 rounded-full transition-all hover:scale-105 ${item.type === 'OUTFLOW' ? 'bg-green-500 text-black' : 'bg-[#39FF14] text-black'}`}
-                                                                >
-                                                                    {item.type === 'OUTFLOW' ? 'PAGAR' : 'RECEBER'}
-                                                                </button>
-                                                            </>
-                                                        )}
+                                        <div key={item.id} className="p-4 md:p-6 hover:bg-zinc-900/50 transition-colors" style={{display: 'grid', gridTemplateColumns: '1fr auto', gap: '12px', alignItems: 'start'}}>
+                                            <div style={{minWidth: 0}}>
+                                                <div className="flex items-start gap-3">
+                                                    <div className={`p-2 md:p-3 rounded-xl md:rounded-2xl shrink-0 mt-0.5 ${item.type === 'INFLOW' ? 'bg-[#39FF14]/10 text-[#39FF14]' : 'bg-red-500/10 text-red-500'}`}>
+                                                        {item.type === 'INFLOW' ? <ArrowUpRight size={16} /> : <ArrowDownLeft size={16} />}
+                                                    </div>
+                                                    <div style={{minWidth: 0}}>
+                                                        <p className="text-sm font-black text-white uppercase" style={{wordBreak: 'break-all'}}>{item.description}</p>
+                                                        <p className="text-[13px] md:text-sm text-white font-semibold uppercase mt-0.5">
+                                                            Venc: {new Date(item.due_date || item.transaction_date || item.created_at).toLocaleDateString('pt-BR')}
+                                                            {item.payment_method && <span className="ml-1.5 text-white/70">• {item.payment_method}</span>}
+                                                        </p>
+                                                        {item.observations && <p className="text-[13px] text-white/70 italic mt-0.5" style={{wordBreak: 'break-all'}}>{item.observations}</p>}
                                                     </div>
                                                 </div>
-                                                <div className="flex flex-col gap-1">
+                                            </div>
+                                            <div className="flex flex-col items-end gap-2" style={{whiteSpace: 'nowrap'}}>
+                                                <p className={`text-base md:text-lg font-black ${item.type === 'INFLOW' ? 'text-[#39FF14]' : 'text-red-500'}`}>
+                                                    {item.type === 'INFLOW' ? '+' : '-'} R$ {item.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                                </p>
+                                                <div className="flex items-center gap-1.5">
+                                                    {item.status === 'PAGO' || item.status === 'RECEBIDO' ? (
+                                                        <span className="text-sm font-black uppercase px-3 py-1 rounded-full bg-green-500/20 text-green-400">
+                                                            {item.status} {item.paid_at ? `em ${new Date(item.paid_at).toLocaleDateString('pt-BR')}` : ''}
+                                                        </span>
+                                                    ) : (
+                                                        <>
+                                                            <span className={`text-sm font-black uppercase px-3 py-1 rounded-full ${item.status === 'ATRASADO' ? 'bg-red-500/20 text-red-400' : 'bg-orange-500/20 text-orange-400'}`}>
+                                                                {item.status}
+                                                            </span>
+                                                            <button
+                                                                onClick={() => handleUpdateFinanceEntry(item.id, {
+                                                                    status: item.type === 'OUTFLOW' ? 'PAGO' : 'RECEBIDO',
+                                                                    paid_at: new Date().toISOString()
+                                                                })}
+                                                                className={`text-sm font-black uppercase px-3 py-1 rounded-full transition-all hover:scale-105 ${item.type === 'OUTFLOW' ? 'bg-green-500 text-black' : 'bg-[#39FF14] text-black'}`}
+                                                            >
+                                                                {item.type === 'OUTFLOW' ? 'PAGAR' : 'RECEBER'}
+                                                            </button>
+                                                        </>
+                                                    )}
                                                     <button onClick={() => {
                                                         setEditingFinanceItem({
                                                             ...item,
@@ -2396,9 +2446,8 @@ export default function DashboardPage() {
                                                             toast.error('Erro ao excluir conta');
                                                         }
                                                     }} className="text-white/70 hover:text-red-500 transition-colors p-2" title="Excluir conta">
-                                                        <Trash2 size={16} />
-                                                    </button>
-                                                </div>
+                                                    <Trash2 size={16} />
+                                                </button>
                                             </div>
                                         </div>
                                     ));

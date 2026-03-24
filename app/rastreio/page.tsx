@@ -3,8 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '@/lib/firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
-import { Package, Loader2, Truck, Calendar, Clock, Check, AlertCircle } from 'lucide-react';
+import { Package, Loader2, Truck, Calendar, Clock, Check, AlertCircle, History } from 'lucide-react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 
@@ -209,6 +210,18 @@ function TrackingContent() {
                         </div>
                     </div>
                 )}
+
+                {/* Historico button */}
+                <Link
+                    href={`/rastreio/historico?id=${orderId}`}
+                    className="block bg-zinc-950 border border-zinc-900 rounded-2xl p-5 mb-6 text-center hover:border-zinc-700 transition-colors"
+                >
+                    <div className="flex items-center justify-center gap-3">
+                        <History size={20} className="text-[#39FF14]" />
+                        <span className="text-sm font-black uppercase italic tracking-widest text-white">Ver histórico de pedidos</span>
+                    </div>
+                    <p className="text-zinc-500 text-xs mt-2">Veja todos os seus pedidos anteriores</p>
+                </Link>
 
                 {/* Footer */}
                 <div className="text-center mt-8 space-y-1">
