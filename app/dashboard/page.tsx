@@ -2654,12 +2654,13 @@ export default function DashboardPage() {
                                                         {item.type === 'INFLOW' ? <ArrowUpRight size={16} /> : <ArrowDownLeft size={16} />}
                                                     </div>
                                                     <div style={{minWidth: 0}}>
-                                                        <p className="text-sm font-black text-white uppercase" style={{wordBreak: 'break-all'}}>{item.description}</p>
-                                                        <p className="text-[13px] md:text-sm text-white font-semibold uppercase mt-0.5">
+                                                        <p className="text-base font-black text-white uppercase" style={{wordBreak: 'break-all'}}>{item.description}</p>
+                                                        {item.supplier_name && <p className="text-sm font-bold text-[#39FF14]/70 uppercase mt-0.5">{item.supplier_name}</p>}
+                                                        <p className="text-sm text-white font-semibold uppercase mt-0.5">
                                                             Venc: {new Date(item.due_date || item.transaction_date || item.created_at).toLocaleDateString('pt-BR')}
                                                             {item.payment_method && <span className="ml-1.5 text-white/70">• {item.payment_method}</span>}
                                                         </p>
-                                                        {item.observations && <p className="text-[13px] text-white/70 italic mt-0.5" style={{wordBreak: 'break-all'}}>{item.observations}</p>}
+                                                        {item.observations && <p className="text-sm text-white/70 italic mt-0.5" style={{wordBreak: 'break-all'}}>{item.observations}</p>}
                                                     </div>
                                                 </div>
                                             </div>
@@ -2697,8 +2698,8 @@ export default function DashboardPage() {
                                                             editPayMethod: item.payment_method || 'PIX',
                                                             editObs: item.observations || '',
                                                         });
-                                                    }} className="text-white/70 hover:text-[#39FF14] transition-colors p-2" title="Editar conta">
-                                                        <Pencil size={16} />
+                                                    }} className="text-white/70 hover:text-[#39FF14] transition-colors p-3" title="Editar conta">
+                                                        <Pencil size={22} />
                                                     </button>
                                                     <button onClick={async () => {
                                                         try {
@@ -2708,8 +2709,8 @@ export default function DashboardPage() {
                                                             console.error('Erro ao excluir:', err);
                                                             toast.error('Erro ao excluir conta');
                                                         }
-                                                    }} className="text-white/70 hover:text-red-500 transition-colors p-2" title="Excluir conta">
-                                                    <Trash2 size={16} />
+                                                    }} className="text-white/70 hover:text-red-500 transition-colors p-3" title="Excluir conta">
+                                                    <Trash2 size={22} />
                                                 </button>
                                             </div>
                                             </div>
@@ -3898,7 +3899,7 @@ export default function DashboardPage() {
                                 />
                                 {showSupplierSuggestions && (
                                     <div className="absolute left-0 right-0 top-full mt-1 bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden z-50 shadow-xl max-h-[200px] overflow-y-auto">
-                                        {fornecedores.filter(f => f.name.toLowerCase().includes(finSupplier.toLowerCase())).map(f => (
+                                        {fornecedores.filter(f => f.name.toLowerCase().includes(finSupplier.toLowerCase()) || (f.cpf_cnpj && f.cpf_cnpj.includes(finSupplier.replace(/\D/g, '')))).map(f => (
                                             <button
                                                 key={f.id}
                                                 type="button"
@@ -3909,7 +3910,7 @@ export default function DashboardPage() {
                                                 <p className="text-xs text-white/50">{f.cpf_cnpj ? (f.cpf_cnpj.length === 11 ? f.cpf_cnpj.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4') : f.cpf_cnpj.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5')) : ''} {f.whatsapp && `• ${f.whatsapp}`}</p>
                                             </button>
                                         ))}
-                                        {fornecedores.filter(f => f.name.toLowerCase().includes(finSupplier.toLowerCase())).length === 0 && (
+                                        {fornecedores.filter(f => f.name.toLowerCase().includes(finSupplier.toLowerCase()) || (f.cpf_cnpj && f.cpf_cnpj.includes(finSupplier.replace(/\D/g, '')))).length === 0 && (
                                             <div className="px-4 py-3 text-sm text-white/50 italic">Nenhum encontrado — será cadastrado ao salvar</div>
                                         )}
                                     </div>
