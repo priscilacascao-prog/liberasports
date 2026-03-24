@@ -975,16 +975,23 @@ export default function DashboardPage() {
             const trackingUrl = `${window.location.origin}/rastreio?id=${docRef.id}`;
             const whatsappPhone = clientWhatsapp.replace(/\D/g, '');
             const deliveryDate = deadline.split('-').reverse().join('/');
-            const whatsappMsg = encodeURIComponent(
-                `Olá *${client.trim()}*! Seu pedido na *Libera Sports* foi cadastrado com sucesso!\n\n` +
-                `*Pedido:* ${nextOrderNumber}\n` +
-                `*Valor:* R$ ${parseFloat(normalizedValue).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}\n` +
-                `*Entrega prevista:* ${deliveryDate}\n` +
-                `*Método:* ${deliveryMethod}\n` +
-                `*Pagamento:* ${paymentMethod}\n\n` +
-                `Acompanhe seu pedido em tempo real:\n${trackingUrl}\n\n` +
-                `_Libera Sports - Vista Libera e viva a liberdade_`
-            );
+            const clientName = client.trim();
+            const formattedValue = parseFloat(normalizedValue).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+            const msgLines = [
+                `Olá *${clientName}*! Seu pedido na *Libera Sports* foi cadastrado com sucesso!`,
+                '',
+                `*Pedido:* ${nextOrderNumber}`,
+                `*Valor:* R$ ${formattedValue}`,
+                `*Entrega prevista:* ${deliveryDate}`,
+                `*Método:* ${deliveryMethod}`,
+                `*Pagamento:* ${paymentMethod}`,
+                '',
+                'Acompanhe seu pedido em tempo real:',
+                trackingUrl,
+                '',
+                '_Libera Sports - Vista Libera e viva a liberdade_'
+            ];
+            const whatsappMsg = msgLines.map(line => encodeURIComponent(line)).join('%0a');
 
             const whatsappLink = whatsappPhone ? `https://wa.me/${whatsappPhone}?text=${whatsappMsg}` : '';
 
