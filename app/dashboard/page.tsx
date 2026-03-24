@@ -154,6 +154,7 @@ export default function DashboardPage() {
     const [editProductName, setEditProductName] = useState('');
     const [editProductSalePrice, setEditProductSalePrice] = useState('');
     const [editProductCostPrice, setEditProductCostPrice] = useState('');
+    const [editProductImage, setEditProductImage] = useState('');
     const [editProductStock, setEditProductStock] = useState('');
     const [expandedSaleIds, setExpandedSaleIds] = useState<Record<string, boolean>>({});
 
@@ -2199,6 +2200,37 @@ export default function DashboardPage() {
                                                                 placeholder="Detalhes do produto..." rows={2}
                                                                 className="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-2 text-sm text-white outline-none focus:border-[#39FF14] resize-none" />
                                                         </div>
+                                                        <div>
+                                                            <p className="text-[11px] text-white/70 font-bold uppercase mb-1">Foto</p>
+                                                            <div className="flex items-center gap-3">
+                                                                {editProductImage ? (
+                                                                    <div className="relative w-12 h-12 rounded-lg overflow-hidden border border-zinc-700 shrink-0">
+                                                                        <img src={editProductImage} alt="Preview" className="w-full h-full object-cover" />
+                                                                        <button type="button" onClick={() => setEditProductImage('')}
+                                                                            className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center">
+                                                                            <X size={8} />
+                                                                        </button>
+                                                                    </div>
+                                                                ) : (
+                                                                    <div className="w-12 h-12 rounded-lg border border-dashed border-zinc-700 flex items-center justify-center shrink-0">
+                                                                        <Package size={16} className="text-white/30" />
+                                                                    </div>
+                                                                )}
+                                                                <label className="flex-1 cursor-pointer">
+                                                                    <div className="bg-zinc-900 border border-dashed border-zinc-700 rounded-lg p-2 text-center hover:border-[#39FF14]/50 transition-all">
+                                                                        <p className="text-[11px] font-bold text-white uppercase">{editProductImage ? 'Trocar' : 'Escolher foto'}</p>
+                                                                    </div>
+                                                                    <input type="file" accept="image/*" className="hidden" onChange={e => {
+                                                                        const file = e.target.files?.[0];
+                                                                        if (!file) return;
+                                                                        if (file.size > 500000) { toast.error('Imagem muito grande (máx 500KB)'); return; }
+                                                                        const reader = new FileReader();
+                                                                        reader.onload = () => setEditProductImage(reader.result as string);
+                                                                        reader.readAsDataURL(file);
+                                                                    }} />
+                                                                </label>
+                                                            </div>
+                                                        </div>
                                                         <div className="grid grid-cols-3 gap-2">
                                                             <div>
                                                                 <p className="text-[11px] text-white/70 font-bold uppercase mb-1">Preço Venda</p>
@@ -2225,13 +2257,15 @@ export default function DashboardPage() {
                                                         <div className="flex items-center gap-2 mt-1">
                                                             <button onClick={async () => {
                                                                 try {
-                                                                    await updateDoc(doc(db, productsCollectionPath, p.id), {
+                                                                    const updateData: any = {
                                                                         name: editProductName.trim().toUpperCase(),
                                                                         details: editProductDetails.trim(),
                                                                         sale_price: parseBRL(editProductSalePrice),
                                                                         cost_price: parseBRL(editProductCostPrice),
                                                                         stock: parseInt(editProductStock) || 0,
-                                                                    });
+                                                                        image: editProductImage || '',
+                                                                    };
+                                                                    await updateDoc(doc(db, productsCollectionPath, p.id), updateData);
                                                                     toast.success('Produto atualizado!');
                                                                     setEditingProductId(null);
                                                                 } catch (err) { toast.error('Erro ao atualizar'); }
@@ -2275,6 +2309,7 @@ export default function DashboardPage() {
                                                         setEditProductSalePrice(p.sale_price.toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
                                                         setEditProductCostPrice(p.cost_price.toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
                                                         setEditProductStock(String(p.stock));
+                                                        setEditProductImage(p.image || '');
                                                     }}
                                                     className="p-2 rounded-lg text-white/40 hover:text-[#39FF14] hover:bg-[#39FF14]/10 transition-all"
                                                     title="Editar produto"
