@@ -7,7 +7,7 @@ import {
     TrendingUp, Truck, User, History, MessageSquare, Info, Filter,
     Loader2, ChevronDown, ChevronUp, MessageCircle, Pencil, FileText, Trash2,
     Store, ShoppingCart, Wallet, BarChart3, Settings, Layers, Box, DollarSign,
-    ArrowUpCircle, ArrowDownCircle, ArrowUpRight, ArrowDownLeft, PlusCircle, Home
+    ArrowUpCircle, ArrowDownCircle, ArrowUpRight, ArrowDownLeft, PlusCircle, Home, Copy
 } from 'lucide-react';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
@@ -2315,6 +2315,27 @@ export default function DashboardPage() {
                                                     title="Editar produto"
                                                 >
                                                     <Pencil size={16} />
+                                                </button>
+                                                <button
+                                                    onClick={async () => {
+                                                        try {
+                                                            await addDoc(collection(db, productsCollectionPath), {
+                                                                name: `${p.name} (CÓPIA)`,
+                                                                details: p.details || '',
+                                                                sale_price: p.sale_price,
+                                                                cost_price: p.cost_price,
+                                                                stock: p.stock,
+                                                                image: p.image || '',
+                                                                created_at: new Date().toISOString(),
+                                                                user_id: userId,
+                                                            });
+                                                            toast.success('Produto duplicado!');
+                                                        } catch (err) { toast.error('Erro ao duplicar'); }
+                                                    }}
+                                                    className="p-2 rounded-lg text-white/40 hover:text-blue-400 hover:bg-blue-400/10 transition-all"
+                                                    title="Duplicar produto"
+                                                >
+                                                    <Copy size={16} />
                                                 </button>
                                                 <button
                                                     onClick={async () => {
