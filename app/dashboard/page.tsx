@@ -1846,18 +1846,18 @@ export default function DashboardPage() {
                                                                 R$ {Number(order.value).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                                             </span>
                                                         </div>
-                                                        <div className="flex items-center gap-1.5">
+                                                        <div className="flex items-center gap-2">
                                                             <button onClick={() => { toast.info('Edição completa em breve'); }}
-                                                                className="p-2 rounded-lg bg-zinc-950 border border-zinc-900 text-white/70 hover:text-white transition-all" title="Editar">
-                                                                <Pencil size={13} />
+                                                                className="p-4 rounded-xl bg-zinc-950 border border-zinc-900 text-white/70 hover:text-white transition-all" title="Editar">
+                                                                <Pencil size={22} />
                                                             </button>
                                                             <button onClick={() => handlePrintOrder(order)}
-                                                                className="p-2 rounded-lg bg-zinc-950 border border-zinc-900 text-white/70 hover:text-[#39FF14] transition-all" title="PDF">
-                                                                <FileText size={13} />
+                                                                className="p-4 rounded-xl bg-zinc-950 border border-zinc-900 text-white/70 hover:text-[#39FF14] transition-all" title="PDF">
+                                                                <FileText size={22} />
                                                             </button>
                                                             <button onClick={() => handleDeleteOrder(order.id, order.order_number)}
-                                                                className="p-2 rounded-lg bg-zinc-950 border border-zinc-900 text-white/70 hover:text-[#FF3D00] transition-all" title="Excluir">
-                                                                <Trash2 size={13} />
+                                                                className="p-4 rounded-xl bg-zinc-950 border border-zinc-900 text-white/70 hover:text-[#FF3D00] transition-all" title="Excluir">
+                                                                <Trash2 size={22} />
                                                             </button>
                                                         </div>
                                                     </div>
