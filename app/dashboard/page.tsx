@@ -2320,7 +2320,7 @@ export default function DashboardPage() {
                                                     onClick={async () => {
                                                         try {
                                                             await addDoc(collection(db, productsCollectionPath), {
-                                                                name: `${p.name} (CÓPIA)`,
+                                                                name: `(CÓPIA) ${p.name}`,
                                                                 details: p.details || '',
                                                                 sale_price: p.sale_price,
                                                                 cost_price: p.cost_price,
