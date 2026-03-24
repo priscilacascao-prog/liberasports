@@ -2449,6 +2449,7 @@ export default function DashboardPage() {
                                                     <Trash2 size={16} />
                                                 </button>
                                             </div>
+                                            </div>
                                         </div>
                                     ));
                                 })()}
