@@ -144,6 +144,8 @@ export default function DashboardPage() {
     // Finance View State
     const [financeFilterYear, setFinanceFilterYear] = useState(new Date().getFullYear());
     const [financeFilterMonth, setFinanceFilterMonth] = useState(-1);
+    const [financeDateFrom, setFinanceDateFrom] = useState('');
+    const [financeDateTo, setFinanceDateTo] = useState('');
     const [financeGrouping, setFinanceGrouping] = useState<'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY'>('DAILY');
     const [editingFinanceId, setEditingFinanceId] = useState<string | null>(null);
     const [editFinAmount, setEditFinAmount] = useState('');
@@ -1585,12 +1587,12 @@ export default function DashboardPage() {
             {/* Tab Navigation (visible when NOT on HOME) */}
             {activeTab !== 'HOME' && (
                 <div className="max-w-5xl mx-auto px-4 md:px-6 mt-4 md:mt-6">
-                    <div className="flex gap-1.5 p-1 bg-zinc-950 rounded-2xl border border-zinc-900 overflow-x-auto mask-fade">
+                    <div className="flex gap-1.5 p-1.5 bg-zinc-950 rounded-2xl border border-zinc-900 overflow-x-auto mask-fade">
                         <button
                             onClick={() => setActiveTab('HOME')}
-                            className="flex items-center gap-1 px-3 py-2.5 rounded-xl font-black uppercase text-[13px] tracking-widest transition-all text-white hover:text-white hover:bg-zinc-900 shrink-0"
+                            className="flex items-center justify-center px-5 py-4 rounded-xl font-black uppercase text-sm tracking-widest transition-all text-white hover:text-white hover:bg-zinc-900 shrink-0"
                         >
-                            <Home size={12} />
+                            <Home size={20} />
                         </button>
                         {[
                             { id: 'VENDAS', icon: ShoppingCart, label: 'Vendas' },
@@ -1606,14 +1608,14 @@ export default function DashboardPage() {
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id as any)}
                                     className={`
-                                        flex items-center gap-1.5 px-3.5 md:px-5 py-2.5 rounded-xl font-black uppercase text-sm md:text-[13px] tracking-wider transition-all shrink-0
+                                        flex-1 flex items-center justify-center gap-2 px-5 py-4 rounded-xl font-black uppercase text-sm tracking-wider transition-all shrink-0
                                         ${isActive
                                             ? 'bg-[#39FF14] text-black shadow-lg shadow-[#39FF14]/20'
                                             : 'text-white hover:text-white hover:bg-zinc-900'
                                         }
                                     `}
                                 >
-                                    <Icon size={12} />
+                                    <Icon size={18} />
                                     {tab.label}
                                 </button>
                             );
@@ -2539,26 +2541,30 @@ export default function DashboardPage() {
                                     {financeView === 'RECEBIDAS' && <><Check size={11} /> Contas Recebidas</>}
                                 </h3>
                                 <div className="flex flex-wrap items-center gap-2">
-                                    <select
-                                        value={financeFilterYear}
-                                        onChange={e => setFinanceFilterYear(parseInt(e.target.value))}
-                                        className="bg-zinc-900 text-sm font-black uppercase tracking-widest px-4 py-2 rounded-xl border border-zinc-800 outline-none text-white focus:border-[#39FF14] transition-colors appearance-none"
-                                    >
-                                        {[financeFilterYear - 1, financeFilterYear, financeFilterYear + 1].map(y => (
-                                            <option key={y} value={y}>{y}</option>
-                                        ))}
-                                    </select>
-                                    <select
-                                        value={financeFilterMonth}
-                                        onChange={e => setFinanceFilterMonth(parseInt(e.target.value))}
-                                        className="bg-zinc-900 text-sm font-black uppercase tracking-widest px-4 py-2 rounded-xl border border-zinc-800 outline-none text-white focus:border-[#39FF14] transition-colors appearance-none"
-                                    >
-                                        <option value={-1}>Ano todo</option>
-                                        {Array.from({ length: 12 }, (_, i) => {
-                                            const date = new Date(2000, i, 1);
-                                            return <option key={i} value={i}>{date.toLocaleString('pt-BR', { month: 'long' })}</option>;
-                                        })}
-                                    </select>
+                                    <div className="flex items-center gap-1.5">
+                                        <input
+                                            type="date"
+                                            value={financeDateFrom}
+                                            onChange={e => setFinanceDateFrom(e.target.value)}
+                                            className="bg-zinc-900 text-sm font-bold px-3 py-2 rounded-xl border border-zinc-800 outline-none text-white focus:border-[#39FF14] transition-colors"
+                                        />
+                                        <span className="text-white/50 text-xs font-bold">até</span>
+                                        <input
+                                            type="date"
+                                            value={financeDateTo}
+                                            onChange={e => setFinanceDateTo(e.target.value)}
+                                            className="bg-zinc-900 text-sm font-bold px-3 py-2 rounded-xl border border-zinc-800 outline-none text-white focus:border-[#39FF14] transition-colors"
+                                        />
+                                        {(financeDateFrom || financeDateTo) && (
+                                            <button
+                                                onClick={() => { setFinanceDateFrom(''); setFinanceDateTo(''); }}
+                                                className="text-white/50 hover:text-white transition-colors p-1"
+                                                title="Limpar filtro"
+                                            >
+                                                <X size={14} />
+                                            </button>
+                                        )}
+                                    </div>
                                     <div className="relative">
                                         <button
                                             onClick={() => setShowPdfMenu(!showPdfMenu)}
@@ -2612,6 +2618,11 @@ export default function DashboardPage() {
                                             ? (item.paid_at || item.due_date || item.transaction_date || item.created_at)
                                             : (item.due_date || item.transaction_date || item.created_at);
                                         const datePart = dateStr.split('T')[0];
+                                        if (financeDateFrom || financeDateTo) {
+                                            if (financeDateFrom && datePart < financeDateFrom) return false;
+                                            if (financeDateTo && datePart > financeDateTo) return false;
+                                            return true;
+                                        }
                                         const [y, m] = datePart.split('-').map(Number);
                                         if (y !== financeFilterYear) return false;
                                         if (financeFilterMonth === -1) return true;
