@@ -37,8 +37,8 @@ export default function LoginPage() {
       return;
     }
 
-    if (isRegistering && !operatorName.trim()) {
-      toast.error('Por favor, informe seu nome de operador.');
+    if (!operatorName.trim()) {
+      toast.error('Por favor, informe seu apelido.');
       return;
     }
 
@@ -52,6 +52,7 @@ export default function LoginPage() {
         router.push('/dashboard');
       } else {
         await signInWithEmailAndPassword(auth, email.trim(), password);
+        localStorage.setItem('libera_operator_name', operatorName.trim());
         toast.success('Login realizado com sucesso!');
         router.push('/dashboard');
       }
@@ -111,21 +112,19 @@ export default function LoginPage() {
           </h2>
 
           <div className="space-y-4">
-            {isRegistering && (
               <div>
                 <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-zinc-500">
-                  Nome do Operador
+                  Seu Apelido
                 </label>
                 <input
                   type="text"
                   value={operatorName}
                   onChange={(e) => setOperatorName(e.target.value)}
-                  placeholder="Seu nome..."
+                  placeholder="Como quer ser identificado..."
                   className="w-full bg-[#111] border border-zinc-800 rounded-xl p-4 text-white outline-none focus:border-[#39FF14] transition-all text-sm font-bold uppercase"
                   required
                 />
               </div>
-            )}
 
             <div>
               <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-zinc-500">
