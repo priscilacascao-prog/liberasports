@@ -2284,11 +2284,11 @@ export default function DashboardPage() {
 
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                             {/* Product Selection List */}
-                            <div className="lg:col-span-2 space-y-4">
+                            <div className="space-y-4 order-2 lg:order-1">
                                 <h3 className="text-white text-sm font-black uppercase tracking-widest flex items-center gap-2">
-                                    <Plus size={12} className="text-[#39FF14]" /> Selecione os Produtos
+                                    <Plus size={12} className="text-[#39FF14]" /> Produtos do Estoque
                                 </h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <div className="grid grid-cols-1 gap-3 max-h-[600px] overflow-y-auto pr-1">
                                     {products.map(p => (
                                         <button
                                             key={p.id}
@@ -2314,7 +2314,7 @@ export default function DashboardPage() {
                             </div>
 
                             {/* Cart / Checkout Summary */}
-                            <div className="bg-zinc-950 border border-zinc-900 rounded-[32px] p-6 h-fit sticky top-24">
+                            <div className="lg:col-span-2 order-1 lg:order-2 bg-zinc-950 border border-zinc-900 rounded-[32px] p-6 h-fit sticky top-24">
                                 <h3 className="text-white text-sm font-black uppercase tracking-widest mb-6 flex items-center gap-2">
                                     <ShoppingCart size={12} className="text-[#39FF14]" /> Resumo da Venda
                                 </h3>
