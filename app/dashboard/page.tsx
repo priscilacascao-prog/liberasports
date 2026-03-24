@@ -1345,7 +1345,8 @@ export default function DashboardPage() {
                     "Seja a energia que você quer atrair.",
                     "Quando parece impossível, é porque está perto de acontecer.",
                     "De Goiânia para o mundo. Sem limites.",
-                    "Seja mais forte que sua melhor desculpa."
+                    "Seja mais forte que sua melhor desculpa.",
+                    "Se a gente cresce com os golpes duros da vida, também podemos crescer com os toques suaves na alma."
                 ];
                 const todayIndex = Math.floor(Date.now() / 86400000) % phrases.length;
                 const phrase = phrases[todayIndex];
