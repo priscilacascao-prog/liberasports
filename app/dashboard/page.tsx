@@ -976,7 +976,7 @@ export default function DashboardPage() {
             const whatsappPhone = clientWhatsapp.replace(/\D/g, '');
             const deliveryDate = deadline.split('-').reverse().join('/');
             const whatsappMsg = encodeURIComponent(
-                `Olá *${client}*! Seu pedido na *Libera Sports* foi cadastrado com sucesso!\n\n` +
+                `Olá *${client.trim()}*! Seu pedido na *Libera Sports* foi cadastrado com sucesso!\n\n` +
                 `*Pedido:* ${nextOrderNumber}\n` +
                 `*Valor:* R$ ${parseFloat(normalizedValue).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}\n` +
                 `*Entrega prevista:* ${deliveryDate}\n` +
