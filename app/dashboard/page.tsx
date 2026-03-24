@@ -2455,16 +2455,16 @@ export default function DashboardPage() {
                                 <ArrowDownLeft size={12} /> A Pagar
                             </button>
                             <button
-                                onClick={() => setFinanceView('A RECEBER')}
-                                className={`flex-1 py-3 rounded-xl font-black uppercase text-xs tracking-widest transition-all flex items-center justify-center gap-1.5 shrink-0 ${financeView === 'A RECEBER' ? 'bg-[#39FF14] text-black shadow-lg shadow-[#39FF14]/20' : 'text-white hover:text-white'}`}
-                            >
-                                <ArrowUpRight size={12} /> A Receber
-                            </button>
-                            <button
                                 onClick={() => setFinanceView('PAGAS')}
                                 className={`flex-1 py-3 rounded-xl font-black uppercase text-xs tracking-widest transition-all flex items-center justify-center gap-1.5 shrink-0 ${financeView === 'PAGAS' ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20' : 'text-white hover:text-white'}`}
                             >
                                 <Check size={12} /> Pagas
+                            </button>
+                            <button
+                                onClick={() => setFinanceView('A RECEBER')}
+                                className={`flex-1 py-3 rounded-xl font-black uppercase text-xs tracking-widest transition-all flex items-center justify-center gap-1.5 shrink-0 ${financeView === 'A RECEBER' ? 'bg-[#39FF14] text-black shadow-lg shadow-[#39FF14]/20' : 'text-white hover:text-white'}`}
+                            >
+                                <ArrowUpRight size={12} /> A Receber
                             </button>
                             <button
                                 onClick={() => setFinanceView('RECEBIDAS')}
