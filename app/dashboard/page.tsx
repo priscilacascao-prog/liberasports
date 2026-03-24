@@ -151,6 +151,9 @@ export default function DashboardPage() {
     const [editingFinanceItem, setEditingFinanceItem] = useState<any>(null);
     const [editingProductId, setEditingProductId] = useState<string | null>(null);
     const [editProductDetails, setEditProductDetails] = useState('');
+    const [editProductName, setEditProductName] = useState('');
+    const [editProductSalePrice, setEditProductSalePrice] = useState('');
+    const [editProductCostPrice, setEditProductCostPrice] = useState('');
     const [editProductStock, setEditProductStock] = useState('');
     const [expandedSaleIds, setExpandedSaleIds] = useState<Record<string, boolean>>({});
 
@@ -2183,52 +2186,69 @@ export default function DashboardPage() {
                                                 </div>
                                             )}
                                             <div className="flex-1 min-w-0">
-                                                <h3 className="text-base font-black italic uppercase text-white leading-tight">{p.name}</h3>
                                                 {editingProductId === p.id ? (
-                                                    <div className="mt-2 space-y-2">
+                                                    <div className="space-y-3">
+                                                        <div>
+                                                            <p className="text-[11px] text-white/70 font-bold uppercase mb-1">Nome</p>
+                                                            <input type="text" value={editProductName} onChange={e => setEditProductName(e.target.value)}
+                                                                className="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-2 text-sm text-white font-bold uppercase outline-none focus:border-[#39FF14]" />
+                                                        </div>
                                                         <div>
                                                             <p className="text-[11px] text-white/70 font-bold uppercase mb-1">Detalhes</p>
-                                                            <textarea
-                                                                value={editProductDetails}
-                                                                onChange={e => setEditProductDetails(e.target.value)}
-                                                                placeholder="Detalhes do produto..."
-                                                                rows={2}
-                                                                className="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-2 text-sm text-white outline-none focus:border-[#39FF14] resize-none"
-                                                            />
+                                                            <textarea value={editProductDetails} onChange={e => setEditProductDetails(e.target.value)}
+                                                                placeholder="Detalhes do produto..." rows={2}
+                                                                className="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-2 text-sm text-white outline-none focus:border-[#39FF14] resize-none" />
                                                         </div>
-                                                        <div>
-                                                            <p className="text-[11px] text-white/70 font-bold uppercase mb-1">Estoque</p>
-                                                            <div className="flex items-center gap-1.5">
-                                                                <button onClick={() => setEditProductStock(String(Math.max(0, parseInt(editProductStock || '0') - 1)))}
-                                                                    className="w-8 h-8 rounded-lg bg-zinc-800 text-white font-black flex items-center justify-center hover:bg-zinc-700">−</button>
-                                                                <input type="number" value={editProductStock}
-                                                                    onChange={e => setEditProductStock(e.target.value)}
-                                                                    className="w-16 h-8 rounded-lg bg-zinc-900 border border-zinc-700 text-white text-center text-sm font-black outline-none focus:border-[#39FF14]" />
-                                                                <button onClick={() => setEditProductStock(String(parseInt(editProductStock || '0') + 1))}
-                                                                    className="w-8 h-8 rounded-lg bg-zinc-800 text-white font-black flex items-center justify-center hover:bg-zinc-700">+</button>
+                                                        <div className="grid grid-cols-3 gap-2">
+                                                            <div>
+                                                                <p className="text-[11px] text-white/70 font-bold uppercase mb-1">Preço Venda</p>
+                                                                <input type="text" value={editProductSalePrice} onChange={e => setEditProductSalePrice(formatCurrency(e.target.value))}
+                                                                    className="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-2 text-sm text-white font-bold outline-none focus:border-[#39FF14]" />
+                                                            </div>
+                                                            <div>
+                                                                <p className="text-[11px] text-white/70 font-bold uppercase mb-1">Preço Custo</p>
+                                                                <input type="text" value={editProductCostPrice} onChange={e => setEditProductCostPrice(formatCurrency(e.target.value))}
+                                                                    className="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-2 text-sm text-white font-bold outline-none focus:border-[#39FF14]" />
+                                                            </div>
+                                                            <div>
+                                                                <p className="text-[11px] text-white/70 font-bold uppercase mb-1">Estoque</p>
+                                                                <div className="flex items-center gap-1">
+                                                                    <button onClick={() => setEditProductStock(String(Math.max(0, parseInt(editProductStock || '0') - 1)))}
+                                                                        className="w-7 h-8 rounded-lg bg-zinc-800 text-white font-black flex items-center justify-center hover:bg-zinc-700 text-sm">−</button>
+                                                                    <input type="number" value={editProductStock} onChange={e => setEditProductStock(e.target.value)}
+                                                                        className="w-12 h-8 rounded-lg bg-zinc-900 border border-zinc-700 text-white text-center text-sm font-black outline-none focus:border-[#39FF14]" />
+                                                                    <button onClick={() => setEditProductStock(String(parseInt(editProductStock || '0') + 1))}
+                                                                        className="w-7 h-8 rounded-lg bg-zinc-800 text-white font-black flex items-center justify-center hover:bg-zinc-700 text-sm">+</button>
+                                                                </div>
                                                             </div>
                                                         </div>
-                                                        <div className="flex items-center gap-1.5 mt-1">
+                                                        <div className="flex items-center gap-2 mt-1">
                                                             <button onClick={async () => {
                                                                 try {
-                                                                    await updateDoc(doc(db, productsCollectionPath, p.id), { stock: parseInt(editProductStock) || 0, details: editProductDetails.trim() });
+                                                                    await updateDoc(doc(db, productsCollectionPath, p.id), {
+                                                                        name: editProductName.trim().toUpperCase(),
+                                                                        details: editProductDetails.trim(),
+                                                                        sale_price: parseBRL(editProductSalePrice),
+                                                                        cost_price: parseBRL(editProductCostPrice),
+                                                                        stock: parseInt(editProductStock) || 0,
+                                                                    });
                                                                     toast.success('Produto atualizado!');
                                                                     setEditingProductId(null);
                                                                 } catch (err) { toast.error('Erro ao atualizar'); }
                                                             }}
-                                                                className="px-4 h-8 rounded-lg bg-[#39FF14] text-black text-[11px] font-black uppercase hover:scale-105 transition-all">Salvar</button>
+                                                                className="px-4 h-9 rounded-lg bg-[#39FF14] text-black text-xs font-black uppercase hover:scale-105 transition-all">Salvar</button>
                                                             <button onClick={() => setEditingProductId(null)}
-                                                                className="px-3 h-8 rounded-lg text-white/50 hover:text-white text-[11px] font-black uppercase">Cancelar</button>
+                                                                className="px-3 h-9 rounded-lg text-white/50 hover:text-white text-xs font-black uppercase">Cancelar</button>
                                                         </div>
                                                     </div>
                                                 ) : (
                                                     <>
+                                                        <h3 className="text-base font-black italic uppercase text-white leading-tight">{p.name}</h3>
                                                         {p.details && <p className="text-[13px] text-white/50 mt-0.5">{p.details}</p>}
                                                         <div className="mt-2">
                                                             <p className="text-[13px] text-white/70 font-bold uppercase mb-1">Em Estoque</p>
-                                                            <p className={`text-2xl font-black cursor-pointer hover:text-[#39FF14] transition-colors ${p.stock <= 5 ? 'text-orange-500' : 'text-white'}`}
-                                                                onClick={() => { setEditingProductId(p.id); setEditProductStock(String(p.stock)); setEditProductDetails(p.details || ''); }}>
-                                                                {p.stock} un <Pencil size={12} className="inline ml-1 opacity-50" />
+                                                            <p className={`text-2xl font-black ${p.stock <= 5 ? 'text-orange-500' : 'text-white'}`}>
+                                                                {p.stock} un
                                                             </p>
                                                         </div>
                                                     </>
@@ -2246,22 +2266,38 @@ export default function DashboardPage() {
                                                     <p className="text-lg font-black text-white/70">R$ {p.cost_price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                                                 </div>
                                             </div>
-                                            <button
-                                                onClick={async () => {
-                                                    if (confirm(`Excluir ${p.name} do estoque?`)) {
-                                                        try {
-                                                            await deleteDoc(doc(db, productsCollectionPath, p.id));
-                                                            toast.success('Produto excluído!');
-                                                        } catch (err) {
-                                                            toast.error('Erro ao excluir produto');
+                                            <div className="flex items-center gap-1 shrink-0 ml-2">
+                                                <button
+                                                    onClick={() => {
+                                                        setEditingProductId(p.id);
+                                                        setEditProductName(p.name);
+                                                        setEditProductDetails(p.details || '');
+                                                        setEditProductSalePrice(p.sale_price.toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
+                                                        setEditProductCostPrice(p.cost_price.toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
+                                                        setEditProductStock(String(p.stock));
+                                                    }}
+                                                    className="p-2 rounded-lg text-white/40 hover:text-[#39FF14] hover:bg-[#39FF14]/10 transition-all"
+                                                    title="Editar produto"
+                                                >
+                                                    <Pencil size={16} />
+                                                </button>
+                                                <button
+                                                    onClick={async () => {
+                                                        if (confirm(`Excluir ${p.name} do estoque?`)) {
+                                                            try {
+                                                                await deleteDoc(doc(db, productsCollectionPath, p.id));
+                                                                toast.success('Produto excluído!');
+                                                            } catch (err) {
+                                                                toast.error('Erro ao excluir produto');
+                                                            }
                                                         }
-                                                    }
-                                                }}
-                                                className="p-2 rounded-lg text-white/40 hover:text-red-500 hover:bg-red-500/10 transition-all shrink-0 ml-2"
-                                                title="Excluir produto"
-                                            >
-                                                <Trash2 size={16} />
-                                            </button>
+                                                    }}
+                                                    className="p-2 rounded-lg text-white/40 hover:text-red-500 hover:bg-red-500/10 transition-all"
+                                                    title="Excluir produto"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 ))}
