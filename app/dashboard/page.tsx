@@ -267,53 +267,6 @@ export default function DashboardPage() {
         }
     }, [isModalOpen]);
 
-    const handleRenumberOrders = async () => {
-        if (!confirm('Renumerar todos os pedidos por ordem de criação? Isso também atualizará as contas financeiras.')) return;
-        try {
-            toast.loading('Renumerando pedidos...');
-            const ordersSnap = await getDocs(query(collection(db, ordersCollectionPath), orderBy('created_at', 'asc')));
-            const allOrders = ordersSnap.docs.map(d => ({ id: d.id, ...d.data() })) as any[];
-
-            const finSnap = await getDocs(collection(db, financeCollectionPath));
-            const finItems = finSnap.docs.map(d => ({ id: d.id, ...d.data() })) as any[];
-
-            const renumberMap: Record<string, { oldNumber: string; newNumber: string }> = {};
-            for (let i = 0; i < allOrders.length; i++) {
-                const order = allOrders[i];
-                const newNumber = `LIBERA-${String(i + 1).padStart(4, '0')}`;
-                const oldNumber = order.order_number || 'LIBERA-0001';
-                renumberMap[order.id] = { oldNumber, newNumber };
-            }
-
-            for (const [orderId, entry] of Object.entries(renumberMap)) {
-                await updateDoc(doc(db, ordersCollectionPath, orderId), { order_number: entry.newNumber });
-            }
-
-            let updatedFin = 0;
-            for (const fin of finItems) {
-                if (fin.order_id && renumberMap[fin.order_id]) {
-                    const { newNumber } = renumberMap[fin.order_id];
-                    if (fin.description) {
-                        // Remove qualquer [LIBERA-XXXX] existente e coloca o número correto
-                        const newDesc = fin.description.replace(/\[LIBERA-\d+\]/, `[${newNumber}]`);
-                        if (newDesc !== fin.description) {
-                            await updateDoc(doc(db, financeCollectionPath, fin.id), { description: newDesc });
-                            updatedFin++;
-                        }
-                    }
-                }
-            }
-
-            toast.dismiss();
-            toast.success(`${allOrders.length} pedidos renumerados, ${updatedFin} contas atualizadas!`);
-            await updateNextOrderNumber();
-        } catch (err) {
-            toast.dismiss();
-            console.error('Erro ao renumerar:', err);
-            toast.error('Erro ao renumerar pedidos');
-        }
-    };
-
     const updateNextOrderNumber = async () => {
         try {
             const lastOrderQuery = query(collection(db, ordersCollectionPath), orderBy('order_number', 'desc'));
@@ -1451,21 +1404,12 @@ export default function DashboardPage() {
                                     </p>
                                 </div>
                             </div>
-                            <div className="flex items-center gap-3">
-                                <button
-                                    onClick={handleRenumberOrders}
-                                    className="bg-orange-500 text-black px-6 py-4 rounded-2xl font-black hover:scale-105 transition-all uppercase text-xs"
-                                    title="Renumerar pedidos por ordem de criação"
-                                >
-                                    Renumerar
-                                </button>
-                                <button
-                                    onClick={() => { resetForm(); setIsModalOpen(true); }}
-                                    className="bg-[#39FF14] text-black px-8 py-4 rounded-2xl font-black hover:scale-105 transition-all uppercase text-sm shadow-xl shadow-[#39FF14]/10"
-                                >
-                                    + Novo Pedido
-                                </button>
-                            </div>
+                            <button
+                                onClick={() => { resetForm(); setIsModalOpen(true); }}
+                                className="bg-[#39FF14] text-black px-8 py-4 rounded-2xl font-black hover:scale-105 transition-all uppercase text-sm shadow-xl shadow-[#39FF14]/10"
+                            >
+                                + Novo Pedido
+                            </button>
                         </div>
 
                         {/* Status Filter Grid */}
