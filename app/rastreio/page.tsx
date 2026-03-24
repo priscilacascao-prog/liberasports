@@ -195,11 +195,11 @@ function TrackingContent() {
                                                 <div className={`w-0.5 h-8 ${isCompleted ? 'bg-[#39FF14]' : 'bg-zinc-800'}`} />
                                             )}
                                         </div>
-                                        <div className={`pb-6 ${isFuture ? 'opacity-60' : ''}`}>
+                                        <div className="pb-6">
                                             <p className={`text-base font-black uppercase ${
                                                 isCurrent ? 'text-orange-500' :
                                                 isCompleted ? 'text-[#39FF14]' :
-                                                'text-white/70'
+                                                'text-white'
                                             }`}>
                                                 {stepLabels[step] || step}
                                             </p>
@@ -220,7 +220,7 @@ function TrackingContent() {
                         <History size={20} className="text-[#39FF14]" />
                         <span className="text-sm font-black uppercase italic tracking-widest text-white">Ver histórico de pedidos</span>
                     </div>
-                    <p className="text-white/70 text-sm mt-2">Veja todos os seus pedidos anteriores</p>
+                    <p className="text-white text-sm mt-2">Veja todos os seus pedidos anteriores</p>
                 </Link>
 
                 {/* Voltar / Fechar */}
@@ -228,7 +228,7 @@ function TrackingContent() {
                     onClick={() => window.close()}
                     className="w-full bg-zinc-950 border border-zinc-900 rounded-2xl p-4 mb-6 text-center hover:border-zinc-700 transition-colors"
                 >
-                    <span className="text-sm font-black uppercase tracking-widest text-white/70">Fechar</span>
+                    <span className="text-sm font-black uppercase tracking-widest text-white">Fechar</span>
                 </button>
 
                 {/* Footer */}
