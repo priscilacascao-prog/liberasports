@@ -52,7 +52,7 @@ export default function DashboardPage() {
         setActiveTabState(tab);
         localStorage.setItem('libera_active_tab', tab);
     };
-    const [financeView, setFinanceView] = useState<'A PAGAR' | 'A RECEBER'>('A PAGAR');
+    const [financeView, setFinanceView] = useState<'A PAGAR' | 'A RECEBER' | 'RECEBIDAS' | 'PAGAS'>('A PAGAR');
     const [searchTerm, setSearchTerm] = useState('');
 
     // Form State
@@ -74,6 +74,21 @@ export default function DashboardPage() {
     const productsCollectionPath = `artifacts/${appId}/public/data/produtos`;
     const salesCollectionPath = `artifacts/${appId}/public/data/vendas`;
     const financeCollectionPath = `artifacts/${appId}/public/data/financeiro`;
+    const fornecedoresCollectionPath = `artifacts/${appId}/public/data/fornecedores`;
+
+    // Fornecedores state
+    const [fornecedores, setFornecedores] = useState<any[]>([]);
+    const [fornecedorModalOpen, setFornecedorModalOpen] = useState(false);
+    const [fornecedorName, setFornecedorName] = useState('');
+    const [fornecedorCpfCnpj, setFornecedorCpfCnpj] = useState('');
+    const [fornecedorCpfCnpjError, setFornecedorCpfCnpjError] = useState('');
+    const [fornecedorWhatsapp, setFornecedorWhatsapp] = useState('');
+    const [editingFornecedor, setEditingFornecedor] = useState<any>(null);
+    const [fornecedorSearch, setFornecedorSearch] = useState('');
+    const [showFornecedoresList, setShowFornecedoresList] = useState(false);
+
+    const [showPaymentReminder, setShowPaymentReminder] = useState(false);
+    const [reminderItems, setReminderItems] = useState<any[]>([]);
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isPendingModalOpen, setIsPendingModalOpen] = useState(false);
@@ -252,6 +267,27 @@ export default function DashboardPage() {
         });
     }, [financialItems]);
 
+    // Lembrete de contas a pagar do dia
+    const reminderCheckedRef = React.useRef(false);
+    useEffect(() => {
+        if (reminderCheckedRef.current || financialItems.length === 0) return;
+        if (typeof window !== 'undefined' && sessionStorage.getItem('payment_reminder_shown')) return;
+        reminderCheckedRef.current = true;
+        const today = new Date().toISOString().split('T')[0];
+        const dueTodayOrOverdue = financialItems.filter(item => {
+            if (item.type !== 'OUTFLOW') return false;
+            if (item.status === 'PAGO') return false;
+            if (!item.due_date) return false;
+            const dueDatePart = item.due_date.split('T')[0];
+            return dueDatePart <= today;
+        });
+        if (dueTodayOrOverdue.length > 0) {
+            setReminderItems(dueTodayOrOverdue);
+            setShowPaymentReminder(true);
+            sessionStorage.setItem('payment_reminder_shown', 'true');
+        }
+    }, [financialItems]);
+
     // Real-time Contas a Pagar Fetching
     useEffect(() => {
         if (authChecking) return;
@@ -259,6 +295,16 @@ export default function DashboardPage() {
         const unsubscribe = onSnapshot(q, (snapshot: any) => {
             const data = snapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));
             setContasAPagar(data);
+        });
+        return () => unsubscribe();
+    }, [authChecking]);
+
+    useEffect(() => {
+        if (authChecking) return;
+        const q = query(collection(db, fornecedoresCollectionPath), orderBy('name', 'asc'));
+        const unsubscribe = onSnapshot(q, (snapshot: any) => {
+            const data = snapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));
+            setFornecedores(data);
         });
         return () => unsubscribe();
     }, [authChecking]);
@@ -1245,6 +1291,119 @@ export default function DashboardPage() {
         }
         return false;
     };
+
+    const handleSaveFornecedor = async () => {
+        if (!fornecedorName.trim()) { toast.error('Nome obrigatório'); return; }
+        const digits = fornecedorCpfCnpj.replace(/\D/g, '');
+        if (digits.length > 0 && !validateCpfCnpj(digits)) { toast.error('CPF/CNPJ inválido'); return; }
+        try {
+            const data = {
+                name: fornecedorName.trim().toUpperCase(),
+                cpf_cnpj: digits || '',
+                whatsapp: fornecedorWhatsapp.trim(),
+                user_id: userId,
+                ...(editingFornecedor ? {} : { created_at: new Date().toISOString() }),
+            };
+            if (editingFornecedor) {
+                await updateDoc(doc(db, fornecedoresCollectionPath, editingFornecedor.id), data);
+                toast.success('Fornecedor atualizado!');
+            } else {
+                await addDoc(collection(db, fornecedoresCollectionPath), data);
+                toast.success('Fornecedor cadastrado!');
+            }
+            setFornecedorModalOpen(false);
+            setFornecedorName(''); setFornecedorCpfCnpj(''); setFornecedorCpfCnpjError(''); setFornecedorWhatsapp(''); setEditingFornecedor(null);
+        } catch (err) { console.error(err); toast.error('Erro ao salvar fornecedor'); }
+    };
+
+    const handleDeleteFornecedor = async (id: string) => {
+        if (!confirm('Excluir este fornecedor?')) return;
+        try {
+            await deleteDoc(doc(db, fornecedoresCollectionPath, id));
+            toast.success('Fornecedor excluído!');
+        } catch (err) { toast.error('Erro ao excluir'); }
+    };
+
+    const handleFornecedorCpfCnpjChange = (val: string) => {
+        const formatted = formatCpfCnpj(val);
+        setFornecedorCpfCnpj(formatted);
+        const digits = val.replace(/\D/g, '');
+        if (digits.length === 11 || digits.length === 14) {
+            setFornecedorCpfCnpjError(validateCpfCnpj(val) ? '' : 'CPF/CNPJ inválido');
+        } else { setFornecedorCpfCnpjError(''); }
+    };
+
+    const generateFinancePDF = (items: any[], title: string, type: 'simples' | 'completo') => {
+        const now = new Date();
+        const total = items.reduce((a: number, i: any) => a + i.amount, 0);
+        const fmtMoney = (v: number) => `R$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+
+        let resumoHtml = '';
+        if (type === 'completo') {
+            const avg = items.length > 0 ? total / items.length : 0;
+            const maxItem = items.length > 0 ? items.reduce((a: any, b: any) => a.amount > b.amount ? a : b) : null;
+            const statusGroups: Record<string, number> = {};
+            items.forEach((i: any) => { statusGroups[i.status] = (statusGroups[i.status] || 0) + i.amount; });
+            const maxVal = Math.max(...Object.values(statusGroups), 1);
+            resumoHtml = `
+                <div style="margin-bottom:24px;padding:16px;background:#f5f5f5;border-radius:8px;">
+                    <h2 style="margin:0 0 12px;font-size:14px;font-weight:900;text-transform:uppercase;">Resumo</h2>
+                    <p style="margin:4px 0;font-size:12px;"><strong>Total de registros:</strong> ${items.length}</p>
+                    <p style="margin:4px 0;font-size:12px;"><strong>Valor total:</strong> ${fmtMoney(total)}</p>
+                    <p style="margin:4px 0;font-size:12px;"><strong>Valor médio:</strong> ${fmtMoney(avg)}</p>
+                    ${maxItem ? `<p style="margin:4px 0;font-size:12px;"><strong>Maior valor:</strong> ${fmtMoney(maxItem.amount)} - ${(maxItem.description || '').substring(0, 40)}</p>` : ''}
+                    <h3 style="margin:12px 0 8px;font-size:12px;font-weight:900;text-transform:uppercase;">Por Status</h3>
+                    ${Object.entries(statusGroups).map(([status, val]) => `
+                        <div style="margin:4px 0;display:flex;align-items:center;gap:8px;">
+                            <div style="width:${(val / maxVal) * 200}px;height:16px;background:#39FF14;border-radius:4px;"></div>
+                            <span style="font-size:11px;font-weight:700;">${status}: ${fmtMoney(val)}</span>
+                        </div>
+                    `).join('')}
+                </div>`;
+        }
+
+        const rowsHtml = items.map((i, idx) => `
+            <tr style="background:${idx % 2 === 0 ? '#fff' : '#f9f9f9'}">
+                <td style="padding:6px 8px;font-size:11px;border-bottom:1px solid #eee;">${(i.description || '').substring(0, 60)}</td>
+                <td style="padding:6px 8px;font-size:11px;border-bottom:1px solid #eee;white-space:nowrap;">${new Date(i.due_date || i.transaction_date || i.created_at).toLocaleDateString('pt-BR')}</td>
+                <td style="padding:6px 8px;font-size:11px;border-bottom:1px solid #eee;text-align:right;white-space:nowrap;">${fmtMoney(i.amount)}</td>
+                <td style="padding:6px 8px;font-size:11px;border-bottom:1px solid #eee;font-weight:700;">${i.status}</td>
+            </tr>`).join('');
+
+        const html = `<html><head><title>${title} - Libera Sports</title>
+            <style>@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+            *{margin:0;padding:0;box-sizing:border-box;}body{font-family:'Inter',sans-serif;padding:24px;color:#111;}
+            @media print{button{display:none!important;}@page{margin:10mm;}}</style>
+            </head><body>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;border-bottom:2px solid #111;padding-bottom:12px;">
+                <div><h1 style="font-size:20px;font-weight:900;">LIBERA SPORTS</h1><p style="font-size:13px;font-weight:700;margin-top:4px;">${title.replace(/_/g, ' ')}</p></div>
+                <p style="font-size:10px;color:#666;">Gerado em: ${now.toLocaleDateString('pt-BR')} às ${now.toLocaleTimeString('pt-BR')}</p>
+            </div>
+            ${resumoHtml}
+            <table style="width:100%;border-collapse:collapse;">
+                <thead><tr style="background:#1e1e1e;">
+                    <th style="padding:8px;font-size:11px;color:#39FF14;text-align:left;font-weight:900;">Descrição</th>
+                    <th style="padding:8px;font-size:11px;color:#39FF14;text-align:left;font-weight:900;">Vencimento</th>
+                    <th style="padding:8px;font-size:11px;color:#39FF14;text-align:right;font-weight:900;">Valor</th>
+                    <th style="padding:8px;font-size:11px;color:#39FF14;text-align:left;font-weight:900;">Status</th>
+                </tr></thead>
+                <tbody>${rowsHtml}</tbody>
+                <tfoot><tr style="background:#1e1e1e;">
+                    <td style="padding:8px;font-size:11px;color:#fff;font-weight:900;" colspan="2">${items.length} itens</td>
+                    <td style="padding:8px;font-size:11px;color:#fff;font-weight:900;text-align:right;">${fmtMoney(total)}</td>
+                    <td></td>
+                </tr></tfoot>
+            </table>
+            <div style="text-align:center;margin-top:24px;">
+                <button onclick="window.print()" style="background:#111;color:#fff;padding:10px 24px;border:none;border-radius:8px;font-weight:900;cursor:pointer;font-size:12px;">IMPRIMIR / SALVAR PDF</button>
+            </div>
+            </body></html>`;
+
+        const w = window.open('', '_blank');
+        if (w) { w.document.write(html); w.document.close(); }
+    };
+
+    const [showPdfMenu, setShowPdfMenu] = useState(false);
 
     const handleCpfCnpjChange = (val: string) => {
         const formatted = formatCpfCnpj(val);
@@ -2275,7 +2434,7 @@ export default function DashboardPage() {
                                 <h1 className="text-2xl md:text-4xl font-black italic uppercase tracking-tighter">FINANCEIRO</h1>
                                 <p className="text-white text-[13px] md:text-sm mt-0.5">Gestão de contas a pagar e a receber</p>
                             </div>
-                            {financeView === 'A PAGAR' && (
+                            {(financeView === 'A PAGAR' || financeView === 'A RECEBER') && (
                                 <button
                                     onClick={() => setIsFinanceModalOpen(true)}
                                     className="bg-[#39FF14] text-black px-4 md:px-6 py-2.5 md:py-3 rounded-2xl font-black uppercase text-[13px] md:text-sm tracking-widest hover:scale-105 transition-all shadow-lg shadow-[#39FF14]/20 flex items-center gap-1.5 shrink-0"
@@ -2285,23 +2444,36 @@ export default function DashboardPage() {
                             )}
                         </div>
 
-                        {/* Toggle Contas a Pagar / Receber */}
-                        <div className="flex gap-2 p-1 bg-zinc-950 rounded-2xl">
+                        {/* Toggle Financeiro */}
+                        <div className="flex gap-1 p-1 bg-zinc-950 rounded-2xl overflow-x-auto">
                             <button
                                 onClick={() => setFinanceView('A PAGAR')}
-                                className={`flex-1 py-3 rounded-xl font-black uppercase text-sm tracking-widest transition-all flex items-center justify-center gap-2 ${financeView === 'A PAGAR' ? 'bg-red-500 text-white shadow-lg shadow-red-500/20' : 'text-white hover:text-white'}`}
+                                className={`flex-1 py-3 rounded-xl font-black uppercase text-xs tracking-widest transition-all flex items-center justify-center gap-1.5 shrink-0 ${financeView === 'A PAGAR' ? 'bg-red-500 text-white shadow-lg shadow-red-500/20' : 'text-white hover:text-white'}`}
                             >
-                                <ArrowDownLeft size={14} /> Contas a Pagar
+                                <ArrowDownLeft size={12} /> A Pagar
                             </button>
                             <button
                                 onClick={() => setFinanceView('A RECEBER')}
-                                className={`flex-1 py-3 rounded-xl font-black uppercase text-sm tracking-widest transition-all flex items-center justify-center gap-2 ${financeView === 'A RECEBER' ? 'bg-[#39FF14] text-black shadow-lg shadow-[#39FF14]/20' : 'text-white hover:text-white'}`}
+                                className={`flex-1 py-3 rounded-xl font-black uppercase text-xs tracking-widest transition-all flex items-center justify-center gap-1.5 shrink-0 ${financeView === 'A RECEBER' ? 'bg-[#39FF14] text-black shadow-lg shadow-[#39FF14]/20' : 'text-white hover:text-white'}`}
                             >
-                                <ArrowUpRight size={14} /> Contas a Receber
+                                <ArrowUpRight size={12} /> A Receber
+                            </button>
+                            <button
+                                onClick={() => setFinanceView('PAGAS')}
+                                className={`flex-1 py-3 rounded-xl font-black uppercase text-xs tracking-widest transition-all flex items-center justify-center gap-1.5 shrink-0 ${financeView === 'PAGAS' ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20' : 'text-white hover:text-white'}`}
+                            >
+                                <Check size={12} /> Pagas
+                            </button>
+                            <button
+                                onClick={() => setFinanceView('RECEBIDAS')}
+                                className={`flex-1 py-3 rounded-xl font-black uppercase text-xs tracking-widest transition-all flex items-center justify-center gap-1.5 shrink-0 ${financeView === 'RECEBIDAS' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : 'text-white hover:text-white'}`}
+                            >
+                                <Check size={12} /> Recebidas
                             </button>
                         </div>
 
                         {/* Cards resumo */}
+                        {(financeView === 'A PAGAR' || financeView === 'A RECEBER') && (
                         <div className="grid grid-cols-3 gap-2 md:gap-4">
                             {financeView === 'A PAGAR' ? (
                                 <>
@@ -2344,7 +2516,7 @@ export default function DashboardPage() {
                                     </div>
                                     <div className="bg-zinc-950 p-3 md:p-6 rounded-2xl md:rounded-[32px] border border-zinc-900">
                                         <p className="text-white text-sm md:text-sm font-black uppercase tracking-widest mb-0.5">Recebidas este mês</p>
-                                        <p className="text-3xl font-black text-[#39FF14] tabular-nums">
+                                        <p className="text-lg md:text-3xl font-black text-[#39FF14] tabular-nums">
                                             R$ {financialItems.filter(i => {
                                                 if (i.type !== 'INFLOW' || (i.status !== 'RECEBIDO' && i.status !== 'PAGO') || !i.paid_at) return false;
                                                 const d = new Date(i.paid_at);
@@ -2355,12 +2527,16 @@ export default function DashboardPage() {
                                 </>
                             )}
                         </div>
+                        )}
 
                         {/* Lista de contas */}
                         <div className="bg-zinc-950 border border-zinc-900 rounded-2xl md:rounded-[32px] overflow-hidden">
                             <div className="p-4 md:p-6 border-b border-zinc-900 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
                                 <h3 className="text-white text-[13px] md:text-sm font-black uppercase tracking-widest flex items-center gap-2">
-                                    {financeView === 'A PAGAR' ? <><ArrowDownLeft size={11} /> Contas a Pagar</> : <><ArrowUpRight size={11} /> Contas a Receber</>}
+                                    {financeView === 'A PAGAR' && <><ArrowDownLeft size={11} /> Contas a Pagar</>}
+                                    {financeView === 'A RECEBER' && <><ArrowUpRight size={11} /> Contas a Receber</>}
+                                    {financeView === 'PAGAS' && <><Check size={11} /> Contas Pagas</>}
+                                    {financeView === 'RECEBIDAS' && <><Check size={11} /> Contas Recebidas</>}
                                 </h3>
                                 <div className="flex flex-wrap items-center gap-2">
                                     <select
@@ -2383,21 +2559,69 @@ export default function DashboardPage() {
                                             return <option key={i} value={i}>{date.toLocaleString('pt-BR', { month: 'long' })}</option>;
                                         })}
                                     </select>
+                                    <div className="relative">
+                                        <button
+                                            onClick={() => setShowPdfMenu(!showPdfMenu)}
+                                            className="bg-zinc-900 text-sm font-black uppercase tracking-widest px-4 py-2 rounded-xl border border-zinc-800 text-white hover:border-[#39FF14] transition-colors flex items-center gap-1.5"
+                                        >
+                                            <FileText size={12} /> PDF
+                                        </button>
+                                        {showPdfMenu && (
+                                            <div className="absolute right-0 top-full mt-1 bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden z-50 shadow-xl min-w-[160px]">
+                                                <button onClick={() => {
+                                                    const items = financialItems.filter(item => {
+                                                        if (financeView === 'A PAGAR') return item.type === 'OUTFLOW' && item.status !== 'PAGO';
+                                                        if (financeView === 'A RECEBER') return item.type === 'INFLOW' && item.status !== 'RECEBIDO';
+                                                        if (financeView === 'PAGAS') return item.type === 'OUTFLOW' && item.status === 'PAGO';
+                                                        return item.type === 'INFLOW' && (item.status === 'RECEBIDO' || item.status === 'PAGO');
+                                                    });
+                                                    const titles: Record<string, string> = { 'A PAGAR': 'Contas_a_Pagar', 'A RECEBER': 'Contas_a_Receber', 'PAGAS': 'Contas_Pagas', 'RECEBIDAS': 'Contas_Recebidas' };
+                                                    generateFinancePDF(items, titles[financeView], 'simples');
+                                                    setShowPdfMenu(false);
+                                                }} className="w-full text-left px-4 py-3 text-sm font-bold text-white hover:bg-zinc-800 transition-colors">Relatório Simples</button>
+                                                <button onClick={() => {
+                                                    const items = financialItems.filter(item => {
+                                                        if (financeView === 'A PAGAR') return item.type === 'OUTFLOW' && item.status !== 'PAGO';
+                                                        if (financeView === 'A RECEBER') return item.type === 'INFLOW' && item.status !== 'RECEBIDO';
+                                                        if (financeView === 'PAGAS') return item.type === 'OUTFLOW' && item.status === 'PAGO';
+                                                        return item.type === 'INFLOW' && (item.status === 'RECEBIDO' || item.status === 'PAGO');
+                                                    });
+                                                    const titles: Record<string, string> = { 'A PAGAR': 'Contas_a_Pagar', 'A RECEBER': 'Contas_a_Receber', 'PAGAS': 'Contas_Pagas', 'RECEBIDAS': 'Contas_Recebidas' };
+                                                    generateFinancePDF(items, titles[financeView], 'completo');
+                                                    setShowPdfMenu(false);
+                                                }} className="w-full text-left px-4 py-3 text-sm font-bold text-white hover:bg-zinc-800 transition-colors">Relatório Completo</button>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
 
                             <div className="divide-y divide-zinc-900">
                                 {(() => {
                                     const filtered = financialItems.filter(item => {
-                                        const isCorrectType = financeView === 'A PAGAR' ? item.type === 'OUTFLOW' : item.type === 'INFLOW';
-                                        if (!isCorrectType) return false;
-                                        const dateStr = item.due_date || item.transaction_date || item.created_at;
+                                        if (financeView === 'A PAGAR') {
+                                            if (item.type !== 'OUTFLOW' || item.status === 'PAGO') return false;
+                                        } else if (financeView === 'A RECEBER') {
+                                            if (item.type !== 'INFLOW' || item.status === 'RECEBIDO') return false;
+                                        } else if (financeView === 'PAGAS') {
+                                            if (item.type !== 'OUTFLOW' || item.status !== 'PAGO') return false;
+                                        } else if (financeView === 'RECEBIDAS') {
+                                            if (item.type !== 'INFLOW' || (item.status !== 'RECEBIDO' && item.status !== 'PAGO')) return false;
+                                        }
+                                        const dateStr = (financeView === 'PAGAS' || financeView === 'RECEBIDAS')
+                                            ? (item.paid_at || item.due_date || item.transaction_date || item.created_at)
+                                            : (item.due_date || item.transaction_date || item.created_at);
                                         const datePart = dateStr.split('T')[0];
                                         const [y, m] = datePart.split('-').map(Number);
                                         if (y !== financeFilterYear) return false;
                                         if (financeFilterMonth === -1) return true;
                                         return (m - 1) === financeFilterMonth;
                                     }).sort((a: any, b: any) => {
+                                        if (financeView === 'PAGAS' || financeView === 'RECEBIDAS') {
+                                            const dateA = new Date(a.paid_at || a.created_at).getTime();
+                                            const dateB = new Date(b.paid_at || b.created_at).getTime();
+                                            return dateB - dateA;
+                                        }
                                         const priority: Record<string, number> = { ATRASADO: 0, 'A PAGAR': 1, 'A RECEBER': 1, PENDENTE: 1, PAGO: 2, RECEBIDO: 2 };
                                         return (priority[a.status] ?? 1) - (priority[b.status] ?? 1);
                                     });
@@ -2476,6 +2700,123 @@ export default function DashboardPage() {
                                         </div>
                                     ));
                                 })()}
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Fornecedores - dentro do Financeiro */}
+                {activeTab === 'FINANCEIRO' && (
+                    <div className="max-w-5xl mx-auto px-4 md:px-6 mt-6">
+                        <div className="bg-zinc-950 border border-zinc-900 rounded-2xl md:rounded-[32px] overflow-hidden">
+                            <div className="p-4 md:p-6 border-b border-zinc-900 flex justify-between items-center">
+                                <h3 className="text-white text-[13px] md:text-sm font-black uppercase tracking-widest flex items-center gap-2">
+                                    Fornecedores / Clientes
+                                </h3>
+                                <div className="flex items-center gap-2">
+                                    <input
+                                        type="text"
+                                        value={fornecedorSearch}
+                                        onChange={e => setFornecedorSearch(e.target.value)}
+                                        placeholder="Buscar..."
+                                        className="bg-zinc-900 text-sm px-4 py-2 rounded-xl border border-zinc-800 outline-none text-white focus:border-[#39FF14] transition-colors w-40"
+                                    />
+                                    <button
+                                        onClick={() => { setEditingFornecedor(null); setFornecedorName(''); setFornecedorCpfCnpj(''); setFornecedorCpfCnpjError(''); setFornecedorWhatsapp(''); setFornecedorModalOpen(true); }}
+                                        className="bg-[#39FF14] text-black px-4 py-2 rounded-xl font-black uppercase text-xs tracking-widest hover:scale-105 transition-all flex items-center gap-1.5 shrink-0"
+                                    >
+                                        <Plus size={12} /> Novo
+                                    </button>
+                                </div>
+                            </div>
+                            <div className="divide-y divide-zinc-900 max-h-[400px] overflow-y-auto">
+                                {fornecedores.filter(f => !fornecedorSearch || f.name.toLowerCase().includes(fornecedorSearch.toLowerCase())).length === 0 ? (
+                                    <div className="p-8 text-center text-white font-bold uppercase text-sm tracking-widest italic">Nenhum fornecedor cadastrado</div>
+                                ) : (
+                                    fornecedores.filter(f => !fornecedorSearch || f.name.toLowerCase().includes(fornecedorSearch.toLowerCase())).map(f => (
+                                        <div key={f.id} className="p-4 flex items-center justify-between hover:bg-zinc-900/50 transition-colors">
+                                            <div>
+                                                <p className="text-sm font-black text-white uppercase">{f.name}</p>
+                                                <p className="text-xs text-white/70">
+                                                    {f.cpf_cnpj ? (f.cpf_cnpj.length === 11 ? f.cpf_cnpj.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4') : f.cpf_cnpj.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5')) : 'Sem CPF/CNPJ'}
+                                                    {f.whatsapp && ` • ${f.whatsapp}`}
+                                                </p>
+                                            </div>
+                                            <div className="flex items-center gap-1">
+                                                <button onClick={() => { setEditingFornecedor(f); setFornecedorName(f.name); setFornecedorCpfCnpj(f.cpf_cnpj ? formatCpfCnpj(f.cpf_cnpj) : ''); setFornecedorWhatsapp(f.whatsapp || ''); setFornecedorModalOpen(true); }} className="text-white/70 hover:text-[#39FF14] transition-colors p-2"><Pencil size={14} /></button>
+                                                <button onClick={() => handleDeleteFornecedor(f.id)} className="text-white/70 hover:text-red-500 transition-colors p-2"><Trash2 size={14} /></button>
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Modal Lembrete Contas a Pagar */}
+                {showPaymentReminder && (
+                    <div className="fixed inset-0 bg-black/95 z-[700] flex items-center justify-center p-4 backdrop-blur-xl">
+                        <div className="bg-zinc-900 w-full max-w-lg p-8 rounded-[32px] border border-red-500/30 shadow-2xl relative text-white max-h-[80vh] overflow-y-auto">
+                            <div className="text-center mb-6">
+                                <AlertCircle size={48} className="text-red-500 mx-auto mb-3" />
+                                <h3 className="text-2xl font-black italic uppercase text-red-500">Atenção!</h3>
+                                <p className="text-white/70 text-sm mt-2">Você tem <strong className="text-white">{reminderItems.length}</strong> conta{reminderItems.length !== 1 ? 's' : ''} a pagar vencendo hoje ou atrasada{reminderItems.length !== 1 ? 's' : ''}</p>
+                            </div>
+                            <div className="space-y-3 mb-6">
+                                {reminderItems.map(item => (
+                                    <div key={item.id} className="bg-zinc-950 rounded-xl p-4 border border-zinc-800">
+                                        <div className="flex justify-between items-start">
+                                            <p className="text-sm font-black text-white uppercase" style={{wordBreak: 'break-all'}}>{item.description}</p>
+                                            <p className="text-sm font-black text-red-500 shrink-0 ml-2">
+                                                R$ {item.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                            </p>
+                                        </div>
+                                        <p className="text-xs text-white/70 mt-1">
+                                            Venc: {new Date(item.due_date || item.created_at).toLocaleDateString('pt-BR')}
+                                            {item.status === 'ATRASADO' && <span className="ml-2 text-red-400 font-bold">ATRASADA</span>}
+                                        </p>
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="text-center">
+                                <p className="text-lg font-black text-red-500 mb-4">
+                                    Total: R$ {reminderItems.reduce((a: number, i: any) => a + i.amount, 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                </p>
+                                <button
+                                    onClick={() => setShowPaymentReminder(false)}
+                                    className="bg-[#39FF14] text-black px-8 py-4 rounded-2xl font-black uppercase text-sm tracking-widest hover:scale-105 transition-all"
+                                >
+                                    Entendi
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Modal Fornecedor */}
+                {fornecedorModalOpen && (
+                    <div className="fixed inset-0 bg-black/95 z-[600] flex items-center justify-center p-4 backdrop-blur-xl">
+                        <div className="bg-zinc-900 w-full max-w-md p-8 rounded-[32px] border border-zinc-800 shadow-2xl relative text-white">
+                            <button onClick={() => setFornecedorModalOpen(false)} className="absolute right-6 top-6 text-white hover:text-white transition-colors"><X size={24} /></button>
+                            <h3 className="text-2xl font-black italic uppercase text-[#39FF14] mb-6">{editingFornecedor ? 'Editar' : 'Novo'} Fornecedor</h3>
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-black uppercase tracking-widest mb-2">Nome</label>
+                                    <input type="text" value={fornecedorName} onChange={e => setFornecedorName(e.target.value)} placeholder="Nome do fornecedor..." className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14]" required />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-black uppercase tracking-widest mb-2">CPF/CNPJ</label>
+                                    <input type="text" value={fornecedorCpfCnpj} onChange={e => handleFornecedorCpfCnpjChange(e.target.value)} placeholder="000.000.000-00" className={`w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 ${fornecedorCpfCnpjError ? 'ring-1 ring-red-500' : 'focus:ring-[#39FF14]'}`} />
+                                    {fornecedorCpfCnpjError && <p className="text-red-500 text-xs font-bold mt-1">{fornecedorCpfCnpjError}</p>}
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-black uppercase tracking-widest mb-2">WhatsApp</label>
+                                    <input type="text" value={fornecedorWhatsapp} onChange={e => setFornecedorWhatsapp(e.target.value)} placeholder="(00) 00000-0000" className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14]" />
+                                </div>
+                                <button onClick={handleSaveFornecedor} className="w-full bg-[#39FF14] text-black py-4 rounded-2xl font-black uppercase text-sm tracking-widest hover:scale-[1.02] transition-all">
+                                    {editingFornecedor ? 'Atualizar' : 'Cadastrar'}
+                                </button>
                             </div>
                         </div>
                     </div>
