@@ -292,11 +292,14 @@ export default function DashboardPage() {
             let updatedFin = 0;
             for (const fin of finItems) {
                 if (fin.order_id && renumberMap[fin.order_id]) {
-                    const { oldNumber, newNumber } = renumberMap[fin.order_id];
-                    if (fin.description && fin.description.includes(`[${oldNumber}]`)) {
-                        const newDesc = fin.description.replace(`[${oldNumber}]`, `[${newNumber}]`);
-                        await updateDoc(doc(db, financeCollectionPath, fin.id), { description: newDesc });
-                        updatedFin++;
+                    const { newNumber } = renumberMap[fin.order_id];
+                    if (fin.description) {
+                        // Remove qualquer [LIBERA-XXXX] existente e coloca o número correto
+                        const newDesc = fin.description.replace(/\[LIBERA-\d+\]/, `[${newNumber}]`);
+                        if (newDesc !== fin.description) {
+                            await updateDoc(doc(db, financeCollectionPath, fin.id), { description: newDesc });
+                            updatedFin++;
+                        }
                     }
                 }
             }
