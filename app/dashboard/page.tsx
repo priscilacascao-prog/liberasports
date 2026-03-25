@@ -1881,7 +1881,8 @@ export default function DashboardPage() {
                                 </div>
                             ) : (
                                 filteredOrders.map((order) => {
-                                    const currentIdx = workflow.indexOf(order.status);
+                                    try {
+                                    const currentIdx = workflow.indexOf(order.status || '');
                                     const isCompact = order.status === 'PEDIDO ENTREGUE' && !expandedOrderIds[order.id];
 
                                     if (isCompact) {
@@ -2149,7 +2150,7 @@ export default function DashboardPage() {
                                                     </div>
 
                                                     <div className="flex items-center justify-between mt-4">
-                                                        <p className="text-white/70 text-sm italic line-clamp-1">Grade: {order.description}</p>
+                                                        <p className="text-white/70 text-sm italic line-clamp-1">Grade: {order.description || '-'}</p>
                                                         <div className="flex items-center gap-4">
                                                             <button
                                                                 onClick={() => setExpandedHistoryIds(prev => ({ ...prev, [order.id]: !prev[order.id] }))}
@@ -2194,6 +2195,7 @@ export default function DashboardPage() {
                                             </div>
                                         </div>
                                     );
+                                    } catch (err) { console.error('Erro ao renderizar pedido:', order.id, err); return null; }
                                 })
                             )}
                         </div>
