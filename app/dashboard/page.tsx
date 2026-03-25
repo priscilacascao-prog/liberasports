@@ -164,6 +164,8 @@ export default function DashboardPage() {
     const [financeDateFrom, setFinanceDateFrom] = useState('');
     const [financeDateTo, setFinanceDateTo] = useState('');
     const [financeGrouping, setFinanceGrouping] = useState<'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY'>('DAILY');
+    const [caixaDateFrom, setCaixaDateFrom] = useState(new Date().toISOString().split('T')[0]);
+    const [caixaDateTo, setCaixaDateTo] = useState(new Date().toISOString().split('T')[0]);
     const [editingFinanceId, setEditingFinanceId] = useState<string | null>(null);
     const [editFinAmount, setEditFinAmount] = useState('');
     const [editFinDate, setEditFinDate] = useState('');
@@ -808,21 +810,16 @@ export default function DashboardPage() {
     const filteredFinancialItems = useMemo(() => {
         return financialItems.filter(item => {
             const dateStr = item.due_date || item.transaction_date || item.created_at;
-            const date = new Date(dateStr);
-            const itemYear = date.getFullYear();
-            const itemMonth = date.getMonth();
-
-            if (financeGrouping === 'YEARLY') {
-                return itemYear === financeFilterYear;
-            } else {
-                return itemYear === financeFilterYear && itemMonth === financeFilterMonth;
-            }
+            const datePart = dateStr.split('T')[0];
+            if (caixaDateFrom && datePart < caixaDateFrom) return false;
+            if (caixaDateTo && datePart > caixaDateTo) return false;
+            return true;
         }).sort((a, b) => {
             const dateA = new Date(a.due_date || a.transaction_date || a.created_at).getTime();
             const dateB = new Date(b.due_date || b.transaction_date || b.created_at).getTime();
-            return dateA - dateB; // Sort ascending by due date
+            return dateA - dateB;
         });
-    }, [financialItems, financeFilterYear, financeFilterMonth, financeGrouping]);
+    }, [financialItems, caixaDateFrom, caixaDateTo]);
 
     const financeStats = {
         balance: financialItems.reduce((acc: number, item: any) => {
@@ -3300,39 +3297,28 @@ export default function DashboardPage() {
                                     <Clock size={12} /> Movimentações por Período
                                 </h3>
                                 <div className="flex flex-wrap items-center gap-2">
-                                    <select
-                                        value={financeGrouping}
-                                        onChange={e => setFinanceGrouping(e.target.value as any)}
-                                        className="bg-zinc-900 text-sm font-black uppercase tracking-widest px-4 py-2 rounded-xl border border-zinc-800 outline-none text-white focus:border-[#39FF14] transition-colors appearance-none"
-                                    >
-                                        <option value="DAILY">Diário</option>
-                                        <option value="WEEKLY">Semanal</option>
-                                        <option value="MONTHLY">Mensal</option>
-                                        <option value="YEARLY">Anual</option>
-                                    </select>
-
-                                    {financeGrouping !== 'YEARLY' && (
-                                        <select
-                                            value={financeFilterMonth}
-                                            onChange={e => setFinanceFilterMonth(parseInt(e.target.value))}
-                                            className="bg-zinc-900 text-sm font-black uppercase tracking-widest px-4 py-2 rounded-xl border border-zinc-800 outline-none text-white focus:border-[#39FF14] transition-colors appearance-none"
+                                    <input
+                                        type="date"
+                                        value={caixaDateFrom}
+                                        onChange={e => setCaixaDateFrom(e.target.value)}
+                                        className="bg-zinc-900 text-sm font-bold px-3 py-2 rounded-xl border border-zinc-800 outline-none text-white focus:border-[#39FF14] transition-colors"
+                                    />
+                                    <span className="text-white/50 text-xs font-bold">até</span>
+                                    <input
+                                        type="date"
+                                        value={caixaDateTo}
+                                        onChange={e => setCaixaDateTo(e.target.value)}
+                                        className="bg-zinc-900 text-sm font-bold px-3 py-2 rounded-xl border border-zinc-800 outline-none text-white focus:border-[#39FF14] transition-colors"
+                                    />
+                                    {(caixaDateFrom || caixaDateTo) && (
+                                        <button
+                                            onClick={() => { setCaixaDateFrom(''); setCaixaDateTo(''); }}
+                                            className="text-white/50 hover:text-white transition-colors p-1"
+                                            title="Limpar filtro"
                                         >
-                                            {Array.from({ length: 12 }, (_, i) => {
-                                                const date = new Date(2000, i, 1);
-                                                return <option key={i} value={i}>{date.toLocaleString('pt-BR', { month: 'long' })}</option>;
-                                            })}
-                                        </select>
+                                            <X size={14} />
+                                        </button>
                                     )}
-
-                                    <select
-                                        value={financeFilterYear}
-                                        onChange={e => setFinanceFilterYear(parseInt(e.target.value))}
-                                        className="bg-zinc-900 text-sm font-black uppercase tracking-widest px-4 py-2 rounded-xl border border-zinc-800 outline-none text-white focus:border-[#39FF14] transition-colors appearance-none"
-                                    >
-                                        {[financeFilterYear - 1, financeFilterYear, financeFilterYear + 1].map(y => (
-                                            <option key={y} value={y}>{y}</option>
-                                        ))}
-                                    </select>
                                 </div>
                             </div>
 
