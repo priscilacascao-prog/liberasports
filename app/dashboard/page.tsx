@@ -2179,21 +2179,24 @@ export default function DashboardPage() {
                             <div className="flex items-center gap-2">
                                 <button
                                     onClick={async () => {
-                                        if (!confirm('Marcar TODOS os produtos como visíveis na loja?')) return;
+                                        if (!confirm('Excluir produtos com "CAISETA" no nome?')) return;
                                         try {
-                                            toast.loading('Atualizando...');
-                                            for (const p of products) {
-                                                if (!p.show_in_store) {
-                                                    await updateDoc(doc(db, productsCollectionPath, p.id), { show_in_store: true });
+                                            toast.loading('Buscando...');
+                                            const snap = await getDocs(collection(db, productsCollectionPath));
+                                            let deleted = 0;
+                                            for (const d of snap.docs) {
+                                                if ((d.data().name || '').includes('CAISETA')) {
+                                                    await deleteDoc(doc(db, productsCollectionPath, d.id));
+                                                    deleted++;
                                                 }
                                             }
                                             toast.dismiss();
-                                            toast.success(`${products.length} produtos marcados como visíveis na loja!`);
-                                        } catch (err) { toast.dismiss(); toast.error('Erro ao atualizar'); }
+                                            toast.success(`${deleted} produto(s) CAISETA excluído(s)!`);
+                                        } catch (err) { toast.dismiss(); toast.error('Erro ao excluir'); }
                                     }}
-                                    className="bg-orange-500 text-black px-4 py-3 rounded-xl font-black uppercase text-xs hover:scale-105 transition-all"
+                                    className="bg-red-500 text-white px-4 py-3 rounded-xl font-black uppercase text-xs hover:scale-105 transition-all"
                                 >
-                                    Todos p/ Loja
+                                    Limpar CAISETA
                                 </button>
                                 <button
                                     onClick={() => setIsProductModalOpen(true)}
