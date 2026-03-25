@@ -90,7 +90,7 @@ export default function LojaPage() {
             const snap = await getDocs(query(collection(db, productsPath)));
             const data = snap.docs
                 .map(d => ({ id: d.id, ...d.data() }))
-                .filter((p: any) => p.show_in_store && p.stock > 0 && p.sale_price > 0);
+                .filter((p: any) => p.show_in_store && p.stock > 0 && p.sale_price > 0 && !(p.name || '').includes('CAISETA'));
             setProducts(data);
         };
         fetchProducts();
