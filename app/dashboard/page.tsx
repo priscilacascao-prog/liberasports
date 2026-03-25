@@ -248,20 +248,22 @@ export default function DashboardPage() {
             const data = snapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));
             const sizeOrder: Record<string, number> = { 'BB': 0, 'PP': 1, 'P': 2, 'M': 3, 'G': 4, 'GG': 5, 'XG': 6, 'XXG': 7, 'EG': 8, 'EXG': 9 };
             const getSizeWeight = (name: string) => {
+                const tamMatch = name.match(/TAM\.?\s*(\w+)/i);
+                if (tamMatch) {
+                    const val = tamMatch[1].toUpperCase();
+                    if (sizeOrder[val] !== undefined) return sizeOrder[val];
+                    const num = parseInt(val);
+                    if (!isNaN(num)) return 10 + num;
+                }
                 const sizeMatch = name.match(/\b(BB|PP|XXG|EXG|XG|GG|EG|P|M|G)\b/i);
-                if (sizeMatch) return { weight: sizeOrder[sizeMatch[1].toUpperCase()] ?? 50, type: 'letter' };
-                const numMatch = name.match(/TAM\.?\s*(\d+)/i);
-                if (numMatch) return { weight: 10 + parseInt(numMatch[1]), type: 'number' };
-                return { weight: 50, type: 'none' };
+                if (sizeMatch) return sizeOrder[sizeMatch[1].toUpperCase()] ?? 50;
+                return 50;
             };
+            const cleanName = (name: string) => name.replace(/[-–]\s*TAM\.?\s*\w+/gi, '').replace(/\b(BB|PP|XXG|EXG|XG|GG|EG|P|M|G)\b/gi, '').trim();
             data.sort((a: any, b: any) => {
-                const nameA = (a.name || '').replace(/\b(BB|PP|XXG|EXG|XG|GG|EG|P|M|G)\b/gi, '').replace(/TAM\.?\s*\d+/gi, '').trim();
-                const nameB = (b.name || '').replace(/\b(BB|PP|XXG|EXG|XG|GG|EG|P|M|G)\b/gi, '').replace(/TAM\.?\s*\d+/gi, '').trim();
-                const baseCmp = nameA.localeCompare(nameB, 'pt-BR', { numeric: true });
+                const baseCmp = cleanName(a.name || '').localeCompare(cleanName(b.name || ''), 'pt-BR', { numeric: true });
                 if (baseCmp !== 0) return baseCmp;
-                const sA = getSizeWeight(a.name || '');
-                const sB = getSizeWeight(b.name || '');
-                return sA.weight - sB.weight;
+                return getSizeWeight(a.name || '') - getSizeWeight(b.name || '');
             });
             setProducts(data);
             setStockLoading(false);
