@@ -943,35 +943,65 @@ export default function DashboardPage() {
     };
 
     const advanceStep = async (orderId: string, currentStatus: string) => {
-        const currentIndex = workflow.indexOf(currentStatus);
-        if (currentIndex < workflow.length - 1) {
-            const nextStatus = workflow[currentIndex + 1];
-            setLoading(true);
-            try {
-                const orderRef = doc(db, salesCollectionPath, orderId);
-                const orderSnap = await getDoc(orderRef);
-                const orderData = orderSnap.data();
+        // Se está aguardando aprovação, avançar para PEDIDO FEITO
+        const nextStatus = currentStatus === 'AGUARDANDO APROVAÇÃO'
+            ? 'PEDIDO FEITO'
+            : (workflow.indexOf(currentStatus) < workflow.length - 1 ? workflow[workflow.indexOf(currentStatus) + 1] : null);
 
-                const newLog = {
-                    id: crypto.randomUUID(),
-                    old_status: currentStatus,
-                    new_status: nextStatus,
-                    operator_name: operatorName,
-                    created_at: new Date().toISOString()
-                };
+        if (!nextStatus) return;
 
-                await updateDoc(orderRef, {
-                    status: nextStatus,
-                    order_logs: [...(orderData?.order_logs || []), newLog]
-                });
+        setLoading(true);
+        try {
+            const orderRef = doc(db, salesCollectionPath, orderId);
+            const orderSnap = await getDoc(orderRef);
+            const orderData = orderSnap.data();
 
-                toast.success(`Pedido avançado para ${nextStatus}`);
-            } catch (error) {
-                console.error('Error advancing step:', error);
-                toast.error('Erro ao atualizar status');
-            } finally {
-                setLoading(false);
+            const newLog = {
+                id: crypto.randomUUID(),
+                old_status: currentStatus,
+                new_status: nextStatus,
+                operator_name: operatorName,
+                created_at: new Date().toISOString()
+            };
+
+            await updateDoc(orderRef, {
+                status: nextStatus,
+                order_logs: [...(orderData?.order_logs || []), newLog]
+            });
+
+            toast.success(`Pedido avançado para ${nextStatus}`);
+
+            // Se aprovou pedido da loja, enviar WhatsApp com rastreio
+            if (currentStatus === 'AGUARDANDO APROVAÇÃO' && orderData?.client_whatsapp) {
+                const trackingUrl = `${window.location.origin}/rastreio?id=${orderId}`;
+                const whatsappPhone = orderData.client_whatsapp.replace(/\D/g, '');
+                const clientName = (orderData.client || '').trim();
+                const orderNumber = orderData.order_number || '';
+                const formattedValue = (orderData.total || orderData.value || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+                const msgLines = [
+                    `Olá *${clientName}*! Seu pedido na *Libera Sports* foi aprovado!`,
+                    '',
+                    `*Pedido:* ${orderNumber}`,
+                    `*Valor:* R$ ${formattedValue}`,
+                    '',
+                    'Acompanhe seu pedido em tempo real:',
+                    trackingUrl,
+                    '',
+                    '_Libera Sports - Vista Libera e viva a liberdade_'
+                ];
+                const whatsappMsg = msgLines.map(line => encodeURIComponent(line)).join('%0a');
+                const whatsappLink = `https://wa.me/${whatsappPhone}?text=${whatsappMsg}`;
+                setTimeout(() => {
+                    const opened = window.open(whatsappLink, '_blank');
+                    if (!opened) window.location.href = whatsappLink;
+                }, 500);
             }
+        } catch (error) {
+            console.error('Error advancing step:', error);
+            toast.error('Erro ao atualizar status');
+        } finally {
+            setLoading(false);
+        }
         }
     };
 
