@@ -246,7 +246,18 @@ export default function DashboardPage() {
         const q = query(collection(db, productsCollectionPath));
         const unsubscribe = onSnapshot(q, (snapshot: any) => {
             const data = snapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));
-            data.sort((a: any, b: any) => (a.name || '').localeCompare(b.name || '', 'pt-BR', { numeric: true }));
+            const sizeOrder: Record<string, number> = { 'PP': 1, 'P': 2, 'M': 3, 'G': 4, 'GG': 5, 'XG': 6, 'XXG': 7, 'EG': 8, 'EXG': 9 };
+            const getSize = (name: string) => {
+                const match = name.match(/\b(PP|XXG|EXG|XG|GG|EG|P|M|G)\b/i);
+                return match ? sizeOrder[match[1].toUpperCase()] || 0 : 0;
+            };
+            data.sort((a: any, b: any) => {
+                const nameA = (a.name || '').replace(/\b(PP|XXG|EXG|XG|GG|EG|P|M|G)\b/gi, '').trim();
+                const nameB = (b.name || '').replace(/\b(PP|XXG|EXG|XG|GG|EG|P|M|G)\b/gi, '').trim();
+                const baseCmp = nameA.localeCompare(nameB, 'pt-BR', { numeric: true });
+                if (baseCmp !== 0) return baseCmp;
+                return (getSize(a.name || '') || 0) - (getSize(b.name || '') || 0);
+            });
             setProducts(data);
             setStockLoading(false);
         });
