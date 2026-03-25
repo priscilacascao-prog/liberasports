@@ -51,9 +51,28 @@ export default function LojaPage() {
     useEffect(() => {
         const fetchProducts = async () => {
             const snap = await getDocs(query(collection(db, productsPath)));
+            const sizeOrder: Record<string, number> = { 'BB': 0, 'PP': 1, 'P': 2, 'M': 3, 'G': 4, 'GG': 5, 'XG': 6, 'XXG': 7, 'EG': 8, 'EXG': 9 };
+            const getSizeWeight = (name: string) => {
+                const tamMatch = name.match(/TAM\.?\s*(\w+)/i);
+                if (tamMatch) {
+                    const val = tamMatch[1].toUpperCase();
+                    if (sizeOrder[val] !== undefined) return sizeOrder[val];
+                    const num = parseInt(val);
+                    if (!isNaN(num)) return 10 + num;
+                }
+                const sizeMatch = name.match(/\b(BB|PP|XXG|EXG|XG|GG|EG|P|M|G)\b/i);
+                if (sizeMatch) return sizeOrder[sizeMatch[1].toUpperCase()] ?? 50;
+                return 50;
+            };
+            const cleanName = (name: string) => name.replace(/[-–]\s*TAM\.?\s*\w+/gi, '').replace(/\b(BB|PP|XXG|EXG|XG|GG|EG|P|M|G)\b/gi, '').trim();
             const data = snap.docs
                 .map(d => ({ id: d.id, ...d.data() }))
-                .filter((p: any) => p.show_in_store && p.stock > 0);
+                .filter((p: any) => p.show_in_store && p.stock > 0)
+                .sort((a: any, b: any) => {
+                    const baseCmp = cleanName(a.name || '').localeCompare(cleanName(b.name || ''), 'pt-BR', { numeric: true });
+                    if (baseCmp !== 0) return baseCmp;
+                    return getSizeWeight(a.name || '') - getSizeWeight(b.name || '');
+                });
             setProducts(data);
         };
         fetchProducts();
