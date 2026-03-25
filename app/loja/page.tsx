@@ -291,7 +291,7 @@ export default function LojaPage() {
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
                     <div className="absolute inset-0 bg-black/50" onClick={() => setSelectedGroup(null)} />
                     <div className="relative bg-white rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl">
-                        <button onClick={() => setSelectedGroup(null)} className="absolute top-4 right-4 z-10 bg-white/80 backdrop-blur rounded-full p-2 hover:bg-gray-100"><X size={20} /></button>
+                        <button onClick={() => setSelectedGroup(null)} className="absolute top-4 right-4 z-10 bg-black text-white rounded-full p-2 hover:bg-gray-800"><X size={20} /></button>
 
                         {/* Image */}
                         <div className="aspect-square bg-gray-100 relative overflow-hidden rounded-t-2xl">
