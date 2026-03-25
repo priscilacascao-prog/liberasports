@@ -23,17 +23,24 @@ function extractInfo(name: string) {
     let color = '';
     let baseName = name;
 
-    // Extrair tamanho TAM. X
+    // Extrair tamanho "- TAM. X" ou "TAM. X"
     const tamMatch = name.match(/[-–]\s*TAM\.?\s*(\w+)/i);
     if (tamMatch) {
         size = tamMatch[1].toUpperCase();
         baseName = name.replace(tamMatch[0], '').trim();
     } else {
-        // Extrair tamanho como palavra solta (PP, P, M, G, GG, etc.)
-        const sizeMatch = name.match(/\b(BB|PP|XXG|EXG|XG|GG|EG|P|M|G)\b/i);
-        if (sizeMatch) {
-            size = sizeMatch[1].toUpperCase();
-            baseName = name.replace(sizeMatch[0], '').trim();
+        // Extrair tamanho no FINAL do nome após hífen: "- PP", "- M", "- GG"
+        const sizeAfterDash = name.match(/[-–]\s*(BB|PP|XXG|EXG|XG|GG|EG|P|M|G)\s*$/i);
+        if (sizeAfterDash) {
+            size = sizeAfterDash[1].toUpperCase();
+            baseName = name.replace(sizeAfterDash[0], '').trim();
+        } else {
+            // Extrair tamanho como última palavra (só se for tamanho válido)
+            const lastWord = name.match(/\s+(BB|PP|XXG|EXG|XG|GG|EG)\s*$/i);
+            if (lastWord) {
+                size = lastWord[1].toUpperCase();
+                baseName = name.replace(lastWord[0], '').trim();
+            }
         }
     }
 
