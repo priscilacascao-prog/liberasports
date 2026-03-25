@@ -2178,27 +2178,6 @@ export default function DashboardPage() {
                             </div>
                             <div className="flex items-center gap-2">
                                 <button
-                                    onClick={async () => {
-                                        if (!confirm('Excluir produtos com "CAISETA" no nome?')) return;
-                                        try {
-                                            toast.loading('Buscando...');
-                                            const snap = await getDocs(collection(db, productsCollectionPath));
-                                            let deleted = 0;
-                                            for (const d of snap.docs) {
-                                                if ((d.data().name || '').includes('CAISETA')) {
-                                                    await deleteDoc(doc(db, productsCollectionPath, d.id));
-                                                    deleted++;
-                                                }
-                                            }
-                                            toast.dismiss();
-                                            toast.success(`${deleted} produto(s) CAISETA excluído(s)!`);
-                                        } catch (err) { toast.dismiss(); toast.error('Erro ao excluir'); }
-                                    }}
-                                    className="bg-red-500 text-white px-4 py-3 rounded-xl font-black uppercase text-xs hover:scale-105 transition-all"
-                                >
-                                    Limpar CAISETA
-                                </button>
-                                <button
                                     onClick={() => setIsProductModalOpen(true)}
                                     className="bg-[#39FF14] text-black px-6 py-3 rounded-xl font-black uppercase text-sm hover:scale-105 transition-all"
                                 >
