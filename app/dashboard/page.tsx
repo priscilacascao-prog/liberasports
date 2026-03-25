@@ -19,8 +19,8 @@ import {
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
-const workflow = ["PEDIDO FEITO", "GRÁFICA", "CORTE", "COSTURA", "REVISÃO", "EM FASE DE ENTREGA", "PEDIDO ENTREGUE"];
-const displayWorkflow = ["PEDIDO FEITO", "GRÁFICA", "CORTE", "COSTURA", "REVISÃO", "EM FASE DE ENTREGA", "PENDÊNCIA", "PEDIDO ENTREGUE"];
+const workflow = ["AGUARDANDO APROVAÇÃO", "PEDIDO FEITO", "GRÁFICA", "CORTE", "COSTURA", "REVISÃO", "EM FASE DE ENTREGA", "PEDIDO ENTREGUE"];
+const displayWorkflow = ["AGUARDANDO APROVAÇÃO", "PEDIDO FEITO", "GRÁFICA", "CORTE", "COSTURA", "REVISÃO", "EM FASE DE ENTREGA", "PENDÊNCIA", "PEDIDO ENTREGUE"];
 
 const addBusinessDays = (startDate: Date, days: number) => {
     let date = new Date(startDate);
@@ -134,6 +134,7 @@ export default function DashboardPage() {
     const [prodSalePrice, setProdSalePrice] = useState('');
     const [prodCostPrice, setProdCostPrice] = useState('');
     const [prodStock, setProdStock] = useState('');
+    const [prodShowInStore, setProdShowInStore] = useState(false);
 
     // Form Estado - Financeiro
     const [finAmount, setFinAmount] = useState('');
@@ -157,6 +158,7 @@ export default function DashboardPage() {
     const [editProductSalePrice, setEditProductSalePrice] = useState('');
     const [editProductCostPrice, setEditProductCostPrice] = useState('');
     const [editProductImage, setEditProductImage] = useState('');
+    const [editProductShowInStore, setEditProductShowInStore] = useState(false);
     const [editProductStock, setEditProductStock] = useState('');
     const [expandedSaleIds, setExpandedSaleIds] = useState<Record<string, boolean>>({});
 
@@ -383,6 +385,7 @@ export default function DashboardPage() {
                 sale_price: parseBRL(prodSalePrice),
                 cost_price: parseBRL(prodCostPrice),
                 stock: parseInt(prodStock),
+                show_in_store: prodShowInStore,
                 created_at: new Date().toISOString(),
                 user_id: userId
             };
@@ -395,6 +398,7 @@ export default function DashboardPage() {
             setProdSalePrice('');
             setProdCostPrice('');
             setProdStock('');
+            setProdShowInStore(false);
             setProdImage('');
         } catch (err) {
             console.error(err);
@@ -2271,6 +2275,10 @@ export default function DashboardPage() {
                                                                 </div>
                                                             </div>
                                                         </div>
+                                                        <label className="flex items-center gap-2 cursor-pointer mt-1">
+                                                            <input type="checkbox" checked={editProductShowInStore} onChange={e => setEditProductShowInStore(e.target.checked)} className="w-4 h-4 rounded accent-[#39FF14]" />
+                                                            <span className="text-[11px] font-black uppercase text-white/70">Visível na Loja</span>
+                                                        </label>
                                                         <div className="flex items-center gap-2 mt-1">
                                                             <button onClick={async () => {
                                                                 try {
@@ -2281,6 +2289,7 @@ export default function DashboardPage() {
                                                                         cost_price: parseBRL(editProductCostPrice),
                                                                         stock: parseInt(editProductStock) || 0,
                                                                         image: editProductImage || '',
+                                                                        show_in_store: editProductShowInStore,
                                                                     };
                                                                     await updateDoc(doc(db, productsCollectionPath, p.id), updateData);
                                                                     toast.success('Produto atualizado!');
@@ -2294,7 +2303,10 @@ export default function DashboardPage() {
                                                     </div>
                                                 ) : (
                                                     <>
-                                                        <h3 className="text-base font-black italic uppercase text-white leading-tight">{p.name}</h3>
+                                                        <div className="flex items-center gap-2">
+                                                            <h3 className="text-base font-black italic uppercase text-white leading-tight">{p.name}</h3>
+                                                            {p.show_in_store && <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-[#39FF14]/20 text-[#39FF14]">LOJA</span>}
+                                                        </div>
                                                         {p.details && <p className="text-[13px] text-white/50 mt-0.5">{p.details}</p>}
                                                         <div className="mt-2">
                                                             <p className="text-[13px] text-white/70 font-bold uppercase mb-1">Em Estoque</p>
@@ -2327,6 +2339,7 @@ export default function DashboardPage() {
                                                         setEditProductCostPrice(p.cost_price.toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
                                                         setEditProductStock(String(p.stock));
                                                         setEditProductImage(p.image || '');
+                                                        setEditProductShowInStore(p.show_in_store || false);
                                                     }}
                                                     className="p-2 rounded-lg text-white/40 hover:text-[#39FF14] hover:bg-[#39FF14]/10 transition-all"
                                                     title="Editar produto"
@@ -4032,6 +4045,14 @@ export default function DashboardPage() {
                                     />
                                 </div>
                             </div>
+
+                            <label className="flex items-center gap-3 cursor-pointer bg-zinc-950/50 rounded-2xl p-4">
+                                <input type="checkbox" checked={prodShowInStore} onChange={e => setProdShowInStore(e.target.checked)} className="w-5 h-5 rounded accent-[#39FF14]" />
+                                <div>
+                                    <span className="text-sm font-black uppercase tracking-widest text-white">Visível na Loja</span>
+                                    <p className="text-xs text-white/50 mt-0.5">Este produto aparecerá na loja online para clientes</p>
+                                </div>
+                            </label>
 
                             <div className="flex gap-4 pt-4">
                                 <button
