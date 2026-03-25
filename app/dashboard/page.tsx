@@ -114,6 +114,7 @@ export default function DashboardPage() {
     const [cart, setCart] = useState<any[]>([]);
     const [cartTotal, setCartTotal] = useState(0);
     const [saleClient, setSaleClient] = useState('');
+    const [showClientSuggestions, setShowClientSuggestions] = useState(false);
     const [saleWhatsapp, setSaleWhatsapp] = useState('');
     const [saleCpfCnpj, setSaleCpfCnpj] = useState('');
     const [saleCpfCnpjError, setSaleCpfCnpjError] = useState('');
@@ -2477,9 +2478,34 @@ export default function DashboardPage() {
 
                                 {/* Dados do Cliente e Produção */}
                                 <div className="space-y-3 mb-6 border-b border-zinc-900 pb-6">
-                                    <div>
+                                    <div className="relative">
                                         <label className="block text-sm font-black uppercase tracking-widest text-white mb-1">Cliente</label>
-                                        <input type="text" value={saleClient} onChange={e => setSaleClient(e.target.value)} placeholder="Nome do cliente..." className="w-full bg-zinc-950/80 border-transparent rounded-xl p-3 text-white outline-none focus:ring-1 focus:ring-[#39FF14] text-sm font-bold placeholder:text-zinc-600" />
+                                        <input type="text" value={saleClient}
+                                            onChange={e => { setSaleClient(e.target.value); setShowClientSuggestions(e.target.value.length > 0); }}
+                                            onFocus={() => { if (saleClient.length > 0) setShowClientSuggestions(true); }}
+                                            onBlur={() => setTimeout(() => setShowClientSuggestions(false), 200)}
+                                            placeholder="Nome do cliente..."
+                                            className="w-full bg-zinc-950/80 border-transparent rounded-xl p-3 text-white outline-none focus:ring-1 focus:ring-[#39FF14] text-sm font-bold placeholder:text-zinc-600" />
+                                        {showClientSuggestions && fornecedores.filter(f => f.name.toLowerCase().includes(saleClient.toLowerCase()) || (f.cpf_cnpj && f.cpf_cnpj.includes(saleClient.replace(/\D/g, '')))).length > 0 && (
+                                            <div className="absolute left-0 right-0 top-full mt-1 bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden z-50 shadow-xl max-h-[200px] overflow-y-auto">
+                                                {fornecedores.filter(f => f.name.toLowerCase().includes(saleClient.toLowerCase()) || (f.cpf_cnpj && f.cpf_cnpj.includes(saleClient.replace(/\D/g, '')))).map(f => (
+                                                    <button key={f.id} type="button"
+                                                        onMouseDown={() => {
+                                                            setSaleClient(f.name);
+                                                            setSaleWhatsapp(f.whatsapp || '');
+                                                            setSaleCpfCnpj(f.cpf_cnpj ? formatCpfCnpj(f.cpf_cnpj) : '');
+                                                            setShowClientSuggestions(false);
+                                                        }}
+                                                        className="w-full text-left px-4 py-3 hover:bg-zinc-800 transition-colors">
+                                                        <p className="text-sm font-bold text-white">{f.name}</p>
+                                                        <p className="text-xs text-white/50">
+                                                            {f.cpf_cnpj ? (f.cpf_cnpj.length === 11 ? f.cpf_cnpj.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4') : f.cpf_cnpj.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5')) : ''}
+                                                            {f.whatsapp && ` • ${f.whatsapp}`}
+                                                        </p>
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
                                     <div className="grid grid-cols-2 gap-2">
                                         <div>
