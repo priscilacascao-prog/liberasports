@@ -63,6 +63,7 @@ export default function LojaPage() {
     const [deliveryMethod, setDeliveryMethod] = useState('MOTOBOY');
     const [paymentMethod, setPaymentMethod] = useState('PIX');
     const [observations, setObservations] = useState('');
+    const [deliveryAddress, setDeliveryAddress] = useState('');
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
     const [selectedSize, setSelectedSize] = useState('');
@@ -170,7 +171,7 @@ export default function LojaPage() {
                 total: cartTotal, value: cartTotal,
                 client: clientData.name, client_whatsapp: clientData.whatsapp || '',
                 cpf_cnpj: clientData.cpf_cnpj || '', client_email: clientData.email || user.email,
-                client_uid: user.uid, delivery_method: deliveryMethod, payment_method: paymentMethod,
+                client_uid: user.uid, delivery_method: deliveryMethod, delivery_address: deliveryAddress.trim(), payment_method: paymentMethod,
                 description: observations || cart.map(i => `${i.quantity}x ${i.name}`).join(', '),
                 has_production: true, status: 'AGUARDANDO APROVAÇÃO', source: 'LOJA',
                 created_at: new Date().toISOString(), user_id: user.uid, operator_name: clientData.name,
@@ -417,39 +418,44 @@ export default function LojaPage() {
                                     </>
                                 ) : (
                                     <div className="space-y-3">
-                                        <h3 className="font-black uppercase text-sm">Finalizar Pedido</h3>
+                                        <h3 className="font-black uppercase text-sm text-black">Finalizar Pedido</h3>
                                         <div className="bg-gray-50 rounded-xl p-3">
                                             <p className="text-xs text-gray-400 uppercase font-bold">Cliente</p>
-                                            <p className="text-sm font-bold">{clientData?.name}</p>
-                                            <p className="text-xs text-gray-400">{clientData?.whatsapp} • {clientData?.email || user?.email}</p>
+                                            <p className="text-sm font-bold text-black">{clientData?.name}</p>
+                                            <p className="text-xs text-gray-500">{clientData?.whatsapp} • {clientData?.email || user?.email}</p>
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Entrega</label>
+                                            <label className="block text-xs font-bold uppercase text-black mb-1">Entrega</label>
                                             <select value={deliveryMethod} onChange={e => setDeliveryMethod(e.target.value)}
-                                                className="w-full border border-gray-200 rounded-xl p-2.5 text-sm font-medium outline-none focus:border-black">
+                                                className="w-full border border-gray-200 rounded-xl p-2.5 text-sm font-medium text-black outline-none focus:border-black">
                                                 <option value="MOTOBOY">Motoboy</option>
                                                 <option value="TRANSPORTADORA">Transportadora</option>
                                                 <option value="RETIRADA">Retirada</option>
                                             </select>
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Pagamento</label>
+                                            <label className="block text-xs font-bold uppercase text-black mb-1">Endereço de Entrega</label>
+                                            <textarea value={deliveryAddress} onChange={e => setDeliveryAddress(e.target.value)} placeholder="Rua, número, bairro, cidade..."
+                                                rows={2} className="w-full border border-gray-200 rounded-xl p-2.5 text-sm text-black outline-none focus:border-black resize-none" />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-bold uppercase text-black mb-1">Pagamento</label>
                                             <div className="grid grid-cols-3 gap-2">
                                                 {['PIX', 'BOLETO', 'CARTÃO'].map(m => (
                                                     <button key={m} type="button" onClick={() => setPaymentMethod(m === 'CARTÃO' ? 'CARTÃO CRÉDITO' : m)}
-                                                        className={`py-2 rounded-lg text-xs font-bold uppercase border transition-colors ${paymentMethod === m || paymentMethod === (m === 'CARTÃO' ? 'CARTÃO CRÉDITO' : m) ? 'border-black bg-black text-white' : 'border-gray-200 hover:border-gray-400'}`}>
+                                                        className={`py-2 rounded-lg text-xs font-bold uppercase border transition-colors ${paymentMethod === m || paymentMethod === (m === 'CARTÃO' ? 'CARTÃO CRÉDITO' : m) ? 'border-black bg-black text-white' : 'border-gray-200 text-black hover:border-gray-400'}`}>
                                                         {m}
                                                     </button>
                                                 ))}
                                             </div>
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Observações</label>
+                                            <label className="block text-xs font-bold uppercase text-black mb-1">Observações</label>
                                             <textarea value={observations} onChange={e => setObservations(e.target.value)} placeholder="Alguma observação..."
-                                                rows={2} className="w-full border border-gray-200 rounded-xl p-2.5 text-sm outline-none focus:border-black resize-none" />
+                                                rows={2} className="w-full border border-gray-200 rounded-xl p-2.5 text-sm text-black outline-none focus:border-black resize-none" />
                                         </div>
                                         <div className="flex justify-between items-center pt-2">
-                                            <span className="text-xl font-black">R$ {cartTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                                            <span className="text-xl font-black text-black">R$ {cartTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                                         </div>
                                         <button onClick={handleCheckout} disabled={checkoutLoading}
                                             className="w-full bg-black text-white py-3 rounded-xl font-bold uppercase text-sm hover:bg-gray-900 disabled:opacity-50">

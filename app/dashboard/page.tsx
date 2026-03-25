@@ -121,6 +121,7 @@ export default function DashboardPage() {
     const [saleCpfCnpjError, setSaleCpfCnpjError] = useState('');
     const [saleDeadline, setSaleDeadline] = useState('');
     const [saleDeliveryMethod, setSaleDeliveryMethod] = useState<'MOTOBOY' | 'TRANSPORTADORA' | 'RETIRADA'>('MOTOBOY');
+    const [saleDeliveryAddress, setSaleDeliveryAddress] = useState('');
     const [saleDescription, setSaleDescription] = useState('');
     const [saleEntersProduction, setSaleEntersProduction] = useState(true);
     const [saleManualValue, setSaleManualValue] = useState('');
@@ -479,6 +480,7 @@ export default function DashboardPage() {
                 cpf_cnpj: saleCpfCnpj.replace(/\D/g, ''),
                 deadline: saleDeadline || '',
                 delivery_method: saleDeliveryMethod,
+                delivery_address: saleDeliveryAddress.trim(),
                 description: saleDescription.trim(),
                 payment_method: paymentMethod,
                 has_production: saleEntersProduction,
@@ -561,6 +563,7 @@ export default function DashboardPage() {
             setSaleCpfCnpjError('');
             setSaleDeadline('');
             setSaleDeliveryMethod('MOTOBOY');
+            setSaleDeliveryAddress('');
             setSaleDescription('');
             setSaleEntersProduction(true);
             setSaleManualValue('');
@@ -2558,6 +2561,10 @@ export default function DashboardPage() {
                                                 <option value="RETIRADA">RETIRADA</option>
                                             </select>
                                         </div>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-black uppercase tracking-widest text-white mb-1">Endereço de Entrega</label>
+                                        <textarea value={saleDeliveryAddress} onChange={e => setSaleDeliveryAddress(e.target.value)} placeholder="Rua, número, bairro, cidade..." rows={2} className="w-full bg-zinc-950/80 border-transparent rounded-xl p-3 text-white outline-none focus:ring-1 focus:ring-[#39FF14] text-sm font-bold placeholder:text-zinc-600 resize-none" />
                                     </div>
                                     <label className="flex items-center gap-3 cursor-pointer mt-2 bg-zinc-950/50 rounded-xl p-3">
                                         <input type="checkbox" checked={saleEntersProduction} onChange={e => setSaleEntersProduction(e.target.checked)} className="w-5 h-5 rounded accent-[#39FF14]" />
