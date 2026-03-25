@@ -19,8 +19,8 @@ import {
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
-const workflow = ["AGUARDANDO APROVAÇÃO", "PEDIDO FEITO", "GRÁFICA", "CORTE", "COSTURA", "REVISÃO", "EM FASE DE ENTREGA", "PEDIDO ENTREGUE"];
-const displayWorkflow = ["AGUARDANDO APROVAÇÃO", "PEDIDO FEITO", "GRÁFICA", "CORTE", "COSTURA", "REVISÃO", "EM FASE DE ENTREGA", "PENDÊNCIA", "PEDIDO ENTREGUE"];
+const workflow = ["PEDIDO FEITO", "GRÁFICA", "CORTE", "COSTURA", "REVISÃO", "EM FASE DE ENTREGA", "PEDIDO ENTREGUE"];
+const displayWorkflow = ["PEDIDO FEITO", "GRÁFICA", "CORTE", "COSTURA", "REVISÃO", "EM FASE DE ENTREGA", "PENDÊNCIA", "PEDIDO ENTREGUE"];
 
 const addBusinessDays = (startDate: Date, days: number) => {
     let date = new Date(startDate);
