@@ -2240,30 +2240,6 @@ export default function DashboardPage() {
                             </div>
                             <div className="flex items-center gap-2">
                                 <button
-                                    onClick={async () => {
-                                        if (!confirm('Buscar e excluir TODOS os produtos com CAISETA no nome do Firestore?')) return;
-                                        toast.loading('Buscando em todo o Firestore...');
-                                        try {
-                                            const snap = await getDocs(collection(db, productsCollectionPath));
-                                            let count = 0;
-                                            for (const d of snap.docs) {
-                                                const name = (d.data().name || '').toUpperCase();
-                                                if (name.includes('CAISETA')) {
-                                                    await deleteDoc(doc(db, productsCollectionPath, d.id));
-                                                    count++;
-                                                    console.log('Excluído:', d.id, d.data().name);
-                                                }
-                                            }
-                                            toast.dismiss();
-                                            if (count > 0) toast.success(`${count} produto(s) CAISETA excluído(s)!`);
-                                            else toast.info('Nenhum CAISETA encontrado nos produtos');
-                                        } catch (err: any) { toast.dismiss(); console.error(err); toast.error('Erro: ' + err.message); }
-                                    }}
-                                    className="bg-red-500 text-white px-4 py-3 rounded-xl font-black uppercase text-xs hover:scale-105 transition-all"
-                                >
-                                    Excluir CAISETA
-                                </button>
-                                <button
                                     onClick={() => setIsProductModalOpen(true)}
                                     className="bg-[#39FF14] text-black px-6 py-3 rounded-xl font-black uppercase text-sm hover:scale-105 transition-all"
                                 >
