@@ -2672,11 +2672,18 @@ export default function DashboardPage() {
                                                                 </p>
                                                             ) : (
                                                                 <div className="mt-3 space-y-2">
+                                                                    <div className="bg-zinc-900/50 rounded-xl px-3 py-2">
+                                                                        <span className="text-[11px] text-white/50 font-bold uppercase">Valor: </span>
+                                                                        <span className="text-sm font-bold text-[#39FF14]">R$ {(sale.total || sale.value || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                                                                        <span className="text-sm text-white/50 ml-2">• {sale.payment_method}</span>
+                                                                        <span className="text-sm text-white/50 ml-2">• {new Date(sale.created_at).toLocaleDateString('pt-BR')}</span>
+                                                                    </div>
                                                                     {sale.client && (
                                                                         <div className="bg-zinc-900/50 rounded-xl px-3 py-2">
                                                                             <span className="text-[11px] text-white/50 font-bold uppercase">Cliente: </span>
                                                                             <span className="text-sm font-bold text-white uppercase">{sale.client}</span>
                                                                             {sale.client_whatsapp && <span className="text-sm text-white/50 ml-2">• {sale.client_whatsapp}</span>}
+                                                                            {sale.cpf_cnpj && <span className="text-sm text-white/50 ml-2">• {sale.cpf_cnpj.length === 11 ? sale.cpf_cnpj.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4') : sale.cpf_cnpj.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5')}</span>}
                                                                         </div>
                                                                     )}
                                                                     {sale.description && (
@@ -2692,7 +2699,7 @@ export default function DashboardPage() {
                                                                             {sale.delivery_method && <span className="text-sm text-white/50 ml-2">• {sale.delivery_method}</span>}
                                                                         </div>
                                                                     )}
-                                                                    {sale.has_production && (
+                                                                    {(sale.has_production || sale.status) && (
                                                                         <div className="bg-[#39FF14]/10 rounded-xl px-3 py-2">
                                                                             <span className="text-sm font-bold text-[#39FF14] uppercase">Em Produção • {sale.status || 'PEDIDO FEITO'}</span>
                                                                         </div>
