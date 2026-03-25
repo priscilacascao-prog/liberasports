@@ -337,9 +337,9 @@ export default function LojaPage() {
                                         <p className="text-xs text-gray-400">{selectedVariant.stock} em estoque</p>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <button onClick={() => setSelectedQty(Math.max(1, selectedQty - 1))} className="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center hover:bg-gray-200"><Minus size={16} /></button>
-                                        <span className="text-lg font-black w-8 text-center">{selectedQty}</span>
-                                        <button onClick={() => setSelectedQty(Math.min(selectedVariant.stock, selectedQty + 1))} className="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center hover:bg-gray-200"><Plus size={16} /></button>
+                                        <button onClick={() => setSelectedQty(Math.max(1, selectedQty - 1))} className="w-9 h-9 rounded-lg bg-orange-500 text-white flex items-center justify-center hover:bg-orange-600"><Minus size={16} /></button>
+                                        <span className="text-lg font-black w-8 text-center text-black">{selectedQty}</span>
+                                        <button onClick={() => setSelectedQty(Math.min(selectedVariant.stock, selectedQty + 1))} className="w-9 h-9 rounded-lg bg-orange-500 text-white flex items-center justify-center hover:bg-orange-600"><Plus size={16} /></button>
                                     </div>
                                 </div>
                             )}
@@ -349,13 +349,18 @@ export default function LojaPage() {
                                 onClick={() => {
                                     if (!selectedVariant) return;
                                     addToCart(selectedVariant, selectedQty);
-                                    setSelectedGroup(null);
+                                    setSelectedQty(1);
                                 }}
                                 disabled={!selectedVariant || selectedVariant.stock <= 0}
                                 className="w-full bg-black text-white py-3.5 rounded-xl font-bold uppercase text-sm hover:bg-gray-900 transition-colors disabled:opacity-30"
                             >
                                 Adicionar ao Carrinho
                             </button>
+                            {cart.length > 0 && (
+                                <p className="text-center text-xs text-gray-400 mt-1">
+                                    {cart.reduce((a, i) => a + i.quantity, 0)} item(ns) no carrinho • R$ {cartTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                </p>
+                            )}
                         </div>
                     </div>
                 </div>
