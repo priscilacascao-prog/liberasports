@@ -246,17 +246,22 @@ export default function DashboardPage() {
         const q = query(collection(db, productsCollectionPath));
         const unsubscribe = onSnapshot(q, (snapshot: any) => {
             const data = snapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));
-            const sizeOrder: Record<string, number> = { 'PP': 1, 'P': 2, 'M': 3, 'G': 4, 'GG': 5, 'XG': 6, 'XXG': 7, 'EG': 8, 'EXG': 9 };
-            const getSize = (name: string) => {
-                const match = name.match(/\b(PP|XXG|EXG|XG|GG|EG|P|M|G)\b/i);
-                return match ? sizeOrder[match[1].toUpperCase()] || 0 : 0;
+            const sizeOrder: Record<string, number> = { 'BB': 0, 'PP': 1, 'P': 2, 'M': 3, 'G': 4, 'GG': 5, 'XG': 6, 'XXG': 7, 'EG': 8, 'EXG': 9 };
+            const getSizeWeight = (name: string) => {
+                const sizeMatch = name.match(/\b(BB|PP|XXG|EXG|XG|GG|EG|P|M|G)\b/i);
+                if (sizeMatch) return { weight: sizeOrder[sizeMatch[1].toUpperCase()] ?? 50, type: 'letter' };
+                const numMatch = name.match(/TAM\.?\s*(\d+)/i);
+                if (numMatch) return { weight: 10 + parseInt(numMatch[1]), type: 'number' };
+                return { weight: 50, type: 'none' };
             };
             data.sort((a: any, b: any) => {
-                const nameA = (a.name || '').replace(/\b(PP|XXG|EXG|XG|GG|EG|P|M|G)\b/gi, '').trim();
-                const nameB = (b.name || '').replace(/\b(PP|XXG|EXG|XG|GG|EG|P|M|G)\b/gi, '').trim();
+                const nameA = (a.name || '').replace(/\b(BB|PP|XXG|EXG|XG|GG|EG|P|M|G)\b/gi, '').replace(/TAM\.?\s*\d+/gi, '').trim();
+                const nameB = (b.name || '').replace(/\b(BB|PP|XXG|EXG|XG|GG|EG|P|M|G)\b/gi, '').replace(/TAM\.?\s*\d+/gi, '').trim();
                 const baseCmp = nameA.localeCompare(nameB, 'pt-BR', { numeric: true });
                 if (baseCmp !== 0) return baseCmp;
-                return (getSize(a.name || '') || 0) - (getSize(b.name || '') || 0);
+                const sA = getSizeWeight(a.name || '');
+                const sB = getSizeWeight(b.name || '');
+                return sA.weight - sB.weight;
             });
             setProducts(data);
             setStockLoading(false);
