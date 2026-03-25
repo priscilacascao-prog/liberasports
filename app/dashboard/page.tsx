@@ -85,6 +85,7 @@ export default function DashboardPage() {
     const [editingFornecedor, setEditingFornecedor] = useState<any>(null);
     const [fornecedorSearch, setFornecedorSearch] = useState('');
     const [showFornecedoresList, setShowFornecedoresList] = useState(false);
+    const [fornecedorType, setFornecedorType] = useState<'FORNECEDOR' | 'CLIENTE'>('CLIENTE');
 
     const [showPaymentReminder, setShowPaymentReminder] = useState(false);
     const [reminderItems, setReminderItems] = useState<any[]>([]);
@@ -1410,6 +1411,7 @@ export default function DashboardPage() {
         try {
             const data = {
                 name: fornecedorName.trim().toUpperCase(),
+                type: fornecedorType,
                 cpf_cnpj: digits || '',
                 whatsapp: fornecedorWhatsapp.trim(),
                 user_id: userId,
@@ -3070,7 +3072,7 @@ export default function DashboardPage() {
                                         className="bg-zinc-900 text-sm px-4 py-2 rounded-xl border border-zinc-800 outline-none text-white focus:border-[#39FF14] transition-colors w-40"
                                     />
                                     <button
-                                        onClick={() => { setEditingFornecedor(null); setFornecedorName(''); setFornecedorCpfCnpj(''); setFornecedorCpfCnpjError(''); setFornecedorWhatsapp(''); setFornecedorModalOpen(true); }}
+                                        onClick={() => { setEditingFornecedor(null); setFornecedorName(''); setFornecedorCpfCnpj(''); setFornecedorCpfCnpjError(''); setFornecedorWhatsapp(''); setFornecedorType('CLIENTE'); setFornecedorModalOpen(true); }}
                                         className="bg-[#39FF14] text-black px-4 py-2 rounded-xl font-black uppercase text-xs tracking-widest hover:scale-105 transition-all flex items-center gap-1.5 shrink-0"
                                     >
                                         <Plus size={12} /> Novo
@@ -3084,14 +3086,17 @@ export default function DashboardPage() {
                                     fornecedores.filter(f => !fornecedorSearch || f.name.toLowerCase().includes(fornecedorSearch.toLowerCase())).map(f => (
                                         <div key={f.id} className="p-4 flex items-center justify-between hover:bg-zinc-900/50 transition-colors">
                                             <div>
-                                                <p className="text-sm font-black text-white uppercase">{f.name}</p>
+                                                <div className="flex items-center gap-2">
+                                                    <p className="text-sm font-black text-white uppercase">{f.name}</p>
+                                                    <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${f.type === 'FORNECEDOR' ? 'bg-red-500/20 text-red-400' : 'bg-[#39FF14]/20 text-[#39FF14]'}`}>{f.type === 'FORNECEDOR' ? 'Fornecedor' : 'Cliente'}</span>
+                                                </div>
                                                 <p className="text-xs text-white/70">
                                                     {f.cpf_cnpj ? (f.cpf_cnpj.length === 11 ? f.cpf_cnpj.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4') : f.cpf_cnpj.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5')) : 'Sem CPF/CNPJ'}
                                                     {f.whatsapp && ` • ${f.whatsapp}`}
                                                 </p>
                                             </div>
                                             <div className="flex items-center gap-1">
-                                                <button onClick={() => { setEditingFornecedor(f); setFornecedorName(f.name); setFornecedorCpfCnpj(f.cpf_cnpj ? formatCpfCnpj(f.cpf_cnpj) : ''); setFornecedorWhatsapp(f.whatsapp || ''); setFornecedorModalOpen(true); }} className="text-white/70 hover:text-[#39FF14] transition-colors p-2"><Pencil size={14} /></button>
+                                                <button onClick={() => { setEditingFornecedor(f); setFornecedorName(f.name); setFornecedorCpfCnpj(f.cpf_cnpj ? formatCpfCnpj(f.cpf_cnpj) : ''); setFornecedorWhatsapp(f.whatsapp || ''); setFornecedorType(f.type || 'CLIENTE'); setFornecedorModalOpen(true); }} className="text-white/70 hover:text-[#39FF14] transition-colors p-2"><Pencil size={14} /></button>
                                                 <button onClick={() => handleDeleteFornecedor(f.id)} className="text-white/70 hover:text-red-500 transition-colors p-2"><Trash2 size={14} /></button>
                                             </div>
                                         </div>
@@ -3147,11 +3152,21 @@ export default function DashboardPage() {
                     <div className="fixed inset-0 bg-black/95 z-[600] flex items-center justify-center p-4 backdrop-blur-xl">
                         <div className="bg-zinc-900 w-full max-w-md p-8 rounded-[32px] border border-zinc-800 shadow-2xl relative text-white">
                             <button onClick={() => setFornecedorModalOpen(false)} className="absolute right-6 top-6 text-white hover:text-white transition-colors"><X size={24} /></button>
-                            <h3 className="text-2xl font-black italic uppercase text-[#39FF14] mb-6">{editingFornecedor ? 'Editar' : 'Novo'} Fornecedor</h3>
+                            <h3 className="text-2xl font-black italic uppercase text-[#39FF14] mb-6">{editingFornecedor ? 'Editar' : 'Novo'} {fornecedorType === 'CLIENTE' ? 'Cliente' : 'Fornecedor'}</h3>
                             <div className="space-y-4">
+                                <div className="flex gap-2 p-1 bg-zinc-950 rounded-xl">
+                                    <button type="button" onClick={() => setFornecedorType('CLIENTE')}
+                                        className={`flex-1 py-2.5 rounded-lg font-black uppercase text-xs tracking-widest transition-all ${fornecedorType === 'CLIENTE' ? 'bg-[#39FF14] text-black' : 'text-white'}`}>
+                                        Cliente
+                                    </button>
+                                    <button type="button" onClick={() => setFornecedorType('FORNECEDOR')}
+                                        className={`flex-1 py-2.5 rounded-lg font-black uppercase text-xs tracking-widest transition-all ${fornecedorType === 'FORNECEDOR' ? 'bg-red-500 text-white' : 'text-white'}`}>
+                                        Fornecedor
+                                    </button>
+                                </div>
                                 <div>
                                     <label className="block text-sm font-black uppercase tracking-widest mb-2">Nome</label>
-                                    <input type="text" value={fornecedorName} onChange={e => setFornecedorName(e.target.value)} placeholder="Nome do fornecedor..." className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14]" required />
+                                    <input type="text" value={fornecedorName} onChange={e => setFornecedorName(e.target.value)} placeholder={fornecedorType === 'CLIENTE' ? 'Nome do cliente...' : 'Nome do fornecedor...'} className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14]" required />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-black uppercase tracking-widest mb-2">CPF/CNPJ</label>
