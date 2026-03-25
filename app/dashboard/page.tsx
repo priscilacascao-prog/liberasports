@@ -2176,12 +2176,32 @@ export default function DashboardPage() {
                                 <h1 className="text-4xl font-black italic uppercase tracking-tighter">ESTOQUE DE VAREJO</h1>
                                 <p className="text-white text-sm mt-1">Gestão de produtos e preços</p>
                             </div>
-                            <button
-                                onClick={() => setIsProductModalOpen(true)}
-                                className="bg-[#39FF14] text-black px-6 py-3 rounded-xl font-black uppercase text-sm hover:scale-105 transition-all"
-                            >
-                                + Novo Produto
-                            </button>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={async () => {
+                                        if (!confirm('Marcar TODOS os produtos como visíveis na loja?')) return;
+                                        try {
+                                            toast.loading('Atualizando...');
+                                            for (const p of products) {
+                                                if (!p.show_in_store) {
+                                                    await updateDoc(doc(db, productsCollectionPath, p.id), { show_in_store: true });
+                                                }
+                                            }
+                                            toast.dismiss();
+                                            toast.success(`${products.length} produtos marcados como visíveis na loja!`);
+                                        } catch (err) { toast.dismiss(); toast.error('Erro ao atualizar'); }
+                                    }}
+                                    className="bg-orange-500 text-black px-4 py-3 rounded-xl font-black uppercase text-xs hover:scale-105 transition-all"
+                                >
+                                    Todos p/ Loja
+                                </button>
+                                <button
+                                    onClick={() => setIsProductModalOpen(true)}
+                                    className="bg-[#39FF14] text-black px-6 py-3 rounded-xl font-black uppercase text-sm hover:scale-105 transition-all"
+                                >
+                                    + Novo Produto
+                                </button>
+                            </div>
                         </div>
 
                         {stockLoading ? (
