@@ -1002,7 +1002,6 @@ export default function DashboardPage() {
         } finally {
             setLoading(false);
         }
-        }
     };
 
     const updateStatus = async (id: string, nextStatus: string, currentStatus: string, reason?: string) => {
