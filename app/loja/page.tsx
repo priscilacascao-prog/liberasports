@@ -386,9 +386,9 @@ export default function LojaPage() {
                                             <p className="text-sm font-black uppercase text-black truncate">{item.name}</p>
                                             <p className="text-sm font-bold text-gray-500">R$ {item.sale_price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                                             <div className="flex items-center gap-2 mt-2">
-                                                <button onClick={() => updateQty(item.id, item.quantity - 1)} className="w-7 h-7 rounded-lg bg-gray-200 flex items-center justify-center hover:bg-gray-300"><Minus size={14} /></button>
-                                                <span className="text-sm font-black w-6 text-center">{item.quantity}</span>
-                                                <button onClick={() => updateQty(item.id, item.quantity + 1)} className="w-7 h-7 rounded-lg bg-gray-200 flex items-center justify-center hover:bg-gray-300"><Plus size={14} /></button>
+                                                <button onClick={() => updateQty(item.id, item.quantity - 1)} className="w-7 h-7 rounded-lg bg-black text-white flex items-center justify-center hover:bg-gray-800"><Minus size={14} /></button>
+                                                <span className="text-sm font-black w-6 text-center text-black">{item.quantity}</span>
+                                                <button onClick={() => updateQty(item.id, item.quantity + 1)} className="w-7 h-7 rounded-lg bg-black text-white flex items-center justify-center hover:bg-gray-800"><Plus size={14} /></button>
                                                 <button onClick={() => setCart(cart.filter(i => i.id !== item.id))} className="ml-auto text-gray-400 hover:text-red-500"><Trash2 size={16} /></button>
                                             </div>
                                         </div>
