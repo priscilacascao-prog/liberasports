@@ -1486,7 +1486,11 @@ export default function DashboardPage() {
                 toast.success('Fornecedor atualizado!');
             } else {
                 await addDoc(collection(db, fornecedoresCollectionPath), data);
-                toast.success('Fornecedor cadastrado!');
+                toast.success('Cliente cadastrado!');
+                // Auto-preencher campos da venda com o novo cliente
+                setSaleClient(data.name);
+                setSaleWhatsapp(data.whatsapp || '');
+                if (data.cpf_cnpj) setSaleCpfCnpj(formatCpfCnpj(data.cpf_cnpj));
             }
             setFornecedorModalOpen(false);
             setFornecedorName(''); setFornecedorCpfCnpj(''); setFornecedorCpfCnpjError(''); setFornecedorWhatsapp(''); setEditingFornecedor(null);
@@ -1824,12 +1828,6 @@ export default function DashboardPage() {
                                     </p>
                                 </div>
                             </div>
-                            <button
-                                onClick={() => { resetForm(); setIsModalOpen(true); }}
-                                className="bg-[#39FF14] text-black px-8 py-4 rounded-2xl font-black hover:scale-105 transition-all uppercase text-sm shadow-xl shadow-[#39FF14]/10"
-                            >
-                                + Novo Pedido
-                            </button>
                         </div>
 
                         {/* Status Filter Grid */}
@@ -2565,7 +2563,7 @@ export default function DashboardPage() {
                                             onBlur={() => setTimeout(() => setShowClientSuggestions(false), 200)}
                                             placeholder="Nome do cliente..."
                                             className="w-full bg-zinc-950/80 border-transparent rounded-xl p-3 text-white outline-none focus:ring-1 focus:ring-[#39FF14] text-sm font-bold placeholder:text-zinc-600" />
-                                        {showClientSuggestions && fornecedores.filter(f => f.name.toLowerCase().includes(saleClient.toLowerCase()) || (f.cpf_cnpj && f.cpf_cnpj.includes(saleClient.replace(/\D/g, '')))).length > 0 && (
+                                        {showClientSuggestions && saleClient.length > 1 && (
                                             <div className="absolute left-0 right-0 top-full mt-1 bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden z-50 shadow-xl max-h-[200px] overflow-y-auto">
                                                 {fornecedores.filter(f => f.name.toLowerCase().includes(saleClient.toLowerCase()) || (f.cpf_cnpj && f.cpf_cnpj.includes(saleClient.replace(/\D/g, '')))).map(f => (
                                                     <button key={f.id} type="button"
@@ -2583,6 +2581,22 @@ export default function DashboardPage() {
                                                         </p>
                                                     </button>
                                                 ))}
+                                                {fornecedores.filter(f => f.name.toLowerCase().includes(saleClient.toLowerCase())).length === 0 && (
+                                                    <button type="button"
+                                                        onMouseDown={() => {
+                                                            setFornecedorName(saleClient.trim());
+                                                            setFornecedorType('CLIENTE');
+                                                            setFornecedorCpfCnpj('');
+                                                            setFornecedorCpfCnpjError('');
+                                                            setFornecedorWhatsapp('');
+                                                            setEditingFornecedor(null);
+                                                            setFornecedorModalOpen(true);
+                                                            setShowClientSuggestions(false);
+                                                        }}
+                                                        className="w-full text-left px-4 py-3 hover:bg-zinc-800 transition-colors border-t border-zinc-800">
+                                                        <p className="text-sm font-bold text-[#39FF14]">+ Cadastrar &quot;{saleClient.trim().toUpperCase()}&quot; como cliente</p>
+                                                    </button>
+                                                )}
                                             </div>
                                         )}
                                     </div>
