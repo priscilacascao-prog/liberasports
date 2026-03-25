@@ -122,6 +122,9 @@ export default function DashboardPage() {
     const [saleDeadline, setSaleDeadline] = useState('');
     const [saleDeliveryMethod, setSaleDeliveryMethod] = useState<'MOTOBOY' | 'TRANSPORTADORA' | 'RETIRADA'>('MOTOBOY');
     const [saleDeliveryAddress, setSaleDeliveryAddress] = useState('');
+    const [saleBoletoQty, setSaleBoletoQty] = useState(1);
+    const [saleBoletoInterval, setSaleBoletoInterval] = useState(30);
+    const [saleBoletoFirstDate, setSaleBoletoFirstDate] = useState('');
     const [saleDescription, setSaleDescription] = useState('');
     const [saleEntersProduction, setSaleEntersProduction] = useState(true);
     const [saleManualValue, setSaleManualValue] = useState('');
@@ -507,16 +510,38 @@ export default function DashboardPage() {
             const finDesc = cart.length > 0
                 ? `[${newOrderNumber}] ${cart.map((i: any) => `${i.quantity}x ${i.name}`).join(', ')}`
                 : `[${newOrderNumber}] ${saleDescription || saleClient}`;
-            await generateFinancialEntries(
-                docRef.id,
-                newOrderNumber,
-                finDesc,
-                finalTotal,
-                paymentMethod,
-                transactionDate,
-                installments,
-                userId
-            );
+            if (paymentMethod === 'BOLETO' && saleBoletoQty > 1) {
+                // Gerar múltiplos boletos
+                const boletoValue = finalTotal / saleBoletoQty;
+                const firstDate = saleBoletoFirstDate ? new Date(saleBoletoFirstDate + 'T12:00:00') : new Date();
+                for (let i = 0; i < saleBoletoQty; i++) {
+                    const dueDate = new Date(firstDate);
+                    dueDate.setDate(dueDate.getDate() + (saleBoletoInterval * i));
+                    await addDoc(collection(db, financeCollectionPath), {
+                        type: 'INFLOW',
+                        amount: boletoValue,
+                        description: `[${newOrderNumber}] ${finDesc} (Boleto ${i + 1}/${saleBoletoQty})`,
+                        status: 'A RECEBER',
+                        created_at: new Date().toISOString(),
+                        transaction_date: transactionDate,
+                        due_date: dueDate.toISOString(),
+                        payment_method: 'BOLETO',
+                        order_id: docRef.id,
+                        user_id: userId,
+                    });
+                }
+            } else {
+                await generateFinancialEntries(
+                    docRef.id,
+                    newOrderNumber,
+                    finDesc,
+                    finalTotal,
+                    paymentMethod,
+                    transactionDate,
+                    installments,
+                    userId
+                );
+            }
 
             // 3. Baixar Estoque (se tem itens do estoque)
             for (const item of cart) {
@@ -565,6 +590,9 @@ export default function DashboardPage() {
             setSaleDeliveryMethod('MOTOBOY');
             setSaleDeliveryAddress('');
             setSaleDescription('');
+            setSaleBoletoQty(1);
+            setSaleBoletoInterval(30);
+            setSaleBoletoFirstDate('');
             setSaleEntersProduction(true);
             setSaleManualValue('');
             setPaymentMethod('PIX');
@@ -2624,6 +2652,31 @@ export default function DashboardPage() {
                                             </div>
                                         )}
                                     </div>
+                                    {paymentMethod === 'BOLETO' && (
+                                        <div className="grid grid-cols-3 gap-3">
+                                            <div>
+                                                <label className="block text-[13px] font-black uppercase tracking-widest mb-1 text-[#39FF14]">Qtd. Boletos</label>
+                                                <select value={saleBoletoQty} onChange={e => setSaleBoletoQty(parseInt(e.target.value))}
+                                                    className="w-full bg-zinc-950/80 border border-zinc-900 rounded-xl p-3 text-white outline-none focus:ring-1 focus:ring-[#39FF14] transition-all appearance-none text-center text-xs">
+                                                    {[1,2,3,4,5,6].map(n => <option key={n} value={n}>{n}x</option>)}
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label className="block text-[13px] font-black uppercase tracking-widest mb-1 text-[#39FF14]">Intervalo</label>
+                                                <select value={saleBoletoInterval} onChange={e => setSaleBoletoInterval(parseInt(e.target.value))}
+                                                    className="w-full bg-zinc-950/80 border border-zinc-900 rounded-xl p-3 text-white outline-none focus:ring-1 focus:ring-[#39FF14] transition-all appearance-none text-center text-xs">
+                                                    <option value={30}>30 dias</option>
+                                                    <option value={60}>60 dias</option>
+                                                    <option value={90}>90 dias</option>
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label className="block text-[13px] font-black uppercase tracking-widest mb-1 text-[#39FF14]">1º Vencimento</label>
+                                                <input type="date" value={saleBoletoFirstDate} onChange={e => setSaleBoletoFirstDate(e.target.value)}
+                                                    className="w-full bg-zinc-950/80 border border-zinc-900 rounded-xl p-3 text-white outline-none focus:ring-1 focus:ring-[#39FF14] transition-all [color-scheme:dark] text-xs" />
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div className="border-t border-zinc-900 pt-6 mt-6">
