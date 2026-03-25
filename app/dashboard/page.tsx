@@ -1295,11 +1295,11 @@ export default function DashboardPage() {
                         <div class="grid-3">
                             <div class="info-block">
                                 <div class="info-label">Data de Entrega</div>
-                                <div class="info-value">${new Date(order.deadline).toLocaleDateString('pt-BR')}</div>
+                                <div class="info-value">${order.deadline ? new Date(order.deadline).toLocaleDateString('pt-BR') : '-'}</div>
                             </div>
                             <div class="info-block">
                                 <div class="info-label">Método de Entrega</div>
-                                <div class="info-value">${order.delivery_method}</div>
+                                <div class="info-value">${order.delivery_method || 'Não informado'}</div>
                             </div>
                             <div class="info-block">
                                 <div class="info-label">Pagamento</div>
@@ -1901,7 +1901,7 @@ export default function DashboardPage() {
                                                     </div>
                                                     <div className="hidden md:flex flex-col">
                                                         <span className="text-white text-[13px] font-black uppercase tracking-widest">Entrega</span>
-                                                        <span className="text-sm text-white/70 font-bold">{order.deadline.split('-').reverse().join('/')}</span>
+                                                        <span className="text-sm text-white/70 font-bold">{order.deadline ? order.deadline.split('-').reverse().join('/') : '-'}</span>
                                                     </div>
                                                     <div className="hidden lg:flex flex-col max-w-[200px]">
                                                         <span className="text-white text-[13px] font-black uppercase tracking-widest">Grade</span>
@@ -1943,10 +1943,10 @@ export default function DashboardPage() {
                                                             <Clock size={9} /> {new Date(order.created_at).toLocaleDateString('pt-BR')}
                                                         </span>
                                                         <span className="bg-zinc-900 text-white/70 px-1.5 py-0.5 rounded text-[13px] font-bold flex items-center gap-1">
-                                                            <Calendar size={9} /> {order.deadline.split('-').reverse().join('/')}
+                                                            <Calendar size={9} /> {order.deadline ? order.deadline.split('-').reverse().join('/') : '-'}
                                                         </span>
                                                         <span className="bg-zinc-900 text-[#39FF14] px-1.5 py-0.5 rounded text-[13px] font-bold flex items-center gap-1 uppercase">
-                                                            <Truck size={9} /> {order.delivery_method}
+                                                            <Truck size={9} /> {order.delivery_method || '-'}
                                                         </span>
                                                         <span className="bg-zinc-900 text-orange-500 px-1.5 py-0.5 rounded text-[13px] font-bold flex items-center gap-1 uppercase">
                                                             <TrendingUp size={9} /> {order.payment_method || 'PIX'}
@@ -1967,7 +1967,7 @@ export default function DashboardPage() {
                                                                         <span className="text-white/70 text-sm font-black uppercase tracking-widest">{order.order_number}</span>
                                                                         <span className="w-1 h-1 rounded-full bg-zinc-800" />
                                                                         <span className="text-white text-sm font-bold uppercase flex items-center gap-1">
-                                                                            <Truck size={10} /> {order.delivery_method}
+                                                                            <Truck size={10} /> {order.delivery_method || '-'}
                                                                         </span>
                                                                         {order.client_whatsapp && (
                                                                             <a
