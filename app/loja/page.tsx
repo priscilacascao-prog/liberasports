@@ -89,8 +89,11 @@ export default function LojaPage() {
     useEffect(() => {
         const fetchProducts = async () => {
             const snap = await getDocs(query(collection(db, productsPath)));
-            const data = snap.docs
-                .map(d => ({ id: d.id, ...d.data() }))
+            const allProducts = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            // Debug: log produtos com CAISETA
+            const caisetas = allProducts.filter((p: any) => (p.name || '').toUpperCase().includes('CAISETA'));
+            if (caisetas.length > 0) console.warn('CAISETA encontrados no Firestore:', caisetas.map((p: any) => ({ id: p.id, name: p.name })));
+            const data = allProducts
                 .filter((p: any) => p.show_in_store && p.stock > 0 && p.sale_price > 0 && !(p.name || '').toUpperCase().includes('CAISETA'));
             setProducts(data);
         };
