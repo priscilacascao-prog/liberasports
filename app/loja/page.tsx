@@ -89,9 +89,20 @@ export default function LojaPage() {
     useEffect(() => {
         const fetchProducts = async () => {
             const snap = await getDocs(query(collection(db, productsPath)));
-            const data = snap.docs
-                .map(d => ({ id: d.id, ...d.data() }))
-                .filter((p: any) => p.show_in_store && p.stock > 0 && p.sale_price > 0 && !(p.name || '').toUpperCase().includes('CAISETA'));
+            const all = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            // Log todos os produtos para debug
+            console.log('TODOS OS PRODUTOS:', all.map((p: any) => ({ id: p.id, name: p.name, show: p.show_in_store, stock: p.stock, price: p.sale_price })));
+            const data = all
+                .filter((p: any) => {
+                    if (!p.show_in_store || p.stock <= 0 || p.sale_price <= 0) return false;
+                    const name = (p.name || '').toUpperCase();
+                    // Bloquear qualquer variação de CAISETA
+                    if (name.includes('CAISETA') || name.includes('CAISETA')) return false;
+                    // Verificar se tem "CAI" seguido de "SETA" (para pegar variações com caracteres invisíveis)
+                    if (name.match(/CAI.?SETA/)) return false;
+                    return true;
+                });
+            console.log('PRODUTOS FILTRADOS:', data.map((p: any) => p.name));
             setProducts(data);
         };
         fetchProducts();
