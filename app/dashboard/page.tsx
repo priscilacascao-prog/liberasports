@@ -233,7 +233,7 @@ export default function DashboardPage() {
                 ...doc.data()
             }));
             // Fábrica: apenas vendas com produção ou pedidos migrados que têm status
-            const ordersData = allSales.filter((s: any) => s.has_production || s.status);
+            const ordersData = allSales.filter((s: any) => (s.has_production || s.status) && s.status);
             setOrders(ordersData);
             // Atualiza vendas também
             setSales(allSales);
@@ -1249,7 +1249,7 @@ export default function DashboardPage() {
                         <div class="grid">
                             <div class="info-block">
                                 <div class="info-label">Cliente</div>
-                                <div class="info-value">${order.client}</div>
+                                <div class="info-value">${order.client || 'Sem cliente'}</div>
                             </div>
                             <div class="info-block">
                                 <div class="info-label">WhatsApp</div>
@@ -1333,7 +1333,7 @@ export default function DashboardPage() {
                         </div>
                         <div class="info-block">
                             <div class="info-label">Valor Total</div>
-                            <div class="info-value" style="font-weight: 900;">R$ ${parseFloat(order.value).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+                            <div class="info-value" style="font-weight: 900;">R$ ${parseFloat(order.value || order.total || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
                         </div>
                     </div>
 
@@ -1869,7 +1869,7 @@ export default function DashboardPage() {
                                                     </div>
                                                     <div className="flex flex-col">
                                                         <span className="text-white/70 text-[13px] font-black uppercase tracking-widest">{order.order_number}</span>
-                                                        <h3 className="text-sm font-black text-white group-hover:text-[#39FF14] transition-colors truncate">{order.client}</h3>
+                                                        <h3 className="text-sm font-black text-white group-hover:text-[#39FF14] transition-colors truncate">{order.client || 'Sem cliente'}</h3>
                                                     </div>
                                                     <div className="hidden md:flex flex-col">
                                                         <span className="text-white text-[13px] font-black uppercase tracking-widest">Entrega</span>
@@ -1884,7 +1884,7 @@ export default function DashboardPage() {
                                                     <div className="text-right">
                                                         <span className="block text-sm text-white/70 font-bold uppercase tracking-widest">Valor</span>
                                                         <span className="text-xs font-black text-[#39FF14]">
-                                                            R$ {Number(order.value).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                                            R$ {Number(order.value || order.total || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                                         </span>
                                                     </div>
                                                     <div className="p-2 rounded-lg bg-zinc-950 border border-zinc-900 text-white group-hover:text-white transition-all">
@@ -1933,7 +1933,7 @@ export default function DashboardPage() {
                                                                 </div>
                                                                 <div className="min-w-0 flex-1">
                                                                     <h3 className="text-[13px] md:text-xl font-black tracking-tighter text-white uppercase italic">
-                                                                        {order.client}
+                                                                        {order.client || 'Sem cliente'}
                                                                     </h3>
                                                                     <div className="flex items-center gap-2 mt-1">
                                                                         <span className="text-white/70 text-sm font-black uppercase tracking-widest">{order.order_number}</span>
@@ -1970,7 +1970,7 @@ export default function DashboardPage() {
                                                         <div>
                                                             <span className="block text-sm text-white/70 font-bold uppercase tracking-widest">Valor Total</span>
                                                             <span className="text-lg font-black text-[#39FF14]">
-                                                                R$ {Number(order.value).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                                                R$ {Number(order.value || order.total || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                                             </span>
                                                         </div>
                                                         <div className="flex items-center gap-2">
