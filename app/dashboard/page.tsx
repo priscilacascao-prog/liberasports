@@ -2654,13 +2654,14 @@ export default function DashboardPage() {
                                     <div className="divide-y divide-zinc-900">
                                         {sales.map(sale => {
                                             const isExpanded = expandedSaleIds[sale.id];
-                                            const summary = sale.items?.map((i: any) => `${i.quantity}x ${i.name}`).join(', ') || '';
+                                            const hasItems = sale.items && sale.items.length > 0;
+                                            const summary = hasItems ? sale.items.map((i: any) => `${i.quantity}x ${i.name}`).join(', ') : (sale.client || sale.description || '');
                                             return (
                                                 <div key={sale.id} className="p-4 md:p-6 hover:bg-zinc-900/30 transition-colors">
                                                     <div className="flex justify-between items-start gap-3">
                                                         <div className="flex-1 min-w-0 cursor-pointer" onClick={() => setExpandedSaleIds(prev => prev[sale.id] ? {} : { [sale.id]: true })}>
                                                             <div className="flex items-center gap-2 flex-wrap">
-                                                                <span className="text-sm font-black uppercase tracking-widest text-[#39FF14]">{sale.sale_number}</span>
+                                                                <span className="text-sm font-black uppercase tracking-widest text-[#39FF14]">{sale.order_number || sale.sale_number}</span>
                                                                 <span className="text-sm text-white/70 font-bold">•</span>
                                                                 <span className="text-sm font-bold uppercase tracking-widest text-white">{new Date(sale.created_at).toLocaleDateString('pt-BR')}</span>
                                                                 <span className="text-sm font-bold uppercase tracking-widest text-white/70">{sale.payment_method}</span>
@@ -2670,8 +2671,33 @@ export default function DashboardPage() {
                                                                     {summary}
                                                                 </p>
                                                             ) : (
-                                                                <div className="mt-2 space-y-1.5">
-                                                                    {sale.items?.map((item: any, idx: number) => (
+                                                                <div className="mt-3 space-y-2">
+                                                                    {sale.client && (
+                                                                        <div className="bg-zinc-900/50 rounded-xl px-3 py-2">
+                                                                            <span className="text-[11px] text-white/50 font-bold uppercase">Cliente: </span>
+                                                                            <span className="text-sm font-bold text-white uppercase">{sale.client}</span>
+                                                                            {sale.client_whatsapp && <span className="text-sm text-white/50 ml-2">• {sale.client_whatsapp}</span>}
+                                                                        </div>
+                                                                    )}
+                                                                    {sale.description && (
+                                                                        <div className="bg-zinc-900/50 rounded-xl px-3 py-2">
+                                                                            <span className="text-[11px] text-white/50 font-bold uppercase">Descrição: </span>
+                                                                            <span className="text-sm font-bold text-white">{sale.description}</span>
+                                                                        </div>
+                                                                    )}
+                                                                    {sale.deadline && (
+                                                                        <div className="bg-zinc-900/50 rounded-xl px-3 py-2">
+                                                                            <span className="text-[11px] text-white/50 font-bold uppercase">Entrega: </span>
+                                                                            <span className="text-sm font-bold text-white">{sale.deadline.split('-').reverse().join('/')}</span>
+                                                                            {sale.delivery_method && <span className="text-sm text-white/50 ml-2">• {sale.delivery_method}</span>}
+                                                                        </div>
+                                                                    )}
+                                                                    {sale.has_production && (
+                                                                        <div className="bg-[#39FF14]/10 rounded-xl px-3 py-2">
+                                                                            <span className="text-sm font-bold text-[#39FF14] uppercase">Em Produção • {sale.status || 'PEDIDO FEITO'}</span>
+                                                                        </div>
+                                                                    )}
+                                                                    {hasItems && sale.items.map((item: any, idx: number) => (
                                                                         <div key={idx} className="flex flex-wrap justify-between text-[13px] bg-zinc-900/50 rounded-xl px-3 py-2 gap-x-4">
                                                                             <span className="font-bold text-white">{item.quantity}x {item.name}</span>
                                                                             <span className="font-bold text-white/70 ml-auto">R$ {((item.sale_price || item.price || 0) * item.quantity).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
