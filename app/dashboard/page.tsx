@@ -243,9 +243,10 @@ export default function DashboardPage() {
     // Real-time Products Fetching
     useEffect(() => {
         if (authChecking) return;
-        const q = query(collection(db, productsCollectionPath), orderBy('name', 'asc'));
+        const q = query(collection(db, productsCollectionPath));
         const unsubscribe = onSnapshot(q, (snapshot: any) => {
             const data = snapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));
+            data.sort((a: any, b: any) => (a.name || '').localeCompare(b.name || '', 'pt-BR', { numeric: true }));
             setProducts(data);
             setStockLoading(false);
         });
