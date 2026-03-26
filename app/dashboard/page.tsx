@@ -1720,14 +1720,14 @@ export default function DashboardPage() {
                                 toast.success(`Apelido alterado para ${newName.trim()}`);
                             }
                         }}
-                        className="hidden md:flex items-center gap-2 text-white text-sm font-black uppercase tracking-widest hover:text-[#39FF14] transition-colors"
+                        className={`hidden md:flex items-center gap-2 text-sm font-black uppercase tracking-widest transition-colors ${isDark ? 'text-white hover:text-[#39FF14]' : 'text-black hover:text-green-600'}`}
                         title="Clique para alterar seu apelido"
                     >
-                        <User size={12} className="text-[#39FF14]" /> {operatorName}
+                        <User size={12} className={isDark ? 'text-[#39FF14]' : 'text-green-600'} /> {operatorName}
                     </button>
                     <button
                         onClick={logout}
-                        className="text-white/70 hover:text-white text-sm font-black uppercase transition-colors"
+                        className={`text-sm font-black uppercase transition-colors ${isDark ? 'text-white/70 hover:text-white' : 'text-gray-500 hover:text-black'}`}
                     >
                         Sair
                     </button>
