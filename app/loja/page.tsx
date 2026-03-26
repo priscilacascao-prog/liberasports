@@ -72,6 +72,10 @@ export default function LojaPage() {
     const [observations, setObservations] = useState('');
     const [deliveryAddress, setDeliveryAddress] = useState('');
     const [deliveryCep, setDeliveryCep] = useState('');
+    const [deliveryNumero, setDeliveryNumero] = useState('');
+    const [deliveryQuadra, setDeliveryQuadra] = useState('');
+    const [deliveryLote, setDeliveryLote] = useState('');
+    const [deliveryComplemento, setDeliveryComplemento] = useState('');
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
     const [selectedSize, setSelectedSize] = useState('');
@@ -169,6 +173,9 @@ export default function LojaPage() {
         if (!user || !clientData || cart.length === 0) return;
         const cepDigits = deliveryCep.replace(/\D/g, '');
         if (cepDigits.length !== 8) { toast.error('Informe um CEP válido'); return; }
+        if (!deliveryNumero.trim()) { toast.error('Informe o número'); return; }
+        if (!deliveryQuadra.trim()) { toast.error('Informe a quadra'); return; }
+        if (!deliveryLote.trim()) { toast.error('Informe o lote'); return; }
         setCheckoutLoading(true);
         try {
             const allSales = await getDocs(query(collection(db, salesPath)));
@@ -181,7 +188,10 @@ export default function LojaPage() {
                 total: cartTotal, value: cartTotal,
                 client: clientData.name, client_whatsapp: clientData.whatsapp || '',
                 cpf_cnpj: clientData.cpf_cnpj || '', client_email: clientData.email || user.email,
-                client_uid: user.uid, delivery_method: deliveryMethod, delivery_cep: cepDigits, delivery_address: deliveryAddress.trim(), payment_method: paymentMethod,
+                client_uid: user.uid, delivery_method: deliveryMethod, delivery_cep: cepDigits,
+                delivery_address: `${deliveryAddress.trim()}, Nº ${deliveryNumero.trim()}, Qd ${deliveryQuadra.trim()}, Lt ${deliveryLote.trim()}${deliveryComplemento.trim() ? ' - ' + deliveryComplemento.trim() : ''}`,
+                delivery_numero: deliveryNumero.trim(), delivery_quadra: deliveryQuadra.trim(), delivery_lote: deliveryLote.trim(), delivery_complemento: deliveryComplemento.trim(),
+                payment_method: paymentMethod,
                 description: observations || cart.map(i => `${i.quantity}x ${i.name}`).join(', '),
                 has_production: true, status: 'AGUARDANDO APROVAÇÃO', source: 'LOJA',
                 created_at: new Date().toISOString(), user_id: user.uid, operator_name: clientData.name,
@@ -463,8 +473,31 @@ export default function LojaPage() {
                                                 className="w-full border border-gray-200 rounded-xl p-2.5 text-sm text-black outline-none focus:border-black" />
                                         </div>
                                         <div>
-                                            <textarea value={deliveryAddress} onChange={e => setDeliveryAddress(e.target.value)} placeholder="Rua, número, bairro, cidade..."
-                                                rows={2} className="w-full border border-gray-200 rounded-xl p-2.5 text-sm text-black outline-none focus:border-black resize-none" />
+                                            <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Endereço (preenchido pelo CEP)</label>
+                                            <input type="text" value={deliveryAddress} onChange={e => setDeliveryAddress(e.target.value)} placeholder="Rua, bairro, cidade..."
+                                                className="w-full border border-gray-200 rounded-xl p-2.5 text-sm text-black outline-none focus:border-black bg-gray-50" />
+                                        </div>
+                                        <div className="grid grid-cols-3 gap-2">
+                                            <div>
+                                                <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Número <span className="text-red-500">*</span></label>
+                                                <input type="text" value={deliveryNumero} onChange={e => setDeliveryNumero(e.target.value)} placeholder="Nº"
+                                                    className="w-full border border-gray-200 rounded-xl p-2.5 text-sm text-black outline-none focus:border-black" required />
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Quadra <span className="text-red-500">*</span></label>
+                                                <input type="text" value={deliveryQuadra} onChange={e => setDeliveryQuadra(e.target.value)} placeholder="Qd"
+                                                    className="w-full border border-gray-200 rounded-xl p-2.5 text-sm text-black outline-none focus:border-black" required />
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Lote <span className="text-red-500">*</span></label>
+                                                <input type="text" value={deliveryLote} onChange={e => setDeliveryLote(e.target.value)} placeholder="Lt"
+                                                    className="w-full border border-gray-200 rounded-xl p-2.5 text-sm text-black outline-none focus:border-black" required />
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Complemento</label>
+                                            <input type="text" value={deliveryComplemento} onChange={e => setDeliveryComplemento(e.target.value)} placeholder="Apt, bloco, referência..."
+                                                className="w-full border border-gray-200 rounded-xl p-2.5 text-sm text-black outline-none focus:border-black" />
                                         </div>
                                         <div>
                                             <label className="block text-xs font-bold uppercase text-black mb-1">Pagamento</label>
