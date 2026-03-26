@@ -527,21 +527,18 @@ export default function LojaPage() {
                                                     </button>
                                                 ))}
                                             </div>
-                                            {paymentMethod === 'CARTÃO CRÉDITO' && cartTotal >= 500 && (
+                                            {paymentMethod === 'CARTÃO CRÉDITO' && (
                                                 <div className="mt-2">
                                                     <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Parcelas</label>
                                                     <div className="grid grid-cols-3 gap-2">
-                                                        {[1, 2, 3].map(n => (
+                                                        {[1, 2, 3, 4, 5, 6].map(n => (
                                                             <button key={n} type="button" onClick={() => setStoreInstallments(n)}
-                                                                className={`py-2 rounded-lg text-xs font-bold uppercase border transition-colors ${storeInstallments === n ? 'border-black bg-black text-white' : 'border-gray-200 text-black hover:border-gray-400'}`}>
-                                                                {n}x de R$ {(cartTotal / n).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                                                className={`py-2 rounded-lg text-xs font-bold border transition-colors ${storeInstallments === n ? 'border-black bg-black text-white' : 'border-gray-200 text-black hover:border-gray-400'}`}>
+                                                                {n}x R$ {(cartTotal / n).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                                             </button>
                                                         ))}
                                                     </div>
                                                 </div>
-                                            )}
-                                            {paymentMethod === 'CARTÃO CRÉDITO' && cartTotal < 500 && (
-                                                <p className="text-xs text-gray-400 mt-1">Parcelamento disponível para compras acima de R$ 500,00</p>
                                             )}
                                         </div>
                                         <div>
