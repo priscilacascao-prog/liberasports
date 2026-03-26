@@ -19,8 +19,8 @@ import {
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
-const workflow = ["PEDIDO FEITO", "GRÁFICA", "CORTE", "COSTURA", "REVISÃO", "EM FASE DE ENTREGA", "PEDIDO ENTREGUE"];
-const displayWorkflow = ["PEDIDO FEITO", "GRÁFICA", "CORTE", "COSTURA", "REVISÃO", "EM FASE DE ENTREGA", "PENDÊNCIA", "PEDIDO ENTREGUE"];
+const workflow = ["AGUARDANDO APROVAÇÃO", "GRÁFICA", "CORTE", "COSTURA", "REVISÃO", "EM FASE DE ENTREGA", "PEDIDO ENTREGUE"];
+const displayWorkflow = ["AGUARDANDO APROVAÇÃO", "GRÁFICA", "CORTE", "COSTURA", "REVISÃO", "EM FASE DE ENTREGA", "PENDÊNCIA", "PEDIDO ENTREGUE"];
 
 const addBusinessDays = (startDate: Date, days: number) => {
     let date = new Date(startDate);
@@ -506,11 +506,11 @@ export default function DashboardPage() {
 
             // Se entra em produção, adicionar workflow
             if (saleEntersProduction) {
-                saleData.status = 'PEDIDO FEITO';
+                saleData.status = 'AGUARDANDO APROVAÇÃO';
                 saleData.order_logs = [{
                     id: crypto.randomUUID(),
                     old_status: 'INÍCIO',
-                    new_status: 'PEDIDO FEITO',
+                    new_status: 'AGUARDANDO APROVAÇÃO',
                     operator_name: operatorName,
                     created_at: new Date().toISOString()
                 }];
@@ -955,10 +955,10 @@ export default function DashboardPage() {
     };
 
     const advanceStep = async (orderId: string, currentStatus: string) => {
-        // Se está aguardando aprovação, avançar para PEDIDO FEITO
-        const nextStatus = currentStatus === 'AGUARDANDO APROVAÇÃO'
-            ? 'PEDIDO FEITO'
-            : (workflow.indexOf(currentStatus) < workflow.length - 1 ? workflow[workflow.indexOf(currentStatus) + 1] : null);
+        const currentIndex = workflow.indexOf(currentStatus);
+        // Para status "PEDIDO FEITO" (legado), tratar como AGUARDANDO APROVAÇÃO
+        const effectiveIndex = currentStatus === 'PEDIDO FEITO' ? 0 : currentIndex;
+        const nextStatus = effectiveIndex >= 0 && effectiveIndex < workflow.length - 1 ? workflow[effectiveIndex + 1] : null;
 
         if (!nextStatus) return;
 
@@ -983,8 +983,8 @@ export default function DashboardPage() {
 
             toast.success(`Pedido avançado para ${nextStatus}`);
 
-            // Se aprovou pedido da loja, enviar WhatsApp com rastreio
-            if (currentStatus === 'AGUARDANDO APROVAÇÃO' && orderData?.client_whatsapp) {
+            // Se aprovou pedido (primeiro passo), enviar WhatsApp com rastreio
+            if ((currentStatus === 'AGUARDANDO APROVAÇÃO' || currentStatus === 'PEDIDO FEITO') && orderData?.client_whatsapp) {
                 const trackingUrl = `${window.location.origin}/rastreio?id=${orderId}`;
                 const whatsappPhone = orderData.client_whatsapp.replace(/\D/g, '');
                 const clientName = (orderData.client || '').trim();
@@ -1380,8 +1380,8 @@ export default function DashboardPage() {
                         <div class="section-title">Evolução do Pedido</div>
                         <div class="stepper">
                             ${(() => {
-                                const steps = ['PEDIDO FEITO', 'GRÁFICA', 'CORTE', 'COSTURA', 'REVISÃO', 'EM FASE DE ENTREGA', 'PEDIDO ENTREGUE'];
-                                const labels: Record<string, string> = { 'PEDIDO FEITO': 'PEDIDO', 'GRÁFICA': 'GRÁFICA', 'CORTE': 'CORTE', 'COSTURA': 'COSTURA', 'REVISÃO': 'REVISÃO', 'EM FASE DE ENTREGA': 'ENVIO', 'PEDIDO ENTREGUE': 'ENTREGUE' };
+                                const steps = ['AGUARDANDO APROVAÇÃO', 'GRÁFICA', 'CORTE', 'COSTURA', 'REVISÃO', 'EM FASE DE ENTREGA', 'PEDIDO ENTREGUE'];
+                                const labels: Record<string, string> = { 'AGUARDANDO APROVAÇÃO': 'APROVAÇÃO', 'GRÁFICA': 'GRÁFICA', 'CORTE': 'CORTE', 'COSTURA': 'COSTURA', 'REVISÃO': 'REVISÃO', 'EM FASE DE ENTREGA': 'ENVIO', 'PEDIDO ENTREGUE': 'ENTREGUE' };
                                 const currentStepIdx = steps.indexOf(order.status);
                                 return steps.map((step, idx) => {
                                     const isCompleted = idx < currentStepIdx;
@@ -2101,7 +2101,8 @@ export default function DashboardPage() {
                                                                 const isCompleted = idx < currentIdx;
                                                                 const isCurrent = idx === currentIdx;
                                                                 const shortNames: Record<string, string> = {
-                                                                    'PEDIDO FEITO': 'PEDIDO',
+                                                                    'AGUARDANDO APROVAÇÃO': 'APROVAÇÃO',
+                                                                    'PEDIDO FEITO': 'APROVAÇÃO',
                                                                     'GRÁFICA': 'GRÁFICA',
                                                                     'CORTE': 'CORTE',
                                                                     'COSTURA': 'COSTURA',
@@ -2858,7 +2859,7 @@ export default function DashboardPage() {
                                                                     )}
                                                                     {(sale.has_production || sale.status) && (
                                                                         <div className="bg-[#39FF14]/10 rounded-xl px-3 py-2">
-                                                                            <span className="text-sm font-bold text-[#39FF14] uppercase">Em Produção • {sale.status || 'PEDIDO FEITO'}</span>
+                                                                            <span className="text-sm font-bold text-[#39FF14] uppercase">Em Produção • {sale.status || 'AGUARDANDO APROVAÇÃO'}</span>
                                                                         </div>
                                                                     )}
                                                                     {hasItems && sale.items.map((item: any, idx: number) => (

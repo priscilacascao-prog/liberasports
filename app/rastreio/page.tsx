@@ -9,10 +9,10 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 
-const workflow = ['PEDIDO FEITO', 'GRAFICA', 'CORTE', 'COSTURA', 'REVISAO', 'EM FASE DE ENTREGA', 'PEDIDO ENTREGUE'];
-const workflowOriginal = ['PEDIDO FEITO', 'GRÁFICA', 'CORTE', 'COSTURA', 'REVISÃO', 'EM FASE DE ENTREGA', 'PEDIDO ENTREGUE'];
+const workflow = ['AGUARDANDO APROVAÇÃO', 'GRAFICA', 'CORTE', 'COSTURA', 'REVISAO', 'EM FASE DE ENTREGA', 'PEDIDO ENTREGUE'];
+const workflowOriginal = ['AGUARDANDO APROVAÇÃO', 'GRÁFICA', 'CORTE', 'COSTURA', 'REVISÃO', 'EM FASE DE ENTREGA', 'PEDIDO ENTREGUE'];
 const stepLabels: Record<string, string> = {
-    'PEDIDO FEITO': 'PEDIDO',
+    'AGUARDANDO APROVAÇÃO': 'APROVAÇÃO',
     'GRÁFICA': 'GRÁFICA',
     'CORTE': 'CORTE',
     'COSTURA': 'COSTURA',
