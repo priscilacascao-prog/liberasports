@@ -3282,6 +3282,21 @@ export default function DashboardPage() {
                                                             </button>
                                                         </>
                                                     )}
+                                                    {item.order_id && (
+                                                    <button onClick={() => {
+                                                        const sale = sales.find((s: any) => s.id === item.order_id);
+                                                        if (sale) {
+                                                            const items = sale.items && sale.items.length > 0
+                                                                ? sale.items.map((i: any) => `${i.quantity}x ${i.name}`).join('\n')
+                                                                : sale.description || 'Sem descrição';
+                                                            alert(`${sale.order_number || ''} - ${sale.client || ''}\n\n${items}`);
+                                                        } else {
+                                                            alert('Pedido não encontrado');
+                                                        }
+                                                    }} className="text-white/70 hover:text-[#39FF14] transition-colors p-3" title="Ver produtos do pedido">
+                                                        <Eye size={22} />
+                                                    </button>
+                                                    )}
                                                     {item.source !== 'GASTO_DO_DIA' && (
                                                     <button onClick={() => {
                                                         setEditingFinanceItem({
