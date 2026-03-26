@@ -93,6 +93,7 @@ export default function DashboardPage() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isPendingModalOpen, setIsPendingModalOpen] = useState(false);
     const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
+    const [pendingViewOrder, setPendingViewOrder] = useState<any>(null);
     const [pendingReason, setPendingReason] = useState('');
     const [userId, setUserId] = useState<string | null>(null);
     const [activeFilter, setActiveFilter] = useState<string | null>(null);
@@ -2059,19 +2060,25 @@ export default function DashboardPage() {
 
                                                     {/* Botões Avançar + Pendência na mesma linha */}
                                                     <div className="flex gap-2 mb-3">
-                                                        {order.status !== 'PEDIDO ENTREGUE' && (
+                                                        {order.status !== 'PEDIDO ENTREGUE' && order.status !== 'PENDÊNCIA' && (
                                                             <button
                                                                 onClick={() => advanceStep(order.id, order.status)}
                                                                 className="flex-1 bg-[#39FF14] text-black px-3 py-2.5 rounded-xl font-black text-sm uppercase hover:scale-[1.01] transition-all shadow-lg shadow-[#39FF14]/10 flex items-center justify-center gap-1.5"
                                                             >
-                                                                {order.status === 'PENDÊNCIA'
-                                                                    ? 'Resolver'
-                                                                    : order.status === 'REVISÃO'
-                                                                        ? 'Finalizar'
-                                                                        : order.status === 'EM FASE DE ENTREGA'
-                                                                            ? 'Confirmar Entrega'
-                                                                            : `Avançar`
+                                                                {order.status === 'REVISÃO'
+                                                                    ? 'Finalizar'
+                                                                    : order.status === 'EM FASE DE ENTREGA'
+                                                                        ? 'Confirmar Entrega'
+                                                                        : `Avançar`
                                                                 } <ArrowRight size={12} />
+                                                            </button>
+                                                        )}
+                                                        {order.status === 'PENDÊNCIA' && (
+                                                            <button
+                                                                onClick={() => { setPendingViewOrder(order); }}
+                                                                className="flex-1 bg-[#FF3D00] text-white px-3 py-2.5 rounded-xl font-black text-sm uppercase hover:scale-[1.01] transition-all shadow-lg shadow-[#FF3D00]/10 flex items-center justify-center gap-1.5"
+                                                            >
+                                                                <AlertCircle size={12} /> Ver Pendência
                                                             </button>
                                                         )}
                                                         {order.status === 'PEDIDO ENTREGUE' && (
@@ -3236,6 +3243,33 @@ export default function DashboardPage() {
                                     ))
                                 )}
                             </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Modal Ver Pendência */}
+                {pendingViewOrder && (
+                    <div className="fixed inset-0 bg-black/95 z-[600] flex items-center justify-center p-4 backdrop-blur-xl">
+                        <div className="bg-zinc-900 w-full max-w-lg p-8 rounded-[32px] border border-red-500/30 shadow-2xl relative text-white">
+                            <button onClick={() => setPendingViewOrder(null)} className="absolute right-6 top-6 text-white hover:text-white transition-colors"><X size={24} /></button>
+                            <div className="text-center mb-6">
+                                <AlertCircle size={48} className="text-[#FF3D00] mx-auto mb-3" />
+                                <h3 className="text-2xl font-black italic uppercase text-[#FF3D00]">Pendência</h3>
+                                <p className="text-white/70 text-sm mt-1">{pendingViewOrder.order_number} — {pendingViewOrder.client || 'Sem cliente'}</p>
+                            </div>
+                            <div className="bg-zinc-950 rounded-xl p-5 mb-6">
+                                <p className="text-xs text-white/50 font-bold uppercase mb-2">Motivo da Pendência</p>
+                                <p className="text-base text-white font-medium leading-relaxed">{pendingViewOrder.pending_reason || 'Sem descrição informada'}</p>
+                            </div>
+                            <button
+                                onClick={() => {
+                                    advanceStep(pendingViewOrder.id, pendingViewOrder.status);
+                                    setPendingViewOrder(null);
+                                }}
+                                className="w-full bg-[#39FF14] text-black py-4 rounded-2xl font-black uppercase text-sm tracking-widest hover:scale-[1.02] transition-all"
+                            >
+                                Resolver Pendência
+                            </button>
                         </div>
                     </div>
                 )}
