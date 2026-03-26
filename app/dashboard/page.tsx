@@ -651,7 +651,7 @@ export default function DashboardPage() {
     };
 
     const handleDeleteSale = async (id: string) => {
-        if (!confirm('Deseja realmente excluir esta venda? Os itens voltarão para o estoque, mas o lançamento NÃO será removido automaticamente do Financeiro. Você deve apagá-lo por lá!')) return;
+        if (!confirm('Deseja realmente excluir esta venda? Os itens voltarão para o estoque e as contas financeiras vinculadas serão excluídas.')) return;
         setLoading(true);
         try {
             const sale = sales.find(s => s.id === id);
@@ -668,9 +668,17 @@ export default function DashboardPage() {
                 }
             }
 
+            // Excluir entradas financeiras vinculadas
+            const finSnap = await getDocs(collection(db, financeCollectionPath));
+            for (const d of finSnap.docs) {
+                if (d.data().order_id === id) {
+                    await deleteDoc(doc(db, financeCollectionPath, d.id));
+                }
+            }
+
             // Deletar documento da venda
             await deleteDoc(doc(db, salesCollectionPath, id));
-            toast.success('Venda excluída e estoque estornado!');
+            toast.success('Venda, estoque e contas financeiras atualizados!');
         } catch (err) {
             console.error(err);
             toast.error('Erro ao excluir venda.');
@@ -1460,12 +1468,19 @@ export default function DashboardPage() {
     };
 
     const handleDeleteOrder = async (id: string, number: string) => {
-        if (!window.confirm(`Tem certeza que deseja EXCLUIR o pedido ${number}? Esta ação não pode ser desfeita.`)) return;
+        if (!window.confirm(`Tem certeza que deseja EXCLUIR o pedido ${number}? A venda e as contas financeiras vinculadas serão excluídas.`)) return;
 
         setLoading(true);
         try {
+            // Excluir entradas financeiras vinculadas
+            const finSnap = await getDocs(collection(db, financeCollectionPath));
+            for (const d of finSnap.docs) {
+                if (d.data().order_id === id) {
+                    await deleteDoc(doc(db, financeCollectionPath, d.id));
+                }
+            }
             await deleteDoc(doc(db, salesCollectionPath, id));
-            toast.success('Pedido excluído com sucesso');
+            toast.success('Pedido e contas financeiras excluídos!');
         } catch (error) {
             console.error('Error deleting order:', error);
             toast.error('Erro ao excluir pedido');
