@@ -443,8 +443,9 @@ export default function LojaPage() {
                                                 <option value="RETIRADA">Retirada</option>
                                             </select>
                                         </div>
+                                        <label className="block text-xs font-bold uppercase text-black mb-1">Endereço de Entrega</label>
                                         <div>
-                                            <label className="block text-xs font-bold uppercase text-black mb-1">CEP <span className="text-red-500">*</span></label>
+                                            <label className="block text-xs font-bold uppercase text-gray-500 mb-1">CEP <span className="text-red-500">*</span></label>
                                             <input type="text" value={deliveryCep} onChange={async e => {
                                                 const v = e.target.value.replace(/\D/g, '').slice(0, 8);
                                                 const formatted = v.length > 5 ? v.replace(/(\d{5})(\d)/, '$1-$2') : v;
@@ -462,7 +463,6 @@ export default function LojaPage() {
                                                 className="w-full border border-gray-200 rounded-xl p-2.5 text-sm text-black outline-none focus:border-black" />
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-bold uppercase text-black mb-1">Endereço de Entrega</label>
                                             <textarea value={deliveryAddress} onChange={e => setDeliveryAddress(e.target.value)} placeholder="Rua, número, bairro, cidade..."
                                                 rows={2} className="w-full border border-gray-200 rounded-xl p-2.5 text-sm text-black outline-none focus:border-black resize-none" />
                                         </div>
