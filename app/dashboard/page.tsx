@@ -1095,6 +1095,7 @@ export default function DashboardPage() {
 
             await updateDoc(orderRef, {
                 status: 'PENDÊNCIA',
+                pending_reason: pendingReason.trim(),
                 order_logs: [...(orderData?.order_logs || []), newLog]
             });
 
