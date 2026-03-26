@@ -96,6 +96,11 @@ export default function MeusPedidosPage() {
                         </div>
                     ))
                 )}
+                <div className="pt-4">
+                    <Link href="/loja" className="block w-full bg-black text-white py-3 rounded-xl text-sm font-bold uppercase text-center hover:bg-gray-900 transition-colors">
+                        Voltar para a Loja
+                    </Link>
+                </div>
             </div>
         </div>
     );
