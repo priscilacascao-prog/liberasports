@@ -15,6 +15,7 @@ const productsPath = `artifacts/${appId}/public/data/produtos`;
 const salesPath = `artifacts/${appId}/public/data/vendas`;
 const financePath = `artifacts/${appId}/public/data/financeiro`;
 const clientesPath = `artifacts/${appId}/public/data/clientes`;
+const fornecedoresPath = `artifacts/${appId}/public/data/fornecedores`;
 
 const addBusinessDays = (startDate: Date, days: number) => {
     let date = new Date(startDate);
@@ -231,6 +232,27 @@ export default function LojaPage() {
                     await updateDoc(pRef, { stock: Math.max(0, (pSnap.data().stock || 0) - item.quantity) });
                 }
             }
+
+            // Cadastrar cliente automaticamente em fornecedores/clientes
+            try {
+                const fornSnap = await getDocs(collection(db, fornecedoresPath));
+                const exists = fornSnap.docs.some(d => {
+                    const data = d.data();
+                    return data.name === clientData.name.toUpperCase() || (clientData.cpf_cnpj && data.cpf_cnpj === clientData.cpf_cnpj);
+                });
+                if (!exists) {
+                    await addDoc(collection(db, fornecedoresPath), {
+                        name: clientData.name.toUpperCase(),
+                        type: 'CLIENTE',
+                        cpf_cnpj: clientData.cpf_cnpj || '',
+                        whatsapp: clientData.whatsapp || '',
+                        email: clientData.email || user.email || '',
+                        created_at: new Date().toISOString(),
+                        user_id: user.uid,
+                        source: 'LOJA',
+                    });
+                }
+            } catch (e) { console.error('Erro ao cadastrar cliente:', e); }
 
             toast.success('Pedido realizado com sucesso!');
             setCart([]); setShowCart(false); setShowCheckout(false); setObservations('');
