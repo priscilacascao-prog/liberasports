@@ -4896,30 +4896,6 @@ export default function DashboardPage() {
                                 >
                                     Cancelar
                                 </button>
-                                <div className="flex-1">
-                                    <label className="block text-sm font-black uppercase tracking-widest mb-2 text-white">Anexar Boleto / Documento</label>
-                                    <div className="flex items-center gap-3">
-                                        {finAttachment ? (
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-sm text-[#39FF14] font-bold flex items-center gap-1"><Paperclip size={14} /> Arquivo anexado</span>
-                                                <button type="button" onClick={() => setFinAttachment('')} className="text-red-400 hover:text-red-300 text-xs font-bold">Remover</button>
-                                            </div>
-                                        ) : (
-                                            <label className="cursor-pointer flex items-center gap-2 bg-zinc-950/80 border border-dashed border-zinc-700 rounded-xl px-4 py-3 hover:border-[#39FF14]/50 transition-all">
-                                                <Paperclip size={16} className="text-white/50" />
-                                                <span className="text-sm font-bold text-white/50">Escolher arquivo (imagem ou PDF, máx 500KB)</span>
-                                                <input type="file" accept="image/*,.pdf" className="hidden" onChange={e => {
-                                                    const file = e.target.files?.[0];
-                                                    if (!file) return;
-                                                    if (file.size > 500000) { toast.error('Arquivo muito grande (máx 500KB)'); return; }
-                                                    const reader = new FileReader();
-                                                    reader.onload = () => setFinAttachment(reader.result as string);
-                                                    reader.readAsDataURL(file);
-                                                }} />
-                                            </label>
-                                        )}
-                                    </div>
-                                </div>
                                 <button
                                     type="submit"
                                     disabled={loading}
