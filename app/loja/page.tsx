@@ -287,7 +287,7 @@ export default function LojaPage() {
                         ) : (
                             <Link href="/loja/login" className="bg-black text-white px-4 py-2 rounded-lg text-sm font-bold">Entrar</Link>
                         )}
-                        <Link href="/loja/meus-pedidos" className="bg-gray-100 text-black p-2.5 rounded-xl hover:bg-gray-200 transition-colors" title="Rastrear Pedido">
+                        <Link href="/loja/meus-pedidos" className="bg-black text-white p-2.5 rounded-xl hover:bg-gray-900 transition-colors" title="Rastrear Pedido">
                             <PackageSearch size={20} />
                         </Link>
                         <button onClick={() => setShowCart(true)} className="relative bg-black text-white p-2.5 rounded-xl hover:bg-gray-900 transition-colors">
