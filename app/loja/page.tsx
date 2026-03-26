@@ -77,6 +77,8 @@ export default function LojaPage() {
     const [deliveryLote, setDeliveryLote] = useState('');
     const [deliveryComplemento, setDeliveryComplemento] = useState('');
     const [storeInstallments, setStoreInstallments] = useState(1);
+    const [deliveryCidade, setDeliveryCidade] = useState('');
+    const [deliveryEstado, setDeliveryEstado] = useState('');
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
     const [selectedSize, setSelectedSize] = useState('');
@@ -190,8 +192,8 @@ export default function LojaPage() {
                 client: clientData.name, client_whatsapp: clientData.whatsapp || '',
                 cpf_cnpj: clientData.cpf_cnpj || '', client_email: clientData.email || user.email,
                 client_uid: user.uid, delivery_method: deliveryMethod, delivery_cep: cepDigits,
-                delivery_address: `${deliveryAddress.trim()}, Nº ${deliveryNumero.trim()}, Qd ${deliveryQuadra.trim()}, Lt ${deliveryLote.trim()}${deliveryComplemento.trim() ? ' - ' + deliveryComplemento.trim() : ''}`,
-                delivery_numero: deliveryNumero.trim(), delivery_quadra: deliveryQuadra.trim(), delivery_lote: deliveryLote.trim(), delivery_complemento: deliveryComplemento.trim(),
+                delivery_address: `${deliveryAddress.trim()}, Nº ${deliveryNumero.trim()}, Qd ${deliveryQuadra.trim()}, Lt ${deliveryLote.trim()} - ${deliveryCidade.trim()}/${deliveryEstado.trim()}${deliveryComplemento.trim() ? ' - ' + deliveryComplemento.trim() : ''}`,
+                delivery_numero: deliveryNumero.trim(), delivery_quadra: deliveryQuadra.trim(), delivery_lote: deliveryLote.trim(), delivery_cidade: deliveryCidade.trim(), delivery_estado: deliveryEstado.trim(), delivery_complemento: deliveryComplemento.trim(),
                 payment_method: paymentMethod,
                 installments: paymentMethod === 'CARTÃO CRÉDITO' ? storeInstallments : 1,
                 description: observations || cart.map(i => `${i.quantity}x ${i.name}`).join(', '),
@@ -467,7 +469,9 @@ export default function LojaPage() {
                                                         const res = await fetch(`https://viacep.com.br/ws/${v}/json/`);
                                                         const data = await res.json();
                                                         if (!data.erro) {
-                                                            setDeliveryAddress(`${data.logradouro || ''}, ${data.bairro || ''} - ${data.localidade || ''}/${data.uf || ''}`);
+                                                            setDeliveryAddress(`${data.logradouro || ''}, ${data.bairro || ''}`);
+                                                            setDeliveryCidade(data.localidade || '');
+                                                            setDeliveryEstado(data.uf || '');
                                                         }
                                                     } catch {}
                                                 }
@@ -494,6 +498,18 @@ export default function LojaPage() {
                                                 <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Lote <span className="text-red-500">*</span></label>
                                                 <input type="text" value={deliveryLote} onChange={e => setDeliveryLote(e.target.value)} placeholder="Lt"
                                                     className="w-full border border-gray-200 rounded-xl p-2.5 text-sm text-black outline-none focus:border-black" required />
+                                            </div>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <div>
+                                                <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Cidade</label>
+                                                <input type="text" value={deliveryCidade} onChange={e => setDeliveryCidade(e.target.value)} placeholder="Cidade"
+                                                    className="w-full border border-gray-200 rounded-xl p-2.5 text-sm text-black outline-none focus:border-black bg-gray-50" />
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Estado</label>
+                                                <input type="text" value={deliveryEstado} onChange={e => setDeliveryEstado(e.target.value)} placeholder="UF"
+                                                    className="w-full border border-gray-200 rounded-xl p-2.5 text-sm text-black outline-none focus:border-black bg-gray-50" />
                                             </div>
                                         </div>
                                         <div>
