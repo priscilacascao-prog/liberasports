@@ -204,6 +204,7 @@ export default function DashboardPage() {
     const [gastoDesc, setGastoDesc] = useState('');
     const [gastoAmount, setGastoAmount] = useState('');
     const [gastoPayMethod, setGastoPayMethod] = useState('PIX');
+    const [finAttachment, setFinAttachment] = useState('');
     const [caixaDateTo, setCaixaDateTo] = useState(new Date().toISOString().split('T')[0]);
     const [editingFinanceId, setEditingFinanceId] = useState<string | null>(null);
     const [editFinAmount, setEditFinAmount] = useState('');
@@ -700,6 +701,7 @@ export default function DashboardPage() {
         setFinInstallmentDates([]);
         setFinDebitDay(new Date().getDate());
         setFinDebitRecurrent(false);
+        setFinAttachment('');
     };
 
     const calcInstallmentDates = (startDate: string, count: number) => {
@@ -726,15 +728,17 @@ export default function DashboardPage() {
         setLoading(true);
         try {
             const totalAmount = parseBRL(finAmount);
-            const baseDoc = {
+            const baseDoc: any = {
                 type: 'OUTFLOW' as const,
                 description: finDesc.toUpperCase(),
                 supplier_name: finSupplier.trim().toUpperCase() || '',
                 payment_method: finPayMethod,
                 observations: finObs,
                 created_at: new Date().toISOString(),
-                user_id: userId
+                user_id: userId,
+                operator_name: operatorName,
             };
+            if (finAttachment) baseDoc.attachment = finAttachment;
 
             if (finPayMethod === 'BOLETO' && finInstallments > 1) {
                 const installmentAmount = totalAmount / finInstallments;
@@ -4892,6 +4896,30 @@ export default function DashboardPage() {
                                 >
                                     Cancelar
                                 </button>
+                                <div className="flex-1">
+                                    <label className="block text-sm font-black uppercase tracking-widest mb-2 text-white">Anexar Boleto / Documento</label>
+                                    <div className="flex items-center gap-3">
+                                        {finAttachment ? (
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-sm text-[#39FF14] font-bold flex items-center gap-1"><Paperclip size={14} /> Arquivo anexado</span>
+                                                <button type="button" onClick={() => setFinAttachment('')} className="text-red-400 hover:text-red-300 text-xs font-bold">Remover</button>
+                                            </div>
+                                        ) : (
+                                            <label className="cursor-pointer flex items-center gap-2 bg-zinc-950/80 border border-dashed border-zinc-700 rounded-xl px-4 py-3 hover:border-[#39FF14]/50 transition-all">
+                                                <Paperclip size={16} className="text-white/50" />
+                                                <span className="text-sm font-bold text-white/50">Escolher arquivo (imagem ou PDF, máx 500KB)</span>
+                                                <input type="file" accept="image/*,.pdf" className="hidden" onChange={e => {
+                                                    const file = e.target.files?.[0];
+                                                    if (!file) return;
+                                                    if (file.size > 500000) { toast.error('Arquivo muito grande (máx 500KB)'); return; }
+                                                    const reader = new FileReader();
+                                                    reader.onload = () => setFinAttachment(reader.result as string);
+                                                    reader.readAsDataURL(file);
+                                                }} />
+                                            </label>
+                                        )}
+                                    </div>
+                                </div>
                                 <button
                                     type="submit"
                                     disabled={loading}
