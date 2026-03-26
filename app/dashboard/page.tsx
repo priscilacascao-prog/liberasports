@@ -3356,7 +3356,7 @@ export default function DashboardPage() {
                                         if (amount <= 0) { toast.error('Informe o valor'); return; }
                                         try {
                                             const today = new Date().toISOString();
-                                            await addDoc(collection(db, financeCollectionPath), {
+                                            const gastoRef = await addDoc(collection(db, financeCollectionPath), {
                                                 type: 'OUTFLOW',
                                                 amount: amount,
                                                 description: gastoDesc.trim().toUpperCase(),
@@ -3370,7 +3370,8 @@ export default function DashboardPage() {
                                                 operator_name: operatorName,
                                                 source: 'GASTO_DO_DIA',
                                             });
-                                            toast.success('Gasto registrado!');
+                                            console.log('Gasto salvo com ID:', gastoRef.id);
+                                            toast.success('Gasto registrado! Veja em Financeiro > Pagas');
                                             setShowGastoModal(false);
                                             setGastoDesc(''); setGastoAmount(''); setGastoPayMethod('PIX');
                                         } catch (err) { console.error(err); toast.error('Erro ao registrar gasto'); }
