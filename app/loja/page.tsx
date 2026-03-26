@@ -76,6 +76,7 @@ export default function LojaPage() {
     const [deliveryQuadra, setDeliveryQuadra] = useState('');
     const [deliveryLote, setDeliveryLote] = useState('');
     const [deliveryComplemento, setDeliveryComplemento] = useState('');
+    const [storeInstallments, setStoreInstallments] = useState(1);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
     const [selectedSize, setSelectedSize] = useState('');
@@ -192,6 +193,7 @@ export default function LojaPage() {
                 delivery_address: `${deliveryAddress.trim()}, Nº ${deliveryNumero.trim()}, Qd ${deliveryQuadra.trim()}, Lt ${deliveryLote.trim()}${deliveryComplemento.trim() ? ' - ' + deliveryComplemento.trim() : ''}`,
                 delivery_numero: deliveryNumero.trim(), delivery_quadra: deliveryQuadra.trim(), delivery_lote: deliveryLote.trim(), delivery_complemento: deliveryComplemento.trim(),
                 payment_method: paymentMethod,
+                installments: paymentMethod === 'CARTÃO CRÉDITO' ? storeInstallments : 1,
                 description: observations || cart.map(i => `${i.quantity}x ${i.name}`).join(', '),
                 has_production: true, status: 'AGUARDANDO APROVAÇÃO', source: 'LOJA',
                 created_at: new Date().toISOString(), user_id: user.uid, operator_name: clientData.name,
@@ -501,14 +503,30 @@ export default function LojaPage() {
                                         </div>
                                         <div>
                                             <label className="block text-xs font-bold uppercase text-black mb-1">Pagamento</label>
-                                            <div className="grid grid-cols-3 gap-2">
-                                                {['PIX', 'BOLETO', 'CARTÃO'].map(m => (
-                                                    <button key={m} type="button" onClick={() => setPaymentMethod(m === 'CARTÃO' ? 'CARTÃO CRÉDITO' : m)}
-                                                        className={`py-2 rounded-lg text-xs font-bold uppercase border transition-colors ${paymentMethod === m || paymentMethod === (m === 'CARTÃO' ? 'CARTÃO CRÉDITO' : m) ? 'border-black bg-black text-white' : 'border-gray-200 text-black hover:border-gray-400'}`}>
-                                                        {m}
+                                            <div className="grid grid-cols-2 gap-2">
+                                                {['PIX', 'CARTÃO CRÉDITO'].map(m => (
+                                                    <button key={m} type="button" onClick={() => { setPaymentMethod(m); if (m === 'PIX') setStoreInstallments(1); }}
+                                                        className={`py-2 rounded-lg text-xs font-bold uppercase border transition-colors ${paymentMethod === m ? 'border-black bg-black text-white' : 'border-gray-200 text-black hover:border-gray-400'}`}>
+                                                        {m === 'CARTÃO CRÉDITO' ? 'Cartão de Crédito' : m}
                                                     </button>
                                                 ))}
                                             </div>
+                                            {paymentMethod === 'CARTÃO CRÉDITO' && cartTotal >= 500 && (
+                                                <div className="mt-2">
+                                                    <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Parcelas</label>
+                                                    <div className="grid grid-cols-3 gap-2">
+                                                        {[1, 2, 3].map(n => (
+                                                            <button key={n} type="button" onClick={() => setStoreInstallments(n)}
+                                                                className={`py-2 rounded-lg text-xs font-bold uppercase border transition-colors ${storeInstallments === n ? 'border-black bg-black text-white' : 'border-gray-200 text-black hover:border-gray-400'}`}>
+                                                                {n}x de R$ {(cartTotal / n).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+                                            {paymentMethod === 'CARTÃO CRÉDITO' && cartTotal < 500 && (
+                                                <p className="text-xs text-gray-400 mt-1">Parcelamento disponível para compras acima de R$ 500,00</p>
+                                            )}
                                         </div>
                                         <div>
                                             <label className="block text-xs font-bold uppercase text-black mb-1">Observações</label>
