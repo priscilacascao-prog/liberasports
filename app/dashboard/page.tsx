@@ -2630,7 +2630,7 @@ export default function DashboardPage() {
                                             <label className="block text-[11px] font-black uppercase tracking-widest text-white mb-1">Método de Entrega</label>
                                             <select value={saleDeliveryMethod} onChange={e => setSaleDeliveryMethod(e.target.value as any)} className="w-full bg-zinc-950/80 border-transparent rounded-xl p-3 text-white outline-none focus:ring-1 focus:ring-[#39FF14] text-sm font-bold appearance-none">
                                                 <option value="MOTOBOY">MOTOBOY</option>
-                                                <option value="TRANSPORTADORA">TRANSPORTADORA</option>
+                                                <option value="CORREIOS/TRANSPORTADORA">CORREIOS/TRANSPORTADORA</option>
                                                 <option value="RETIRADA">RETIRADA</option>
                                             </select>
                                         </div>
@@ -3826,7 +3826,7 @@ export default function DashboardPage() {
                                             className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all appearance-none"
                                         >
                                             <option value="MOTOBOY">MOTOBOY</option>
-                                            <option value="TRANSPORTADORA">TRANSPORTADORA</option>
+                                            <option value="CORREIOS/TRANSPORTADORA">CORREIOS/TRANSPORTADORA</option>
                                             <option value="RETIRADA">RETIRADA</option>
                                         </select>
                                     </div>

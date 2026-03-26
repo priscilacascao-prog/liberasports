@@ -71,6 +71,7 @@ export default function LojaPage() {
     const [paymentMethod, setPaymentMethod] = useState('PIX');
     const [observations, setObservations] = useState('');
     const [deliveryAddress, setDeliveryAddress] = useState('');
+    const [deliveryCep, setDeliveryCep] = useState('');
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
     const [selectedSize, setSelectedSize] = useState('');
@@ -166,6 +167,8 @@ export default function LojaPage() {
 
     const handleCheckout = async () => {
         if (!user || !clientData || cart.length === 0) return;
+        const cepDigits = deliveryCep.replace(/\D/g, '');
+        if (cepDigits.length !== 8) { toast.error('Informe um CEP válido'); return; }
         setCheckoutLoading(true);
         try {
             const allSales = await getDocs(query(collection(db, salesPath)));
@@ -178,7 +181,7 @@ export default function LojaPage() {
                 total: cartTotal, value: cartTotal,
                 client: clientData.name, client_whatsapp: clientData.whatsapp || '',
                 cpf_cnpj: clientData.cpf_cnpj || '', client_email: clientData.email || user.email,
-                client_uid: user.uid, delivery_method: deliveryMethod, delivery_address: deliveryAddress.trim(), payment_method: paymentMethod,
+                client_uid: user.uid, delivery_method: deliveryMethod, delivery_cep: cepDigits, delivery_address: deliveryAddress.trim(), payment_method: paymentMethod,
                 description: observations || cart.map(i => `${i.quantity}x ${i.name}`).join(', '),
                 has_production: true, status: 'AGUARDANDO APROVAÇÃO', source: 'LOJA',
                 created_at: new Date().toISOString(), user_id: user.uid, operator_name: clientData.name,
@@ -436,9 +439,17 @@ export default function LojaPage() {
                                             <select value={deliveryMethod} onChange={e => setDeliveryMethod(e.target.value)}
                                                 className="w-full border border-gray-200 rounded-xl p-2.5 text-sm font-medium text-black outline-none focus:border-black">
                                                 <option value="MOTOBOY">Motoboy</option>
-                                                <option value="TRANSPORTADORA">Transportadora</option>
+                                                <option value="CORREIOS/TRANSPORTADORA">Correios/Transportadora</option>
                                                 <option value="RETIRADA">Retirada</option>
                                             </select>
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-bold uppercase text-black mb-1">CEP <span className="text-red-500">*</span></label>
+                                            <input type="text" value={deliveryCep} onChange={e => {
+                                                const v = e.target.value.replace(/\D/g, '').slice(0, 8);
+                                                setDeliveryCep(v.length > 5 ? v.replace(/(\d{5})(\d)/, '$1-$2') : v);
+                                            }} placeholder="00000-000" required
+                                                className="w-full border border-gray-200 rounded-xl p-2.5 text-sm text-black outline-none focus:border-black" />
                                         </div>
                                         <div>
                                             <label className="block text-xs font-bold uppercase text-black mb-1">Endereço de Entrega</label>
