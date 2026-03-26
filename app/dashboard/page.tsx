@@ -760,7 +760,7 @@ export default function DashboardPage() {
                         amount: Math.round(installmentAmount * 100) / 100,
                         description: `${finDesc.toUpperCase()} (${i + 1}/${finInstallments})`,
                         status: 'A PAGAR',
-                        due_date: '',
+                        due_date: finInstallmentDates[i] || finDueDate,
                     });
                 }
             } else {
@@ -768,7 +768,7 @@ export default function DashboardPage() {
                     ...baseDoc,
                     amount: totalAmount,
                     status: 'A PAGAR',
-                    due_date: finPayMethod === 'CARTÃO CRÉDITO' ? '' : finDueDate,
+                    due_date: finDueDate,
                 };
                 if (finPayMethod === 'CARTÃO DÉBITO') {
                     entry.debit_recurrent = finDebitRecurrent;
@@ -4810,7 +4810,7 @@ export default function DashboardPage() {
 
                             {/* CARTÃO CRÉDITO */}
                             {finPayMethod === 'CARTÃO CRÉDITO' && (
-                                <div className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-200">
+                                <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
                                     <div>
                                         <label className="block text-sm font-black uppercase tracking-widest mb-2 text-white">Número de Parcelas</label>
                                         <input
@@ -4818,16 +4818,60 @@ export default function DashboardPage() {
                                             min={1}
                                             max={12}
                                             value={finInstallments}
-                                            onChange={e => setFinInstallments(Math.max(1, parseInt(e.target.value) || 1))}
+                                            onChange={e => {
+                                                const count = Math.max(1, parseInt(e.target.value) || 1);
+                                                setFinInstallments(count);
+                                                if (count > 1 && finDueDate) {
+                                                    setFinInstallmentDates(calcInstallmentDates(finDueDate, count));
+                                                }
+                                            }}
                                             className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all font-bold"
                                         />
                                     </div>
-                                    {finInstallments > 1 && finAmount && (
-                                        <p className="text-sm text-white/70 font-bold px-1">
-                                            {finInstallments}x de R$ {(parseBRL(finAmount || '0') / finInstallments).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                                        </p>
+                                    <div>
+                                        <label className="block text-sm font-black uppercase tracking-widest mb-2 text-white">
+                                            {finInstallments > 1 ? 'Vencimento da 1ª Parcela' : 'Data de Vencimento'}
+                                        </label>
+                                        <input
+                                            type="date"
+                                            value={finDueDate}
+                                            onChange={e => {
+                                                setFinDueDate(e.target.value);
+                                                if (finInstallments > 1) {
+                                                    setFinInstallmentDates(calcInstallmentDates(e.target.value, finInstallments));
+                                                }
+                                            }}
+                                            required
+                                            className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all font-bold [color-scheme:dark]"
+                                        />
+                                    </div>
+                                    {finInstallments > 1 && finInstallmentDates.length > 0 && (
+                                        <div className="bg-zinc-950 rounded-2xl p-4 border border-zinc-800">
+                                            <p className="text-sm font-black uppercase tracking-widest text-white mb-3">Vencimento das Parcelas</p>
+                                            <div className="space-y-2">
+                                                {finInstallmentDates.map((date, i) => (
+                                                    <div key={i} className="flex items-center justify-between gap-2">
+                                                        <span className="text-sm font-black text-white/70 uppercase shrink-0">
+                                                            {i + 1}ª parcela
+                                                        </span>
+                                                        <input
+                                                            type="date"
+                                                            value={date}
+                                                            onChange={e => {
+                                                                const updated = [...finInstallmentDates];
+                                                                updated[i] = e.target.value;
+                                                                setFinInstallmentDates(updated);
+                                                            }}
+                                                            className="bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-[13px] font-bold text-white outline-none focus:border-[#39FF14] [color-scheme:dark]"
+                                                        />
+                                                        <span className="text-sm text-white/70 font-bold shrink-0">
+                                                            R$ {(parseBRL(finAmount || '0') / finInstallments).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                                        </span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
                                     )}
-                                    <p className="text-sm text-white/70 italic px-1">O pagamento seguirá o ciclo de faturamento do cartão.</p>
                                 </div>
                             )}
 
