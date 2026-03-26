@@ -3272,9 +3272,6 @@ export default function DashboardPage() {
                                                         </span>
                                                     ) : (
                                                         <>
-                                                            <span className={`text-sm font-black uppercase px-3 py-1 rounded-full ${item.status === 'ATRASADO' ? 'bg-red-500/20 text-red-400' : 'bg-orange-500/20 text-orange-400'}`}>
-                                                                {item.status}
-                                                            </span>
                                                             <button
                                                                 onClick={() => handleUpdateFinanceEntry(item.id, {
                                                                     status: item.type === 'OUTFLOW' ? 'PAGO' : 'RECEBIDO',
@@ -3282,7 +3279,7 @@ export default function DashboardPage() {
                                                                 })}
                                                                 className={`text-sm font-black uppercase px-3 py-1 rounded-full transition-all hover:scale-105 ${item.type === 'OUTFLOW' ? 'bg-green-500 text-black' : 'bg-[#39FF14] text-black'}`}
                                                             >
-                                                                {item.type === 'OUTFLOW' ? 'PAGAR' : 'RECEBER'}
+                                                                {item.type === 'OUTFLOW' ? 'PAGO' : 'RECEBIDO'}
                                                             </button>
                                                         </>
                                                     )}
