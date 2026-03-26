@@ -7,7 +7,7 @@ import {
     TrendingUp, Truck, User, History, MessageSquare, Info, Filter,
     Loader2, ChevronDown, ChevronUp, MessageCircle, Pencil, FileText, Trash2,
     Store, ShoppingCart, Wallet, BarChart3, Settings, Layers, Box, DollarSign,
-    ArrowUpCircle, ArrowDownCircle, ArrowUpRight, ArrowDownLeft, PlusCircle, Home, Copy, Sun, Moon, Eye
+    ArrowUpCircle, ArrowDownCircle, ArrowUpRight, ArrowDownLeft, PlusCircle, Home, Copy, Sun, Moon, Eye, Paperclip
 } from 'lucide-react';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
@@ -3221,6 +3221,39 @@ export default function DashboardPage() {
                                                             {item.created_at ? new Date(item.created_at).toLocaleDateString('pt-BR') + ' ' + new Date(item.created_at).toLocaleTimeString('pt-BR') : ''}
                                                             {item.operator_name ? ` • ${item.operator_name}` : ''}
                                                         </p>
+                                                        {/* Anexo */}
+                                                        <div className="flex items-center gap-2 mt-1.5">
+                                                            {item.attachment ? (
+                                                                <button onClick={() => {
+                                                                    if (item.attachment.startsWith('data:image')) {
+                                                                        const w = window.open(''); if (w) { w.document.write(`<img src="${item.attachment}" style="max-width:100%">`); w.document.close(); }
+                                                                    } else if (item.attachment.startsWith('data:application/pdf')) {
+                                                                        const w = window.open(''); if (w) { w.document.write(`<iframe src="${item.attachment}" style="width:100%;height:100vh;border:none"></iframe>`); w.document.close(); }
+                                                                    }
+                                                                }} className="text-[11px] font-bold text-blue-400 hover:text-blue-300 flex items-center gap-1">
+                                                                    <Paperclip size={10} /> Ver anexo
+                                                                </button>
+                                                            ) : (
+                                                                (financeView === 'A PAGAR' || financeView === 'PAGAS') && (
+                                                                    <label className="text-[11px] font-bold text-white/30 hover:text-white/60 flex items-center gap-1 cursor-pointer">
+                                                                        <Paperclip size={10} /> Anexar
+                                                                        <input type="file" accept="image/*,.pdf" className="hidden" onChange={async (e) => {
+                                                                            const file = e.target.files?.[0];
+                                                                            if (!file) return;
+                                                                            if (file.size > 500000) { toast.error('Arquivo muito grande (máx 500KB)'); return; }
+                                                                            const reader = new FileReader();
+                                                                            reader.onload = async () => {
+                                                                                try {
+                                                                                    await updateDoc(doc(db, financeCollectionPath, item.id), { attachment: reader.result as string });
+                                                                                    toast.success('Anexo salvo!');
+                                                                                } catch (err) { toast.error('Erro ao salvar anexo'); }
+                                                                            };
+                                                                            reader.readAsDataURL(file);
+                                                                        }} />
+                                                                    </label>
+                                                                )
+                                                            )}
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
