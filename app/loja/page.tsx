@@ -445,9 +445,19 @@ export default function LojaPage() {
                                         </div>
                                         <div>
                                             <label className="block text-xs font-bold uppercase text-black mb-1">CEP <span className="text-red-500">*</span></label>
-                                            <input type="text" value={deliveryCep} onChange={e => {
+                                            <input type="text" value={deliveryCep} onChange={async e => {
                                                 const v = e.target.value.replace(/\D/g, '').slice(0, 8);
-                                                setDeliveryCep(v.length > 5 ? v.replace(/(\d{5})(\d)/, '$1-$2') : v);
+                                                const formatted = v.length > 5 ? v.replace(/(\d{5})(\d)/, '$1-$2') : v;
+                                                setDeliveryCep(formatted);
+                                                if (v.length === 8) {
+                                                    try {
+                                                        const res = await fetch(`https://viacep.com.br/ws/${v}/json/`);
+                                                        const data = await res.json();
+                                                        if (!data.erro) {
+                                                            setDeliveryAddress(`${data.logradouro || ''}, ${data.bairro || ''} - ${data.localidade || ''}/${data.uf || ''}`);
+                                                        }
+                                                    } catch {}
+                                                }
                                             }} placeholder="00000-000" required
                                                 className="w-full border border-gray-200 rounded-xl p-2.5 text-sm text-black outline-none focus:border-black" />
                                         </div>
