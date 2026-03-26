@@ -7,7 +7,7 @@ import {
     TrendingUp, Truck, User, History, MessageSquare, Info, Filter,
     Loader2, ChevronDown, ChevronUp, MessageCircle, Pencil, FileText, Trash2,
     Store, ShoppingCart, Wallet, BarChart3, Settings, Layers, Box, DollarSign,
-    ArrowUpCircle, ArrowDownCircle, ArrowUpRight, ArrowDownLeft, PlusCircle, Home, Copy, Sun, Moon
+    ArrowUpCircle, ArrowDownCircle, ArrowUpRight, ArrowDownLeft, PlusCircle, Home, Copy, Sun, Moon, Eye
 } from 'lucide-react';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
@@ -2112,9 +2112,14 @@ export default function DashboardPage() {
                                                             </span>
                                                         </div>
                                                         <div className="flex items-center gap-2">
-                                                            <button onClick={() => { toast.info('Edição completa em breve'); }}
-                                                                className="p-4 rounded-xl bg-zinc-950 border border-zinc-900 text-white/70 hover:text-white transition-all" title="Editar">
-                                                                <Pencil size={22} />
+                                                            <button onClick={() => {
+                                                                const items = order.items && order.items.length > 0
+                                                                    ? order.items.map((i: any) => `${i.quantity}x ${i.name}`).join('\n')
+                                                                    : order.description || 'Sem descrição';
+                                                                alert(`${order.order_number}\n\n${items}`);
+                                                            }}
+                                                                className="p-4 rounded-xl bg-zinc-950 border border-zinc-900 text-white/70 hover:text-[#39FF14] transition-all" title="Ver produtos">
+                                                                <Eye size={22} />
                                                             </button>
                                                             <button onClick={() => handlePrintOrder(order)}
                                                                 className="p-4 rounded-xl bg-zinc-950 border border-zinc-900 text-white/70 hover:text-[#39FF14] transition-all" title="PDF">
