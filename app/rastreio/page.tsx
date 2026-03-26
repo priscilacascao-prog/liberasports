@@ -144,7 +144,7 @@ function TrackingContent() {
                             <Truck size={16} className="text-[#39FF14]" />
                             <div>
                                 <p className="text-white/70 text-xs font-bold uppercase">Envio</p>
-                                <p className="text-sm font-bold text-white break-words">{order.delivery_method}</p>
+                                <p className="text-sm font-bold text-white">{(order.delivery_method || '').includes('/') ? order.delivery_method.split('/').map((part: string, i: number) => <span key={i}>{i > 0 && <br />}{part}</span>) : order.delivery_method}</p>
                             </div>
                         </div>
                     </div>
