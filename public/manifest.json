@@ -1,21 +1,25 @@
 {
-    "name": "Libera Sports",
-    "short_name": "Libera",
-    "description": "Gestão Profissional de Varejo e Produção",
-    "start_url": "/",
+    "name": "Libera Sports - Loja",
+    "short_name": "Libera Sports",
+    "description": "Loja Online - Vista Libera e viva a liberdade",
+    "start_url": "/loja",
+    "scope": "/",
     "display": "standalone",
-    "background_color": "#000000",
+    "background_color": "#f9fafb",
     "theme_color": "#000000",
+    "orientation": "portrait",
     "icons": [
         {
             "src": "/logo.png",
             "sizes": "192x192",
-            "type": "image/png"
+            "type": "image/png",
+            "purpose": "any maskable"
         },
         {
             "src": "/logo.png",
             "sizes": "512x512",
-            "type": "image/png"
+            "type": "image/png",
+            "purpose": "any maskable"
         }
     ]
 }
