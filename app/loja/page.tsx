@@ -429,7 +429,7 @@ export default function LojaPage() {
                             )}
                         </div>
                         {cart.length > 0 && (
-                            <div className="p-4 border-t border-gray-100">
+                            <div className="p-4 border-t border-gray-100 overflow-y-auto max-h-[70vh]">
                                 {!showCheckout ? (
                                     <>
                                         <div className="flex justify-between mb-4">
