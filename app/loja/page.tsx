@@ -6,7 +6,7 @@ import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { collection, query, getDocs, addDoc, doc, getDoc, updateDoc } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { ShoppingCart, Plus, Minus, Trash2, X, Loader2, LogOut, Package, History, Search } from 'lucide-react';
+import { ShoppingCart, Plus, Minus, Trash2, X, Loader2, LogOut, Package, History, PackageSearch } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -288,7 +288,7 @@ export default function LojaPage() {
                             <Link href="/loja/login" className="bg-black text-white px-4 py-2 rounded-lg text-sm font-bold">Entrar</Link>
                         )}
                         <Link href="/loja/meus-pedidos" className="bg-gray-100 text-black p-2.5 rounded-xl hover:bg-gray-200 transition-colors" title="Rastrear Pedido">
-                            <Search size={20} />
+                            <PackageSearch size={20} />
                         </Link>
                         <button onClick={() => setShowCart(true)} className="relative bg-black text-white p-2.5 rounded-xl hover:bg-gray-900 transition-colors">
                             <ShoppingCart size={20} />
