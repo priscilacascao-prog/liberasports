@@ -3267,9 +3267,17 @@ export default function DashboardPage() {
                                                 </p>
                                                 <div className="flex items-center gap-1.5">
                                                     {item.status === 'PAGO' || item.status === 'RECEBIDO' ? (
-                                                        <span className="text-sm font-black uppercase px-3 py-1 rounded-full bg-green-500/20 text-green-400">
-                                                            {item.status} {item.paid_at ? `em ${new Date(item.paid_at).toLocaleDateString('pt-BR')}` : ''}
-                                                        </span>
+                                                        <label className="text-sm font-black uppercase px-3 py-1 rounded-full bg-green-500/20 text-green-400 cursor-pointer hover:bg-green-500/30 transition-colors flex items-center gap-1">
+                                                            {item.status} em {item.paid_at ? new Date(item.paid_at).toLocaleDateString('pt-BR') : ''}
+                                                            <input type="date" className="opacity-0 absolute w-0 h-0" value={item.paid_at ? item.paid_at.split('T')[0] : ''} onChange={async (e) => {
+                                                                if (e.target.value) {
+                                                                    try {
+                                                                        await updateDoc(doc(db, financeCollectionPath, item.id), { paid_at: new Date(e.target.value + 'T12:00:00').toISOString() });
+                                                                        toast.success('Data de pagamento atualizada!');
+                                                                    } catch (err) { toast.error('Erro ao atualizar data'); }
+                                                                }
+                                                            }} />
+                                                        </label>
                                                     ) : (
                                                         <>
                                                             <button
