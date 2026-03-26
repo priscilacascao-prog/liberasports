@@ -197,6 +197,7 @@ export default function DashboardPage() {
     const [financeFilterYear, setFinanceFilterYear] = useState(new Date().getFullYear());
     const [financeFilterMonth, setFinanceFilterMonth] = useState(-1);
     const [financeDateFrom, setFinanceDateFrom] = useState('');
+    const [financeSearchTerm, setFinanceSearchTerm] = useState('');
     const [financeDateTo, setFinanceDateTo] = useState('');
     const [financeGrouping, setFinanceGrouping] = useState<'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY'>('DAILY');
     const [caixaDateFrom, setCaixaDateFrom] = useState(new Date().toISOString().split('T')[0]);
@@ -3173,6 +3174,16 @@ export default function DashboardPage() {
                                 </div>
                             </div>
 
+                            <div className="px-4 md:px-6 pb-3">
+                                <input
+                                    type="text"
+                                    value={financeSearchTerm}
+                                    onChange={e => setFinanceSearchTerm(e.target.value)}
+                                    placeholder="Buscar por fornecedor, descrição..."
+                                    className="w-full bg-zinc-950/80 border border-zinc-800 rounded-xl p-3 text-white outline-none focus:border-[#39FF14] transition-colors text-sm font-bold placeholder:text-zinc-600"
+                                />
+                            </div>
+
                             <div className="divide-y divide-zinc-900">
                                 {(() => {
                                     const filtered = financialItems.filter(item => {
@@ -3198,6 +3209,12 @@ export default function DashboardPage() {
                                         if (y !== financeFilterYear) return false;
                                         if (financeFilterMonth === -1) return true;
                                         return (m - 1) === financeFilterMonth;
+                                    }).filter(item => {
+                                        if (!financeSearchTerm) return true;
+                                        const search = financeSearchTerm.toLowerCase();
+                                        return (item.description || '').toLowerCase().includes(search) ||
+                                            (item.supplier_name || '').toLowerCase().includes(search) ||
+                                            (item.payment_method || '').toLowerCase().includes(search);
                                     }).sort((a: any, b: any) => {
                                         if (financeView === 'PAGAS' || financeView === 'RECEBIDAS') {
                                             const dateA = new Date(a.paid_at || a.created_at).getTime();
