@@ -1776,7 +1776,7 @@ export default function DashboardPage() {
 
                         {/* Frase motivacional */}
                         <div className="text-center max-w-lg animate-fade-in-up-delay">
-                            <p className="text-white/70 text-lg md:text-2xl font-light italic leading-relaxed tracking-wide"><span className="tracking-normal">&ldquo;</span>{phrase}<span className="tracking-normal">&rdquo;</span></p>
+                            <p className="text-white/70 text-lg md:text-2xl font-light italic leading-relaxed tracking-wide"><span className="tracking-normal">&ldquo; </span>{phrase}<span className="tracking-normal">&rdquo;</span></p>
                             <div className="mt-6 w-12 h-[2px] bg-zinc-800 mx-auto rounded-full" />
                             <p className="mt-4 text-zinc-800 text-[13px] font-black uppercase tracking-[0.3em]">
                                 Libera Sports
