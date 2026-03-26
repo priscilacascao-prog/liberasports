@@ -174,6 +174,10 @@ export default function DashboardPage() {
     const [financeDateTo, setFinanceDateTo] = useState('');
     const [financeGrouping, setFinanceGrouping] = useState<'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY'>('DAILY');
     const [caixaDateFrom, setCaixaDateFrom] = useState(new Date().toISOString().split('T')[0]);
+    const [showGastoModal, setShowGastoModal] = useState(false);
+    const [gastoDesc, setGastoDesc] = useState('');
+    const [gastoAmount, setGastoAmount] = useState('');
+    const [gastoPayMethod, setGastoPayMethod] = useState('PIX');
     const [caixaDateTo, setCaixaDateTo] = useState(new Date().toISOString().split('T')[0]);
     const [editingFinanceId, setEditingFinanceId] = useState<string | null>(null);
     const [editFinAmount, setEditFinAmount] = useState('');
@@ -3266,6 +3270,70 @@ export default function DashboardPage() {
                     </div>
                 )}
 
+                {/* Modal Gastos do Dia */}
+                {showGastoModal && (
+                    <div className="fixed inset-0 bg-black/95 z-[600] flex items-center justify-center p-4 backdrop-blur-xl">
+                        <div className="bg-zinc-900 w-full max-w-md p-8 rounded-[32px] border border-zinc-800 shadow-2xl relative text-white">
+                            <button onClick={() => setShowGastoModal(false)} className="absolute right-6 top-6 text-white hover:text-white transition-colors"><X size={24} /></button>
+                            <h3 className="text-2xl font-black italic uppercase text-red-500 mb-1 flex items-center gap-2"><DollarSign size={24} /> Gastos do Dia</h3>
+                            <p className="text-white/70 text-sm mb-6">Registre uma saída rápida do caixa</p>
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-black uppercase tracking-widest mb-2">Descrição</label>
+                                    <input type="text" value={gastoDesc} onChange={e => setGastoDesc(e.target.value)} placeholder="Ex: Almoço, Gasolina, Material..."
+                                        className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-red-500 font-bold placeholder:text-zinc-600" />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-black uppercase tracking-widest mb-2">Valor (R$)</label>
+                                    <input type="text" value={gastoAmount} onChange={e => setGastoAmount(formatCurrency(e.target.value))} placeholder="0,00"
+                                        className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-red-500 font-bold placeholder:text-zinc-600" />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-black uppercase tracking-widest mb-2">Forma de Pagamento</label>
+                                    <div className="grid grid-cols-3 gap-2">
+                                        {['PIX', 'DINHEIRO', 'CARTÃO'].map(m => (
+                                            <button key={m} type="button" onClick={() => setGastoPayMethod(m)}
+                                                className={`py-3 rounded-xl font-black uppercase text-xs tracking-widest transition-all ${gastoPayMethod === m ? 'bg-red-500 text-white' : 'bg-zinc-950 text-white border border-zinc-800 hover:border-zinc-700'}`}>
+                                                {m}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={async () => {
+                                        if (!gastoDesc.trim()) { toast.error('Informe a descrição'); return; }
+                                        const amount = parseBRL(gastoAmount);
+                                        if (amount <= 0) { toast.error('Informe o valor'); return; }
+                                        try {
+                                            const today = new Date().toISOString();
+                                            await addDoc(collection(db, financeCollectionPath), {
+                                                type: 'OUTFLOW',
+                                                amount: amount,
+                                                description: gastoDesc.trim().toUpperCase(),
+                                                payment_method: gastoPayMethod,
+                                                status: 'PAGO',
+                                                paid_at: today,
+                                                created_at: today,
+                                                transaction_date: today,
+                                                due_date: today,
+                                                user_id: userId,
+                                                operator_name: operatorName,
+                                                source: 'GASTO_DO_DIA',
+                                            });
+                                            toast.success('Gasto registrado!');
+                                            setShowGastoModal(false);
+                                            setGastoDesc(''); setGastoAmount(''); setGastoPayMethod('PIX');
+                                        } catch (err) { console.error(err); toast.error('Erro ao registrar gasto'); }
+                                    }}
+                                    className="w-full bg-red-500 text-white py-4 rounded-2xl font-black uppercase text-sm tracking-widest hover:scale-[1.02] transition-all"
+                                >
+                                    Registrar Gasto
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {/* Modal Ver Pendência */}
                 {pendingViewOrder && (
                     <div className="fixed inset-0 bg-black/95 z-[600] flex items-center justify-center p-4 backdrop-blur-xl">
@@ -3492,6 +3560,12 @@ export default function DashboardPage() {
                                 <h1 className="text-4xl font-black italic uppercase tracking-tighter">FLUXO DE CAIXA</h1>
                                 <p className="text-white text-sm mt-1">Visão geral de entradas e saídas</p>
                             </div>
+                            <button
+                                onClick={() => { setGastoDesc(''); setGastoAmount(''); setGastoPayMethod('PIX'); setShowGastoModal(true); }}
+                                className="bg-red-500 text-white px-6 py-3 rounded-2xl font-black uppercase text-sm hover:scale-105 transition-all shadow-lg shadow-red-500/20 flex items-center gap-2"
+                            >
+                                <DollarSign size={16} /> Gastos do Dia
+                            </button>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
