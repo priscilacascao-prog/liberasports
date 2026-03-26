@@ -16,6 +16,16 @@ const salesPath = `artifacts/${appId}/public/data/vendas`;
 const financePath = `artifacts/${appId}/public/data/financeiro`;
 const clientesPath = `artifacts/${appId}/public/data/clientes`;
 
+const addBusinessDays = (startDate: Date, days: number) => {
+    let date = new Date(startDate);
+    let addedDays = 0;
+    while (addedDays < days) {
+        date.setDate(date.getDate() + 1);
+        if (date.getDay() !== 0 && date.getDay() !== 6) addedDays++;
+    }
+    return date.toISOString().split('T')[0];
+};
+
 const sizeOrder: Record<string, number> = { 'BB': 0, 'PP': 1, 'P': 2, 'M': 3, 'G': 4, 'GG': 5, 'XG': 6, 'XXG': 7, 'EG': 8, 'EXG': 9 };
 
 function extractInfo(name: string) {
@@ -199,6 +209,7 @@ export default function LojaPage() {
                 payment_method: paymentMethod,
                 installments: paymentMethod === 'CARTÃO CRÉDITO' ? storeInstallments : 1,
                 description: observations || cart.map(i => `${i.quantity}x ${i.name}`).join(', '),
+                deadline: addBusinessDays(new Date(), 20),
                 has_production: true, status: 'AGUARDANDO APROVAÇÃO', source: 'LOJA',
                 created_at: new Date().toISOString(), user_id: user.uid, operator_name: clientData.name,
                 order_logs: [{ id: crypto.randomUUID(), old_status: 'INÍCIO', new_status: 'AGUARDANDO APROVAÇÃO', operator_name: clientData.name, created_at: new Date().toISOString() }]

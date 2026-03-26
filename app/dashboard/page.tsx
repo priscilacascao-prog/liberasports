@@ -120,7 +120,7 @@ export default function DashboardPage() {
     const [saleWhatsapp, setSaleWhatsapp] = useState('');
     const [saleCpfCnpj, setSaleCpfCnpj] = useState('');
     const [saleCpfCnpjError, setSaleCpfCnpjError] = useState('');
-    const [saleDeadline, setSaleDeadline] = useState('');
+    const [saleDeadline, setSaleDeadline] = useState(addBusinessDays(new Date(), 20));
     const [saleDeliveryMethod, setSaleDeliveryMethod] = useState<'MOTOBOY' | 'TRANSPORTADORA' | 'RETIRADA'>('MOTOBOY');
     const [saleDeliveryAddress, setSaleDeliveryAddress] = useState('');
     const [saleBoletoQty, setSaleBoletoQty] = useState(1);
@@ -599,7 +599,7 @@ export default function DashboardPage() {
             setSaleWhatsapp('');
             setSaleCpfCnpj('');
             setSaleCpfCnpjError('');
-            setSaleDeadline('');
+            setSaleDeadline(addBusinessDays(new Date(), 20));
             setSaleDeliveryMethod('MOTOBOY');
             setSaleDeliveryAddress('');
             setSaleDescription('');
