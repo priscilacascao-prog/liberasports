@@ -3198,8 +3198,10 @@ export default function DashboardPage() {
                                             const dateB = new Date(b.paid_at || b.created_at).getTime();
                                             return dateB - dateA;
                                         }
-                                        const priority: Record<string, number> = { ATRASADO: 0, 'A PAGAR': 1, 'A RECEBER': 1, PENDENTE: 1, PAGO: 2, RECEBIDO: 2 };
-                                        return (priority[a.status] ?? 1) - (priority[b.status] ?? 1);
+                                        // Ordenar por vencimento (mais antigo primeiro)
+                                        const dateA = new Date(a.due_date || a.transaction_date || a.created_at).getTime();
+                                        const dateB = new Date(b.due_date || b.transaction_date || b.created_at).getTime();
+                                        return dateA - dateB;
                                     });
 
                                     if (filtered.length === 0) {
