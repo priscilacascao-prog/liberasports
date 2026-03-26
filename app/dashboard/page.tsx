@@ -571,6 +571,7 @@ export default function DashboardPage() {
                         payment_method: 'BOLETO',
                         order_id: docRef.id,
                         user_id: userId,
+                        operator_name: operatorName,
                     });
                 }
             } else {
@@ -1162,12 +1163,14 @@ export default function DashboardPage() {
                 type: 'INFLOW',
                 amount: totalValue,
                 description: `${prefix}${desc}`,
+                payment_method: payMethod,
                 status: 'RECEBIDO',
                 created_at: new Date().toISOString(),
                 transaction_date: baseDate.toISOString(),
                 due_date: baseDate.toISOString(),
                 order_id: orderId,
-                user_id: uid
+                user_id: uid,
+                operator_name: operatorName,
             });
         } else if (payMethod === 'CARTÃO CRÉDITO') {
             const installmentValue = totalValue / installmentsCount;
@@ -1179,12 +1182,14 @@ export default function DashboardPage() {
                     type: 'INFLOW',
                     amount: installmentValue,
                     description: installmentsCount > 1 ? `${prefix}${desc} (Parcela ${i}/${installmentsCount})` : `${prefix}${desc}`,
+                    payment_method: payMethod,
                     status: 'A RECEBER',
                     created_at: new Date().toISOString(),
                     transaction_date: baseDate.toISOString(),
                     due_date: installmentsCount > 1 ? dueDate.toISOString() : (new Date(baseDate.setDate(baseDate.getDate() + 30)).toISOString()),
                     order_id: orderId,
-                    user_id: uid
+                    user_id: uid,
+                    operator_name: operatorName,
                 });
             }
         } else {
@@ -1192,12 +1197,14 @@ export default function DashboardPage() {
                 type: 'INFLOW',
                 amount: totalValue,
                 description: `${prefix}${desc}`,
+                payment_method: payMethod,
                 status: 'A RECEBER',
                 created_at: new Date().toISOString(),
                 transaction_date: baseDate.toISOString(),
                 due_date: baseDate.toISOString(),
                 order_id: orderId,
-                user_id: uid
+                user_id: uid,
+                operator_name: operatorName,
             });
         }
     };
@@ -3212,7 +3219,7 @@ export default function DashboardPage() {
                                                         {item.observations && <p className="text-sm text-white/70 italic mt-0.5" style={{wordBreak: 'break-all'}}>{item.observations}</p>}
                                                         <p className="text-[11px] text-white/40 mt-1">
                                                             {item.created_at ? new Date(item.created_at).toLocaleDateString('pt-BR') + ' ' + new Date(item.created_at).toLocaleTimeString('pt-BR') : ''}
-                                                            {item.operator_name && ` • ${item.operator_name}`}
+                                                            {item.operator_name ? ` • ${item.operator_name}` : ''}
                                                         </p>
                                                     </div>
                                                 </div>
