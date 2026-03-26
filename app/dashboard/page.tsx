@@ -2066,11 +2066,13 @@ export default function DashboardPage() {
                                                                 onClick={() => advanceStep(order.id, order.status)}
                                                                 className="flex-1 bg-[#39FF14] text-black px-3 py-2.5 rounded-xl font-black text-sm uppercase hover:scale-[1.01] transition-all shadow-lg shadow-[#39FF14]/10 flex items-center justify-center gap-1.5"
                                                             >
-                                                                {order.status === 'REVISÃO'
-                                                                    ? 'Finalizar'
-                                                                    : order.status === 'EM FASE DE ENTREGA'
-                                                                        ? 'Confirmar Entrega'
-                                                                        : `Avançar`
+                                                                {order.status === 'AGUARDANDO APROVAÇÃO' || order.status === 'PEDIDO FEITO'
+                                                                    ? 'Aprovar'
+                                                                    : order.status === 'REVISÃO'
+                                                                        ? 'Finalizar'
+                                                                        : order.status === 'EM FASE DE ENTREGA'
+                                                                            ? 'Confirmar Entrega'
+                                                                            : 'Avançar'
                                                                 } <ArrowRight size={12} />
                                                             </button>
                                                         )}
