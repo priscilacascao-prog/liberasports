@@ -250,9 +250,12 @@ export default function DashboardPage() {
         return () => unsubscribe();
     }, [authChecking]);
 
-    // Real-time Products Fetching
+    // Products - carrega sob demanda (VENDAS ou ESTOQUE)
+    const productsLoadedRef = React.useRef(false);
     useEffect(() => {
-        if (authChecking) return;
+        if (authChecking || productsLoadedRef.current) return;
+        if (activeTab !== 'VENDAS' && activeTab !== 'ESTOQUE') return;
+        productsLoadedRef.current = true;
         const q = query(collection(db, productsCollectionPath));
         const unsubscribe = onSnapshot(q, (snapshot: any) => {
             const data = snapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));
@@ -279,18 +282,20 @@ export default function DashboardPage() {
             setStockLoading(false);
         });
         return () => unsubscribe();
-    }, [authChecking]);
+    }, [authChecking, activeTab]);
 
-    // Real-time Finance Fetching
+    // Finance - carrega sob demanda (FINANCEIRO ou CAIXA)
+    const financeLoadedRef = React.useRef(false);
     useEffect(() => {
-        if (authChecking) return;
+        if (authChecking || financeLoadedRef.current) return;
+        financeLoadedRef.current = true;
         const q = query(collection(db, financeCollectionPath), orderBy('created_at', 'desc'));
         const unsubscribe = onSnapshot(q, (snapshot: any) => {
             const data = snapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));
             setFinancialItems(data);
         });
         return () => unsubscribe();
-    }, [authChecking]);
+    }, [authChecking, activeTab]);
 
     // Auto-mark overdue financial items as ATRASADO (runs once on load)
     const overdueCheckedRef = React.useRef(false);
@@ -329,26 +334,33 @@ export default function DashboardPage() {
         }
     }, [financialItems]);
 
-    // Real-time Contas a Pagar Fetching
+    // Contas a Pagar - carrega sob demanda (CAIXA)
+    const contasLoadedRef = React.useRef(false);
     useEffect(() => {
-        if (authChecking) return;
+        if (authChecking || contasLoadedRef.current) return;
+        if (activeTab !== 'CAIXA') return;
+        contasLoadedRef.current = true;
         const q = query(collection(db, contasAPagarPath), orderBy('created_at', 'desc'));
         const unsubscribe = onSnapshot(q, (snapshot: any) => {
             const data = snapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));
             setContasAPagar(data);
         });
         return () => unsubscribe();
-    }, [authChecking]);
+    }, [authChecking, activeTab]);
 
+    // Fornecedores - carrega sob demanda (FINANCEIRO ou VENDAS)
+    const fornecedoresLoadedRef = React.useRef(false);
     useEffect(() => {
-        if (authChecking) return;
+        if (authChecking || fornecedoresLoadedRef.current) return;
+        if (activeTab !== 'FINANCEIRO' && activeTab !== 'VENDAS') return;
+        fornecedoresLoadedRef.current = true;
         const q = query(collection(db, fornecedoresCollectionPath), orderBy('name', 'asc'));
         const unsubscribe = onSnapshot(q, (snapshot: any) => {
             const data = snapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));
             setFornecedores(data);
         });
         return () => unsubscribe();
-    }, [authChecking]);
+    }, [authChecking, activeTab]);
 
     useEffect(() => {
         if (isModalOpen) {
