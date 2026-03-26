@@ -7,7 +7,7 @@ import {
     TrendingUp, Truck, User, History, MessageSquare, Info, Filter,
     Loader2, ChevronDown, ChevronUp, MessageCircle, Pencil, FileText, Trash2,
     Store, ShoppingCart, Wallet, BarChart3, Settings, Layers, Box, DollarSign,
-    ArrowUpCircle, ArrowDownCircle, ArrowUpRight, ArrowDownLeft, PlusCircle, Home, Copy
+    ArrowUpCircle, ArrowDownCircle, ArrowUpRight, ArrowDownLeft, PlusCircle, Home, Copy, Sun, Moon
 } from 'lucide-react';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
@@ -36,6 +36,32 @@ const addBusinessDays = (startDate: Date, days: number) => {
 
 export default function DashboardPage() {
     const router = useRouter();
+
+    // Theme
+    const [isDark, setIsDark] = useState(true);
+    useEffect(() => {
+        const saved = localStorage.getItem('libera_theme');
+        if (saved === 'light') setIsDark(false);
+    }, []);
+    const toggleTheme = () => {
+        const next = !isDark;
+        setIsDark(next);
+        localStorage.setItem('libera_theme', next ? 'dark' : 'light');
+    };
+    const t = {
+        bg: isDark ? 'bg-black' : 'bg-gray-50',
+        text: isDark ? 'text-white' : 'text-gray-900',
+        textMuted: isDark ? 'text-white/70' : 'text-gray-500',
+        accent: isDark ? 'text-[#39FF14]' : 'text-green-600',
+        accentBg: isDark ? 'bg-[#39FF14]' : 'bg-green-600',
+        accentText: isDark ? 'text-black' : 'text-white',
+        card: isDark ? 'bg-zinc-950 border-zinc-900' : 'bg-white border-gray-200',
+        cardHover: isDark ? 'hover:border-zinc-800' : 'hover:border-gray-300',
+        input: isDark ? 'bg-zinc-950/80 border-transparent text-white placeholder:text-zinc-600' : 'bg-gray-100 border-gray-200 text-gray-900 placeholder:text-gray-400',
+        nav: isDark ? 'bg-black border-zinc-900' : 'bg-white border-gray-200',
+        divider: isDark ? 'divide-zinc-900' : 'divide-gray-200',
+        border: isDark ? 'border-zinc-900' : 'border-gray-200',
+    };
 
     // Core App State
     const [operatorName, setOperatorName] = useState('');
@@ -1668,16 +1694,23 @@ export default function DashboardPage() {
     });
 
     return (
-        <div className="min-h-screen bg-black text-white selection:bg-[#39FF14] selection:text-black font-sans pb-20">
+        <div className={`min-h-screen ${t.bg} ${t.text} selection:bg-[#39FF14] selection:text-black font-sans pb-20 transition-colors duration-300`}>
             {/* Navbar */}
-            <nav className="px-6 py-4 border-b border-zinc-900 bg-black sticky top-0 z-50 flex justify-between items-center">
+            <nav className={`px-6 py-4 border-b ${t.border} ${t.nav} sticky top-0 z-50 flex justify-between items-center transition-colors duration-300`}>
                 <button
                     onClick={() => setActiveTab('HOME')}
-                    className="font-black text-xl italic uppercase flex items-center gap-2 tracking-tighter text-white pl-1 hover:text-[#39FF14] transition-colors"
+                    className={`font-black text-xl italic uppercase flex items-center gap-2 tracking-tighter pl-1 hover:text-[#39FF14] transition-colors ${t.text}`}
                 >
                     LIBERA SPORTS
                 </button>
-                <div className="flex items-center gap-6">
+                <div className="flex items-center gap-4">
+                    <button
+                        onClick={toggleTheme}
+                        className={`p-2 rounded-xl transition-all hover:scale-110 ${isDark ? 'text-yellow-400 hover:bg-yellow-400/10' : 'text-gray-600 hover:bg-gray-200'}`}
+                        title={isDark ? 'Modo claro' : 'Modo escuro'}
+                    >
+                        {isDark ? <Sun size={18} /> : <Moon size={18} />}
+                    </button>
                     <button
                         onClick={() => {
                             const newName = prompt('Seu apelido:', operatorName);
@@ -1809,10 +1842,10 @@ export default function DashboardPage() {
             {/* Tab Navigation (visible when NOT on HOME) */}
             {activeTab !== 'HOME' && (
                 <div className="max-w-5xl mx-auto px-4 md:px-6 mt-4 md:mt-6">
-                    <div className="flex gap-1.5 p-1.5 bg-zinc-950 rounded-2xl border border-zinc-900 overflow-x-auto mask-fade">
+                    <div className={`flex gap-1.5 p-1.5 rounded-2xl border overflow-x-auto mask-fade ${t.card}`}>
                         <button
                             onClick={() => setActiveTab('HOME')}
-                            className="flex items-center justify-center px-5 py-4 rounded-xl font-black uppercase text-sm tracking-widest transition-all text-white hover:text-white hover:bg-zinc-900 shrink-0"
+                            className={`flex items-center justify-center px-5 py-4 rounded-xl font-black uppercase text-sm tracking-widest transition-all shrink-0 ${t.text} ${isDark ? 'hover:bg-zinc-900' : 'hover:bg-gray-100'}`}
                         >
                             <Home size={20} />
                         </button>
@@ -1832,8 +1865,8 @@ export default function DashboardPage() {
                                     className={`
                                         flex-1 flex items-center justify-center gap-2 px-5 py-4 rounded-xl font-black uppercase text-sm tracking-wider transition-all shrink-0
                                         ${isActive
-                                            ? 'bg-[#39FF14] text-black shadow-lg shadow-[#39FF14]/20'
-                                            : 'text-white hover:text-white hover:bg-zinc-900'
+                                            ? `${t.accentBg} ${t.accentText} shadow-lg`
+                                            : `${t.text} ${isDark ? 'hover:bg-zinc-900' : 'hover:bg-gray-100'}`
                                         }
                                     `}
                                 >
