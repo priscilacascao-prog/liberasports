@@ -175,10 +175,12 @@ export default function LojaPage() {
     const handleCheckout = async () => {
         if (!user || !clientData || cart.length === 0) return;
         const cepDigits = deliveryCep.replace(/\D/g, '');
-        if (cepDigits.length !== 8) { toast.error('Informe um CEP válido'); return; }
-        if (!deliveryNumero.trim()) { toast.error('Informe o número'); return; }
-        if (!deliveryQuadra.trim()) { toast.error('Informe a quadra'); return; }
-        if (!deliveryLote.trim()) { toast.error('Informe o lote'); return; }
+        if (deliveryMethod !== 'RETIRADA') {
+            if (cepDigits.length !== 8) { toast.error('Informe um CEP válido'); return; }
+            if (!deliveryNumero.trim()) { toast.error('Informe o número'); return; }
+            if (!deliveryQuadra.trim()) { toast.error('Informe a quadra'); return; }
+            if (!deliveryLote.trim()) { toast.error('Informe o lote'); return; }
+        }
         setCheckoutLoading(true);
         try {
             const allSales = await getDocs(query(collection(db, salesPath)));
@@ -459,6 +461,7 @@ export default function LojaPage() {
                                                 <option value="RETIRADA">Retirada</option>
                                             </select>
                                         </div>
+                                        {deliveryMethod !== 'RETIRADA' && (<>
                                         <label className="block text-xs font-bold uppercase text-black mb-1">Endereço de Entrega</label>
                                         <div>
                                             <label className="block text-xs font-bold uppercase text-gray-500 mb-1">CEP <span className="text-red-500">*</span></label>
@@ -519,6 +522,7 @@ export default function LojaPage() {
                                             <input type="text" value={deliveryComplemento} onChange={e => setDeliveryComplemento(e.target.value)} placeholder="Apt, bloco, referência..."
                                                 className="w-full border border-gray-200 rounded-xl p-2.5 text-sm text-black outline-none focus:border-black" />
                                         </div>
+                                        </>)}
                                         <div>
                                             <label className="block text-xs font-bold uppercase text-black mb-1">Pagamento</label>
                                             <div className="grid grid-cols-2 gap-2">
