@@ -3210,6 +3210,10 @@ export default function DashboardPage() {
                                                             {item.payment_method && <span className="ml-1.5 text-white/70">• {item.payment_method}</span>}
                                                         </p>
                                                         {item.observations && <p className="text-sm text-white/70 italic mt-0.5" style={{wordBreak: 'break-all'}}>{item.observations}</p>}
+                                                        <p className="text-[11px] text-white/40 mt-1">
+                                                            {item.created_at ? new Date(item.created_at).toLocaleDateString('pt-BR') + ' ' + new Date(item.created_at).toLocaleTimeString('pt-BR') : ''}
+                                                            {item.operator_name && ` • ${item.operator_name}`}
+                                                        </p>
                                                     </div>
                                                 </div>
                                             </div>
