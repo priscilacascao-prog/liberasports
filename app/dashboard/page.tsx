@@ -1627,6 +1627,12 @@ export default function DashboardPage() {
             return method;
         };
 
+        items.sort((a: any, b: any) => {
+            const dateA = new Date(a.due_date || a.transaction_date || a.created_at).getTime();
+            const dateB = new Date(b.due_date || b.transaction_date || b.created_at).getTime();
+            return dateA - dateB;
+        });
+
         const rowsHtml = items.map((i, idx) => `
             <tr style="background:${idx % 2 === 0 ? '#fff' : '#f9f9f9'}">
                 <td style="padding:6px 8px;font-size:11px;border-bottom:1px solid #eee;">${(i.description || '').substring(0, 60)}</td>
