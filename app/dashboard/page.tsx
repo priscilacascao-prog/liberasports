@@ -3218,6 +3218,7 @@ export default function DashboardPage() {
                                                             </button>
                                                         </>
                                                     )}
+                                                    {item.source !== 'GASTO_DO_DIA' && (
                                                     <button onClick={() => {
                                                         setEditingFinanceItem({
                                                             ...item,
@@ -3230,6 +3231,7 @@ export default function DashboardPage() {
                                                     }} className="text-white/70 hover:text-[#39FF14] transition-colors p-3" title="Editar conta">
                                                         <Pencil size={22} />
                                                     </button>
+                                                    )}
                                                     <button onClick={async () => {
                                                         try {
                                                             await deleteDoc(doc(db, financeCollectionPath, item.id));
