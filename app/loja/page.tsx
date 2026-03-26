@@ -363,7 +363,8 @@ export default function LojaPage() {
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <button onClick={() => setSelectedQty(Math.max(1, selectedQty - 1))} className="w-9 h-9 rounded-lg bg-orange-500 text-white flex items-center justify-center hover:bg-orange-600"><Minus size={16} /></button>
-                                        <span className="text-lg font-black w-8 text-center text-black">{selectedQty}</span>
+                                        <input type="number" value={selectedQty} onChange={e => { const v = parseInt(e.target.value) || 0; setSelectedQty(Math.max(0, Math.min(selectedVariant.stock, v))); }} onBlur={() => { if (selectedQty <= 0) setSelectedQty(1); }}
+                                            className="w-14 h-9 rounded-lg border border-gray-200 text-black text-center text-lg font-black outline-none focus:border-black" />
                                         <button onClick={() => setSelectedQty(Math.min(selectedVariant.stock, selectedQty + 1))} className="w-9 h-9 rounded-lg bg-orange-500 text-white flex items-center justify-center hover:bg-orange-600"><Plus size={16} /></button>
                                     </div>
                                 </div>
@@ -417,7 +418,8 @@ export default function LojaPage() {
                                             <p className="text-sm font-bold text-gray-500">R$ {item.sale_price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                                             <div className="flex items-center gap-2 mt-2">
                                                 <button onClick={() => updateQty(item.id, item.quantity - 1)} className="w-7 h-7 rounded-lg bg-black text-white flex items-center justify-center hover:bg-gray-800"><Minus size={14} /></button>
-                                                <span className="text-sm font-black w-6 text-center text-black">{item.quantity}</span>
+                                                <input type="number" value={item.quantity} onChange={e => { const v = parseInt(e.target.value) || 0; updateQty(item.id, Math.min(item.stock, v)); }} onBlur={() => { if (item.quantity <= 0) updateQty(item.id, 1); }}
+                                                    className="w-12 h-7 rounded-lg border border-gray-200 text-black text-center text-sm font-black outline-none focus:border-black" />
                                                 <button onClick={() => updateQty(item.id, item.quantity + 1)} className="w-7 h-7 rounded-lg bg-black text-white flex items-center justify-center hover:bg-gray-800"><Plus size={14} /></button>
                                                 <button onClick={() => setCart(cart.filter(i => i.id !== item.id))} className="ml-auto text-gray-400 hover:text-red-500"><Trash2 size={16} /></button>
                                             </div>
