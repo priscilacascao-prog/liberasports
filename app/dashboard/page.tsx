@@ -3244,7 +3244,7 @@ export default function DashboardPage() {
                                                         <p className="text-base font-black text-white uppercase" style={{wordBreak: 'break-all'}}>{item.description}</p>
                                                         {item.supplier_name && <p className="text-sm font-bold text-[#39FF14]/70 uppercase mt-0.5">{item.supplier_name}</p>}
                                                         <p className="text-sm text-white font-semibold uppercase mt-0.5">
-                                                            Venc: {new Date(item.due_date || item.transaction_date || item.created_at).toLocaleDateString('pt-BR')}
+                                                            Venc: {((item.due_date || item.transaction_date || item.created_at) || '').split('T')[0].split('-').reverse().join('/')}
                                                             {item.payment_method && <span className="ml-1.5 text-white/70">• {item.payment_method}</span>}
                                                         </p>
                                                         {item.observations && <p className="text-sm text-white/70 italic mt-0.5" style={{wordBreak: 'break-all'}}>{item.observations}</p>}
@@ -3531,7 +3531,7 @@ export default function DashboardPage() {
                                             </p>
                                         </div>
                                         <p className="text-xs text-white/70 mt-1">
-                                            Venc: {new Date(item.due_date || item.created_at).toLocaleDateString('pt-BR')}
+                                            Venc: {((item.due_date || item.created_at) || '').split('T')[0].split('-').reverse().join('/')}
                                             {item.status === 'ATRASADO' && <span className="ml-2 text-red-400 font-bold">ATRASADA</span>}
                                         </p>
                                     </div>
