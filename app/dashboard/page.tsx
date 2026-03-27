@@ -335,7 +335,8 @@ export default function DashboardPage() {
     useEffect(() => {
         if (overdueCheckedRef.current || financialItems.length === 0) return;
         overdueCheckedRef.current = true;
-        const today = new Date().toISOString().split('T')[0];
+        const now = new Date();
+        const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
         financialItems.forEach(item => {
             if ((item.status === 'A PAGAR' || item.status === 'A RECEBER' || item.status === 'PENDENTE') && item.due_date) {
                 const dueDatePart = item.due_date.split('T')[0];
@@ -352,7 +353,8 @@ export default function DashboardPage() {
         if (reminderCheckedRef.current || financialItems.length === 0) return;
         if (typeof window !== 'undefined' && sessionStorage.getItem('payment_reminder_shown')) return;
         reminderCheckedRef.current = true;
-        const today = new Date().toISOString().split('T')[0];
+        const nowR = new Date();
+        const today = `${nowR.getFullYear()}-${String(nowR.getMonth() + 1).padStart(2, '0')}-${String(nowR.getDate()).padStart(2, '0')}`;
         const dueTodayOrOverdue = financialItems.filter(item => {
             if (item.type !== 'OUTFLOW') return false;
             if (item.status === 'PAGO') return false;
