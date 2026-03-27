@@ -3202,15 +3202,9 @@ export default function DashboardPage() {
                                             ? (item.paid_at || item.due_date || item.transaction_date || item.created_at)
                                             : (item.due_date || item.transaction_date || item.created_at);
                                         const datePart = dateStr.split('T')[0];
-                                        if (financeDateFrom || financeDateTo) {
-                                            if (financeDateFrom && datePart < financeDateFrom) return false;
-                                            if (financeDateTo && datePart > financeDateTo) return false;
-                                            return true;
-                                        }
-                                        const [y, m] = datePart.split('-').map(Number);
-                                        if (y !== financeFilterYear) return false;
-                                        if (financeFilterMonth === -1) return true;
-                                        return (m - 1) === financeFilterMonth;
+                                        if (financeDateFrom && datePart < financeDateFrom) return false;
+                                        if (financeDateTo && datePart > financeDateTo) return false;
+                                        return true;
                                     }).filter(item => {
                                         if (!financeSearchTerm) return true;
                                         const search = financeSearchTerm.toLowerCase();
