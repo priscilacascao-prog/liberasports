@@ -338,11 +338,16 @@ export default function DashboardPage() {
         const now = new Date();
         const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
         financialItems.forEach(item => {
-            if ((item.status === 'A PAGAR' || item.status === 'A RECEBER' || item.status === 'PENDENTE') && item.due_date) {
-                const dueDatePart = item.due_date.split('T')[0];
-                if (dueDatePart < today) {
-                    handleUpdateFinanceEntry(item.id, { status: 'ATRASADO' });
-                }
+            if (!item.due_date) return;
+            const dueDatePart = item.due_date.split('T')[0];
+            // Marcar como atrasado se venceu
+            if ((item.status === 'A PAGAR' || item.status === 'A RECEBER' || item.status === 'PENDENTE') && dueDatePart < today) {
+                handleUpdateFinanceEntry(item.id, { status: 'ATRASADO' });
+            }
+            // Corrigir: se está ATRASADO mas vencimento é futuro, voltar status
+            if (item.status === 'ATRASADO' && dueDatePart >= today) {
+                const correctStatus = item.type === 'OUTFLOW' ? 'A PAGAR' : 'A RECEBER';
+                handleUpdateFinanceEntry(item.id, { status: correctStatus });
             }
         });
     }, [financialItems]);
