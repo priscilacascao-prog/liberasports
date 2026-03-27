@@ -3615,6 +3615,30 @@ export default function DashboardPage() {
                                         payment_method: editingFinanceItem.editPayMethod,
                                         observations: editingFinanceItem.editObs,
                                     });
+
+                                    // Se é parcela, atualizar datas das parcelas subsequentes
+                                    const parcelaMatch = editingFinanceItem.editDesc.match(/\((\d+)\/(\d+)\)/);
+                                    if (parcelaMatch) {
+                                        const currentParcela = parseInt(parcelaMatch[1]);
+                                        const totalParcelas = parseInt(parcelaMatch[2]);
+                                        const baseDesc = editingFinanceItem.editDesc.replace(/\(\d+\/\d+\)/, '').trim().toUpperCase();
+                                        const newDate = new Date(editingFinanceItem.editDueDate + 'T12:00:00');
+
+                                        for (let i = currentParcela + 1; i <= totalParcelas; i++) {
+                                            const nextDate = new Date(newDate);
+                                            nextDate.setMonth(nextDate.getMonth() + (i - currentParcela));
+                                            const sibling = financialItems.find((fi: any) =>
+                                                fi.description && fi.description.toUpperCase().includes(baseDesc) &&
+                                                fi.description.includes(`(${i}/${totalParcelas})`)
+                                            );
+                                            if (sibling) {
+                                                await updateDoc(doc(db, financeCollectionPath, sibling.id), {
+                                                    due_date: nextDate.toISOString().split('T')[0],
+                                                });
+                                            }
+                                        }
+                                    }
+
                                     toast.success('Conta atualizada!');
                                     setEditingFinanceItem(null);
                                 } catch (err) {
