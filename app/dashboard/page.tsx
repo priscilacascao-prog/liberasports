@@ -707,11 +707,13 @@ export default function DashboardPage() {
 
     const calcInstallmentDates = (startDate: string, count: number) => {
         const dates: string[] = [];
-        const base = new Date(startDate + 'T12:00:00');
+        const [year, month, day] = startDate.split('-').map(Number);
         for (let i = 0; i < count; i++) {
-            const d = new Date(base);
-            d.setMonth(d.getMonth() + i);
-            dates.push(d.toISOString().split('T')[0]);
+            const d = new Date(year, month - 1 + i, day);
+            const yy = d.getFullYear();
+            const mm = String(d.getMonth() + 1).padStart(2, '0');
+            const dd = String(d.getDate()).padStart(2, '0');
+            dates.push(`${yy}-${mm}-${dd}`);
         }
         return dates;
     };
@@ -3622,18 +3624,21 @@ export default function DashboardPage() {
                                         const currentParcela = parseInt(parcelaMatch[1]);
                                         const totalParcelas = parseInt(parcelaMatch[2]);
                                         const baseDesc = editingFinanceItem.editDesc.replace(/\(\d+\/\d+\)/, '').trim().toUpperCase();
-                                        const newDate = new Date(editingFinanceItem.editDueDate + 'T12:00:00');
+                                        const [baseYear, baseMonth, baseDay] = editingFinanceItem.editDueDate.split('-').map(Number);
 
                                         for (let i = currentParcela + 1; i <= totalParcelas; i++) {
-                                            const nextDate = new Date(newDate);
-                                            nextDate.setMonth(nextDate.getMonth() + (i - currentParcela));
+                                            const nextDate = new Date(baseYear, baseMonth - 1 + (i - currentParcela), baseDay);
+                                            const yy = nextDate.getFullYear();
+                                            const mm = String(nextDate.getMonth() + 1).padStart(2, '0');
+                                            const dd = String(nextDate.getDate()).padStart(2, '0');
+                                            const nextDateStr = `${yy}-${mm}-${dd}`;
                                             const sibling = financialItems.find((fi: any) =>
                                                 fi.description && fi.description.toUpperCase().includes(baseDesc) &&
                                                 fi.description.includes(`(${i}/${totalParcelas})`)
                                             );
                                             if (sibling) {
                                                 await updateDoc(doc(db, financeCollectionPath, sibling.id), {
-                                                    due_date: nextDate.toISOString().split('T')[0],
+                                                    due_date: nextDateStr,
                                                 });
                                             }
                                         }
