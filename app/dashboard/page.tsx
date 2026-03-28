@@ -19,6 +19,14 @@ import {
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
+// Emails autorizados a acessar o dashboard
+const AUTHORIZED_EMAILS = [
+    'priscilacascao@gmail.com',
+    'priscilacascao@gmailc.om',
+    'alanna@liberasports.com',
+    // Adicione mais emails aqui
+];
+
 const workflow = ["AGUARDANDO APROVAÇÃO", "GRÁFICA", "CORTE", "COSTURA", "REVISÃO", "EM FASE DE ENTREGA", "PEDIDO ENTREGUE"];
 const displayWorkflow = ["AGUARDANDO APROVAÇÃO", "GRÁFICA", "CORTE", "COSTURA", "REVISÃO", "EM FASE DE ENTREGA", "PENDÊNCIA", "PEDIDO ENTREGUE"];
 
@@ -245,6 +253,10 @@ export default function DashboardPage() {
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user: any) => {
             if (!user) {
+                router.push('/');
+            } else if (!AUTHORIZED_EMAILS.includes(user.email?.toLowerCase())) {
+                toast.error('Acesso não autorizado');
+                signOut(auth);
                 router.push('/');
             } else {
                 setUserId(user.uid);

@@ -3,11 +3,17 @@
 import React, { useState, useEffect } from 'react';
 import { LogIn, UserPlus, Loader2 } from 'lucide-react';
 import { auth } from '@/lib/firebase';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
 import Image from 'next/image';
+
+const AUTHORIZED_EMAILS = [
+    'priscilacascao@gmail.com',
+    'priscilacascao@gmailc.om',
+    'alanna@liberasports.com',
+];
 
 export default function LoginPage() {
   const router = useRouter();
@@ -46,12 +52,23 @@ export default function LoginPage() {
 
     try {
       if (isRegistering) {
+        if (!AUTHORIZED_EMAILS.includes(email.trim().toLowerCase())) {
+          toast.error('Este e-mail não está autorizado a acessar o sistema.');
+          setAuthLoading(false);
+          return;
+        }
         const userCredential = await createUserWithEmailAndPassword(auth, email.trim(), password);
         localStorage.setItem('libera_operator_name', operatorName.trim());
         toast.success(`Conta criada com sucesso! Bem-vindo, ${operatorName}.`);
         router.push('/dashboard');
       } else {
         await signInWithEmailAndPassword(auth, email.trim(), password);
+        if (!AUTHORIZED_EMAILS.includes(email.trim().toLowerCase())) {
+          toast.error('Este e-mail não está autorizado a acessar o sistema.');
+          await signOut(auth);
+          setAuthLoading(false);
+          return;
+        }
         localStorage.setItem('libera_operator_name', operatorName.trim());
         toast.success('Login realizado com sucesso!');
         router.push('/dashboard');
