@@ -571,8 +571,7 @@ export default function LojaPage() {
                                             </div>
                                             {paymentMethod === 'PIX' && (
                                                 <div className="mt-3 bg-gray-50 rounded-xl p-5 text-center">
-                                                    <p className="text-base font-black uppercase text-black mb-3">Pague com PIX</p>
-                                                    <img src="/pix-qrcode.png" alt="QR Code PIX" className="w-full max-w-xs mx-auto rounded-xl object-contain mb-4" />
+                                                    <img src="/pix-qrcode.png" alt="QR Code PIX" className="w-full max-w-sm mx-auto rounded-xl object-contain mb-4" />
                                                     <div className="text-left bg-white rounded-lg p-3 mb-4 space-y-1.5">
                                                         <p className="text-sm text-gray-700"><strong>1.</strong> Abra o app do seu banco e acesse a área PIX</p>
                                                         <p className="text-sm text-gray-700"><strong>2.</strong> Escaneie o QR Code acima ou copie a chave abaixo</p>
