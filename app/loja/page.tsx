@@ -590,19 +590,29 @@ export default function LojaPage() {
                                                     <p className="text-xs text-gray-400 mt-3">Após o pagamento, confirme seu pedido abaixo</p>
                                                 </div>
                                             )}
-                                            {paymentMethod === 'CARTÃO CRÉDITO' && (
+                                            {paymentMethod === 'CARTÃO CRÉDITO' && (() => {
+                                                const taxas: Record<number, number> = { 1: 4.20, 2: 6.09, 3: 7.01, 4: 7.91, 5: 8.80, 6: 9.67 };
+                                                return (
                                                 <div className="mt-2">
-                                                    <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Parcelas</label>
-                                                    <div className="grid grid-cols-3 gap-2">
-                                                        {[1, 2, 3, 4, 5, 6].map(n => (
-                                                            <button key={n} type="button" onClick={() => setStoreInstallments(n)}
-                                                                className={`py-2 rounded-lg text-xs font-bold border transition-colors ${storeInstallments === n ? 'border-black bg-black text-white' : 'border-gray-200 text-black hover:border-gray-400'}`}>
-                                                                {n}x R$ {(cartTotal / n).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                                                            </button>
-                                                        ))}
+                                                    <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Parcelas (com juros)</label>
+                                                    <div className="grid grid-cols-2 gap-2">
+                                                        {[1, 2, 3, 4, 5, 6].map(n => {
+                                                            const totalComJuros = cartTotal * (1 + (taxas[n] || 0) / 100);
+                                                            const parcela = totalComJuros / n;
+                                                            return (
+                                                                <button key={n} type="button" onClick={() => setStoreInstallments(n)}
+                                                                    className={`py-2.5 px-2 rounded-lg text-xs font-bold border transition-colors text-left ${storeInstallments === n ? 'border-black bg-black text-white' : 'border-gray-200 text-black hover:border-gray-400'}`}>
+                                                                    <span className="block font-black">{n}x R$ {parcela.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                                                                    <span className={`block text-[10px] ${storeInstallments === n ? 'text-white/70' : 'text-gray-400'}`}>
+                                                                        Total: R$ {totalComJuros.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} ({taxas[n]}%)
+                                                                    </span>
+                                                                </button>
+                                                            );
+                                                        })}
                                                     </div>
                                                 </div>
-                                            )}
+                                                );
+                                            })()}
                                         </div>
                                         <div>
                                             <label className="block text-xs font-bold uppercase text-black mb-1">Observações</label>
