@@ -570,20 +570,25 @@ export default function LojaPage() {
                                                 ))}
                                             </div>
                                             {paymentMethod === 'PIX' && (
-                                                <div className="mt-3 bg-gray-50 rounded-xl p-4 text-center">
-                                                    <p className="text-sm font-black uppercase text-black mb-2">Pague com PIX</p>
-                                                    <img src="/pix-qrcode.png" alt="QR Code PIX" className="w-48 h-48 mx-auto rounded-xl object-contain mb-3" />
-                                                    <p className="text-xs text-gray-500 mb-2">Ou copie a chave CNPJ:</p>
+                                                <div className="mt-3 bg-gray-50 rounded-xl p-5 text-center">
+                                                    <p className="text-base font-black uppercase text-black mb-3">Pague com PIX</p>
+                                                    <img src="/pix-qrcode.png" alt="QR Code PIX" className="w-full max-w-xs mx-auto rounded-xl object-contain mb-4" />
+                                                    <div className="text-left bg-white rounded-lg p-3 mb-4 space-y-1.5">
+                                                        <p className="text-sm text-gray-700"><strong>1.</strong> Abra o app do seu banco e acesse a área PIX</p>
+                                                        <p className="text-sm text-gray-700"><strong>2.</strong> Escaneie o QR Code acima ou copie a chave abaixo</p>
+                                                        <p className="text-sm text-gray-700"><strong>3.</strong> Digite o valor e finalize o pagamento</p>
+                                                    </div>
+                                                    <p className="text-sm text-gray-500 font-bold mb-2">Chave CNPJ:</p>
                                                     <div className="flex items-center justify-center gap-2">
-                                                        <span className="text-sm font-black text-black">39.435.913/0001-76</span>
+                                                        <span className="text-lg font-black text-black">39.435.913/0001-76</span>
                                                         <button type="button" onClick={() => {
                                                             navigator.clipboard.writeText('39435913000176');
                                                             toast.success('Chave PIX copiada!');
-                                                        }} className="bg-black text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-gray-800 transition-colors">
+                                                        }} className="bg-black text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-gray-800 transition-colors">
                                                             Copiar
                                                         </button>
                                                     </div>
-                                                    <p className="text-[10px] text-gray-400 mt-2">Após o pagamento, confirme seu pedido abaixo</p>
+                                                    <p className="text-xs text-gray-400 mt-3">Após o pagamento, confirme seu pedido abaixo</p>
                                                 </div>
                                             )}
                                             {paymentMethod === 'CARTÃO CRÉDITO' && (
