@@ -12,6 +12,7 @@ import Image from 'next/image';
 const AUTHORIZED_EMAILS = [
     'priscilacascao@gmail.com',
     'priscilacascao@gmailc.om',
+    'prisciladm@icloud.com',
     'alanna@liberasports.com',
 ];
 

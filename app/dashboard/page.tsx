@@ -23,6 +23,7 @@ import { toast } from 'sonner';
 const AUTHORIZED_EMAILS = [
     'priscilacascao@gmail.com',
     'priscilacascao@gmailc.om',
+    'prisciladm@icloud.com',
     'alanna@liberasports.com',
     // Adicione mais emails aqui
 ];
