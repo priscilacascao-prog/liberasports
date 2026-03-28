@@ -569,6 +569,23 @@ export default function LojaPage() {
                                                     </button>
                                                 ))}
                                             </div>
+                                            {paymentMethod === 'PIX' && (
+                                                <div className="mt-3 bg-gray-50 rounded-xl p-4 text-center">
+                                                    <p className="text-sm font-black uppercase text-black mb-2">Pague com PIX</p>
+                                                    <img src="/pix-qrcode.png" alt="QR Code PIX" className="w-48 h-48 mx-auto rounded-xl object-contain mb-3" />
+                                                    <p className="text-xs text-gray-500 mb-2">Ou copie a chave CNPJ:</p>
+                                                    <div className="flex items-center justify-center gap-2">
+                                                        <span className="text-sm font-black text-black">39.435.913/0001-76</span>
+                                                        <button type="button" onClick={() => {
+                                                            navigator.clipboard.writeText('39435913000176');
+                                                            toast.success('Chave PIX copiada!');
+                                                        }} className="bg-black text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-gray-800 transition-colors">
+                                                            Copiar
+                                                        </button>
+                                                    </div>
+                                                    <p className="text-[10px] text-gray-400 mt-2">Após o pagamento, confirme seu pedido abaixo</p>
+                                                </div>
+                                            )}
                                             {paymentMethod === 'CARTÃO CRÉDITO' && (
                                                 <div className="mt-2">
                                                     <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Parcelas</label>
