@@ -3393,7 +3393,7 @@ export default function DashboardPage() {
                         <div className="bg-zinc-950 border border-zinc-900 rounded-2xl md:rounded-[32px] overflow-hidden">
                             <div className="p-4 md:p-6 border-b border-zinc-900 flex justify-between items-center">
                                 <h3 className="text-white text-[13px] md:text-sm font-black uppercase tracking-widest flex items-center gap-2">
-                                    Fornecedores / Clientes
+                                    Fornecedores / Clientes / Funcionários
                                 </h3>
                                 <div className="flex items-center gap-2">
                                     <input
