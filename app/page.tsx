@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { LogIn, UserPlus, Loader2 } from 'lucide-react';
+import { LogIn, UserPlus, Loader2, Eye, EyeOff } from 'lucide-react';
 import { auth } from '@/lib/firebase';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from 'firebase/auth';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut, sendPasswordResetEmail } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
@@ -25,6 +25,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [operatorName, setOperatorName] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   // Check initial session
   useEffect(() => {
@@ -163,15 +164,42 @@ export default function LoginPage() {
               <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-zinc-500">
                 Senha
               </label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full bg-[#111] border border-zinc-800 rounded-xl p-4 text-white outline-none focus:border-[#39FF14] transition-all text-sm font-bold"
-                required
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full bg-[#111] border border-zinc-800 rounded-xl p-4 pr-12 text-white outline-none focus:border-[#39FF14] transition-all text-sm font-bold"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white transition-colors"
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
             </div>
+            {!isRegistering && (
+              <button
+                type="button"
+                onClick={async () => {
+                  if (!email.trim()) { toast.error('Digite seu e-mail primeiro'); return; }
+                  try {
+                    await sendPasswordResetEmail(auth, email.trim());
+                    toast.success('E-mail de redefinição de senha enviado!');
+                  } catch (err: any) {
+                    if (err.code === 'auth/user-not-found') toast.error('E-mail não encontrado');
+                    else toast.error('Erro ao enviar e-mail de redefinição');
+                  }
+                }}
+                className="text-zinc-500 hover:text-[#39FF14] text-xs font-bold uppercase tracking-widest transition-colors"
+              >
+                Esqueci minha senha
+              </button>
+            )}
           </div>
 
           <button
