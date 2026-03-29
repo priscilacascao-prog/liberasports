@@ -3274,6 +3274,7 @@ export default function DashboardPage() {
                                                         {/* Anexo */}
                                                         <div className="flex items-center gap-2 mt-1.5">
                                                             {item.attachment ? (
+                                                                <>
                                                                 <button onClick={() => {
                                                                     if (item.attachment.startsWith('data:image')) {
                                                                         const w = window.open(''); if (w) { w.document.write(`<img src="${item.attachment}" style="max-width:100%">`); w.document.close(); }
@@ -3283,6 +3284,26 @@ export default function DashboardPage() {
                                                                 }} className="text-[11px] font-bold text-blue-400 hover:text-blue-300 flex items-center gap-1">
                                                                     <Paperclip size={10} /> Ver anexo
                                                                 </button>
+                                                                <label className="text-[11px] font-bold text-white/30 hover:text-white/60 cursor-pointer">
+                                                                    Trocar
+                                                                    <input type="file" accept="image/*,.pdf" className="hidden" onChange={async (e) => {
+                                                                        const file = e.target.files?.[0];
+                                                                        if (!file) return;
+                                                                        if (file.size > 500000) { toast.error('Arquivo muito grande (máx 500KB)'); return; }
+                                                                        const reader = new FileReader();
+                                                                        reader.onload = async () => {
+                                                                            try { await updateDoc(doc(db, financeCollectionPath, item.id), { attachment: reader.result as string }); toast.success('Anexo atualizado!'); } catch { toast.error('Erro ao atualizar anexo'); }
+                                                                        };
+                                                                        reader.readAsDataURL(file);
+                                                                    }} />
+                                                                </label>
+                                                                <button onClick={async () => {
+                                                                    if (!confirm('Remover o anexo?')) return;
+                                                                    try { await updateDoc(doc(db, financeCollectionPath, item.id), { attachment: '' }); toast.success('Anexo removido!'); } catch { toast.error('Erro ao remover'); }
+                                                                }} className="text-[11px] font-bold text-red-400/50 hover:text-red-400">
+                                                                    Remover
+                                                                </button>
+                                                                </>
                                                             ) : (
                                                                 (financeView === 'A PAGAR' || financeView === 'PAGAS') && (
                                                                     <label className="text-[11px] font-bold text-white/30 hover:text-white/60 flex items-center gap-1 cursor-pointer">
