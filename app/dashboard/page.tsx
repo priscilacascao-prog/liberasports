@@ -3334,17 +3334,31 @@ export default function DashboardPage() {
                                                 </p>
                                                 <div className="flex items-center gap-1.5">
                                                     {item.status === 'PAGO' || item.status === 'RECEBIDO' ? (
+                                                        <>
                                                         <label className="text-sm font-black uppercase px-3 py-1 rounded-full bg-green-500/20 text-green-400 cursor-pointer hover:bg-green-500/30 transition-colors flex items-center gap-1">
-                                                            {item.status} em {item.paid_at ? new Date(item.paid_at).toLocaleDateString('pt-BR') : ''}
+                                                            {item.status} em {item.paid_at ? item.paid_at.split('T')[0].split('-').reverse().join('/') : ''}
                                                             <input type="date" className="opacity-0 absolute w-0 h-0" value={item.paid_at ? item.paid_at.split('T')[0] : ''} onChange={async (e) => {
                                                                 if (e.target.value) {
                                                                     try {
-                                                                        await updateDoc(doc(db, financeCollectionPath, item.id), { paid_at: new Date(e.target.value + 'T12:00:00').toISOString() });
+                                                                        await updateDoc(doc(db, financeCollectionPath, item.id), { paid_at: e.target.value + 'T12:00:00' });
                                                                         toast.success('Data de pagamento atualizada!');
                                                                     } catch (err) { toast.error('Erro ao atualizar data'); }
                                                                 }
                                                             }} />
                                                         </label>
+                                                        {(financeView === 'PAGAS' || financeView === 'RECEBIDAS') && (
+                                                            <button onClick={async () => {
+                                                                if (!confirm('Desfazer pagamento e voltar para A Pagar/A Receber?')) return;
+                                                                try {
+                                                                    const newStatus = item.type === 'OUTFLOW' ? 'A PAGAR' : 'A RECEBER';
+                                                                    await updateDoc(doc(db, financeCollectionPath, item.id), { status: newStatus, paid_at: '' });
+                                                                    toast.success(`Conta voltou para ${newStatus}`);
+                                                                } catch { toast.error('Erro ao desfazer'); }
+                                                            }} className="text-[11px] font-bold text-orange-400/70 hover:text-orange-400 transition-colors">
+                                                                Desfazer
+                                                            </button>
+                                                        )}
+                                                        </>
                                                     ) : (
                                                         <>
                                                             <button
