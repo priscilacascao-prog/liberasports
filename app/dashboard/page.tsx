@@ -25,6 +25,7 @@ const AUTHORIZED_EMAILS = [
     'priscilacascao@gmailc.om',
     'prisciladm@icloud.com',
     'alanna@liberasports.com',
+    'alannaminchev@gmail.com',
     // Adicione mais emails aqui
 ];
 
