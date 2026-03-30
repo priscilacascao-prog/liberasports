@@ -215,6 +215,7 @@ export default function DashboardPage() {
     const [showGastoModal, setShowGastoModal] = useState(false);
     const [showCadastros, setShowCadastros] = useState(false);
     const [cadastroFilter, setCadastroFilter] = useState<'TODOS' | 'CLIENTE' | 'FORNECEDOR' | 'FUNCIONÁRIO'>('TODOS');
+    const [financeStatusFilter, setFinanceStatusFilter] = useState('');
     const [gastoDesc, setGastoDesc] = useState('');
     const [gastoAmount, setGastoAmount] = useState('');
     const [gastoPayMethod, setGastoPayMethod] = useState('PIX');
@@ -3058,25 +3059,25 @@ export default function DashboardPage() {
                         {/* Toggle Financeiro */}
                         <div className="flex gap-1 p-1 bg-zinc-950 rounded-2xl overflow-x-auto">
                             <button
-                                onClick={() => setFinanceView('A PAGAR')}
+                                onClick={() => { setFinanceView('A PAGAR'); setFinanceStatusFilter(''); }}
                                 className={`flex-1 py-3 rounded-xl font-black uppercase text-xs tracking-widest transition-all flex items-center justify-center gap-1.5 shrink-0 ${financeView === 'A PAGAR' ? 'bg-red-500 text-white shadow-lg shadow-red-500/20' : 'text-white hover:text-white'}`}
                             >
                                 <ArrowDownLeft size={12} /> A Pagar
                             </button>
                             <button
-                                onClick={() => setFinanceView('PAGAS')}
+                                onClick={() => { setFinanceView('PAGAS'); setFinanceStatusFilter(''); }}
                                 className={`flex-1 py-3 rounded-xl font-black uppercase text-xs tracking-widest transition-all flex items-center justify-center gap-1.5 shrink-0 ${financeView === 'PAGAS' ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20' : 'text-white hover:text-white'}`}
                             >
                                 <Check size={12} /> Pagas
                             </button>
                             <button
-                                onClick={() => setFinanceView('A RECEBER')}
+                                onClick={() => { setFinanceView('A RECEBER'); setFinanceStatusFilter(''); }}
                                 className={`flex-1 py-3 rounded-xl font-black uppercase text-xs tracking-widest transition-all flex items-center justify-center gap-1.5 shrink-0 ${financeView === 'A RECEBER' ? 'bg-[#39FF14] text-black shadow-lg shadow-[#39FF14]/20' : 'text-white hover:text-white'}`}
                             >
                                 <ArrowUpRight size={12} /> A Receber
                             </button>
                             <button
-                                onClick={() => setFinanceView('RECEBIDAS')}
+                                onClick={() => { setFinanceView('RECEBIDAS'); setFinanceStatusFilter(''); }}
                                 className={`flex-1 py-3 rounded-xl font-black uppercase text-xs tracking-widest transition-all flex items-center justify-center gap-1.5 shrink-0 ${financeView === 'RECEBIDAS' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : 'text-white hover:text-white'}`}
                             >
                                 <Check size={12} /> Recebidas
@@ -3094,7 +3095,8 @@ export default function DashboardPage() {
                                             R$ {financialItems.filter(i => i.type === 'OUTFLOW' && (i.status === 'A PAGAR' || i.status === 'ATRASADO')).reduce((a: number, i: any) => a + i.amount, 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                         </p>
                                     </div>
-                                    <div className="bg-zinc-950 p-3 md:p-6 rounded-2xl md:rounded-[32px] border border-zinc-900">
+                                    <div onClick={() => setFinanceStatusFilter(financeStatusFilter === 'ATRASADO' ? '' : 'ATRASADO')}
+                                        className={`bg-zinc-950 p-3 md:p-6 rounded-2xl md:rounded-[32px] border cursor-pointer transition-all ${financeStatusFilter === 'ATRASADO' ? 'border-orange-500 ring-1 ring-orange-500' : 'border-zinc-900 hover:border-zinc-700'}`}>
                                         <p className="text-white text-sm md:text-sm font-black uppercase tracking-widest mb-0.5">Atrasadas</p>
                                         <p className="text-lg md:text-3xl font-black text-orange-500 tabular-nums">
                                             {financialItems.filter(i => i.type === 'OUTFLOW' && i.status === 'ATRASADO').length}
@@ -3119,7 +3121,8 @@ export default function DashboardPage() {
                                             R$ {financialItems.filter(i => i.type === 'INFLOW' && (i.status === 'A RECEBER' || i.status === 'PENDENTE' || i.status === 'ATRASADO')).reduce((a: number, i: any) => a + i.amount, 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                         </p>
                                     </div>
-                                    <div className="bg-zinc-950 p-3 md:p-6 rounded-2xl md:rounded-[32px] border border-zinc-900">
+                                    <div onClick={() => setFinanceStatusFilter(financeStatusFilter === 'ATRASADO' ? '' : 'ATRASADO')}
+                                        className={`bg-zinc-950 p-3 md:p-6 rounded-2xl md:rounded-[32px] border cursor-pointer transition-all ${financeStatusFilter === 'ATRASADO' ? 'border-orange-500 ring-1 ring-orange-500' : 'border-zinc-900 hover:border-zinc-700'}`}>
                                         <p className="text-white text-sm md:text-sm font-black uppercase tracking-widest mb-0.5">Atrasadas</p>
                                         <p className="text-lg md:text-3xl font-black text-orange-500 tabular-nums">
                                             {financialItems.filter(i => i.type === 'INFLOW' && i.status === 'ATRASADO').length}
@@ -3257,6 +3260,9 @@ export default function DashboardPage() {
                                         const datePart = dateStr.split('T')[0];
                                         if (financeDateFrom && datePart < financeDateFrom) return false;
                                         if (financeDateTo && datePart > financeDateTo) return false;
+                                        return true;
+                                    }).filter(item => {
+                                        if (financeStatusFilter && item.status !== financeStatusFilter) return false;
                                         return true;
                                     }).filter(item => {
                                         if (!financeSearchTerm) return true;
