@@ -214,6 +214,7 @@ export default function DashboardPage() {
     const [caixaDateFrom, setCaixaDateFrom] = useState(new Date().toISOString().split('T')[0]);
     const [showGastoModal, setShowGastoModal] = useState(false);
     const [showCadastros, setShowCadastros] = useState(false);
+    const [cadastroFilter, setCadastroFilter] = useState<'TODOS' | 'CLIENTE' | 'FORNECEDOR' | 'FUNCIONÁRIO'>('TODOS');
     const [gastoDesc, setGastoDesc] = useState('');
     const [gastoAmount, setGastoAmount] = useState('');
     const [gastoPayMethod, setGastoPayMethod] = useState('PIX');
@@ -3458,19 +3459,39 @@ export default function DashboardPage() {
                                 <h3 className="text-2xl font-black italic uppercase text-[#39FF14]">Cadastros</h3>
                                 <button onClick={() => setShowCadastros(false)} className="text-white hover:text-white transition-colors"><X size={24} /></button>
                             </div>
-                            <div className="p-6 border-b border-zinc-800 flex justify-between items-center shrink-0">
-                                <input type="text" value={fornecedorSearch} onChange={e => setFornecedorSearch(e.target.value)} placeholder="Buscar por nome..."
-                                    className="bg-zinc-950 text-sm px-4 py-2.5 rounded-xl border border-zinc-800 outline-none text-white focus:border-[#39FF14] transition-colors flex-1 mr-3" />
-                                <button onClick={() => { setEditingFornecedor(null); setFornecedorName(''); setFornecedorCpfCnpj(''); setFornecedorCpfCnpjError(''); setFornecedorWhatsapp(''); setFornecedorType('CLIENTE'); setFornecedorStartDate(''); setFornecedorModalOpen(true); }}
-                                    className="bg-[#39FF14] text-black px-5 py-2.5 rounded-xl font-black uppercase text-xs tracking-widest hover:scale-105 transition-all flex items-center gap-1.5 shrink-0">
-                                    <Plus size={14} /> Novo
-                                </button>
+                            <div className="p-4 md:p-6 border-b border-zinc-800 space-y-3 shrink-0">
+                                <div className="flex justify-between items-center gap-3">
+                                    <input type="text" value={fornecedorSearch} onChange={e => setFornecedorSearch(e.target.value)} placeholder="Buscar por nome..."
+                                        className="bg-zinc-950 text-sm px-4 py-2.5 rounded-xl border border-zinc-800 outline-none text-white focus:border-[#39FF14] transition-colors flex-1" />
+                                    <button onClick={() => { setEditingFornecedor(null); setFornecedorName(''); setFornecedorCpfCnpj(''); setFornecedorCpfCnpjError(''); setFornecedorWhatsapp(''); setFornecedorType('CLIENTE'); setFornecedorStartDate(''); setFornecedorModalOpen(true); }}
+                                        className="bg-[#39FF14] text-black px-5 py-2.5 rounded-xl font-black uppercase text-xs tracking-widest hover:scale-105 transition-all flex items-center gap-1.5 shrink-0">
+                                        <Plus size={14} /> Novo
+                                    </button>
+                                </div>
+                                <div className="flex gap-2">
+                                    {(['TODOS', 'CLIENTE', 'FORNECEDOR', 'FUNCIONÁRIO'] as const).map(tipo => (
+                                        <button key={tipo} onClick={() => setCadastroFilter(tipo)}
+                                            className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${cadastroFilter === tipo
+                                                ? tipo === 'CLIENTE' ? 'bg-[#39FF14] text-black' : tipo === 'FORNECEDOR' ? 'bg-red-500 text-white' : tipo === 'FUNCIONÁRIO' ? 'bg-blue-500 text-white' : 'bg-white text-black'
+                                                : 'bg-zinc-800 text-white/70 hover:text-white'}`}>
+                                            {tipo === 'TODOS' ? 'Todos' : tipo === 'CLIENTE' ? 'Clientes' : tipo === 'FORNECEDOR' ? 'Fornecedores' : 'Funcionários'}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
                             <div className="flex-1 overflow-y-auto divide-y divide-zinc-800">
-                                {fornecedores.filter(f => !fornecedorSearch || f.name.toLowerCase().includes(fornecedorSearch.toLowerCase())).length === 0 ? (
+                                {fornecedores.filter(f => {
+                                    if (cadastroFilter !== 'TODOS' && (f.type || 'CLIENTE') !== cadastroFilter) return false;
+                                    if (fornecedorSearch && !f.name.toLowerCase().includes(fornecedorSearch.toLowerCase())) return false;
+                                    return true;
+                                }).length === 0 ? (
                                     <div className="p-12 text-center text-white font-bold uppercase text-sm tracking-widest italic">Nenhum cadastro encontrado</div>
                                 ) : (
-                                    fornecedores.filter(f => !fornecedorSearch || f.name.toLowerCase().includes(fornecedorSearch.toLowerCase())).map(f => (
+                                    fornecedores.filter(f => {
+                                        if (cadastroFilter !== 'TODOS' && (f.type || 'CLIENTE') !== cadastroFilter) return false;
+                                        if (fornecedorSearch && !f.name.toLowerCase().includes(fornecedorSearch.toLowerCase())) return false;
+                                        return true;
+                                    }).map(f => (
                                         <div key={f.id} className="p-4 flex items-center justify-between hover:bg-zinc-800/50 transition-colors">
                                             <div>
                                                 <div className="flex items-center gap-2">
