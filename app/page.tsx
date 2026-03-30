@@ -17,6 +17,7 @@ const AUTHORIZED_EMAILS = [
     'alannaminchev@gmail.com',
     'lspalmeira@hotmail.com',
     'minchevkarla77@gmail.com',
+    'libera.sports1@gmail.com',
 ];
 
 export default function LoginPage() {

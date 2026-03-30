@@ -28,7 +28,13 @@ const AUTHORIZED_EMAILS = [
     'alannaminchev@gmail.com',
     'lspalmeira@hotmail.com',
     'minchevkarla77@gmail.com',
+    'libera.sports1@gmail.com',
     // Adicione mais emails aqui
+];
+
+// Emails com acesso restrito (sem Financeiro e Caixa)
+const RESTRICTED_EMAILS = [
+    'libera.sports1@gmail.com',
 ];
 
 const workflow = ["AGUARDANDO APROVAÇÃO", "GRÁFICA", "CORTE", "COSTURA", "REVISÃO", "EM FASE DE ENTREGA", "PEDIDO ENTREGUE"];
@@ -135,6 +141,8 @@ export default function DashboardPage() {
     const [pendingViewOrder, setPendingViewOrder] = useState<any>(null);
     const [pendingReason, setPendingReason] = useState('');
     const [userId, setUserId] = useState<string | null>(null);
+    const [userEmail, setUserEmail] = useState('');
+    const isRestricted = RESTRICTED_EMAILS.includes(userEmail);
     const [activeFilter, setActiveFilter] = useState<string | null>(null);
     const [editingObsId, setEditingObsId] = useState<string | null>(null);
     const [obsValue, setObsValue] = useState('');
@@ -268,6 +276,7 @@ export default function DashboardPage() {
                 router.push('/');
             } else {
                 setUserId(user.uid);
+                setUserEmail((user.email || '').toLowerCase());
                 const storedName = localStorage.getItem('libera_operator_name');
                 setOperatorName(storedName || 'Operador');
                 setAuthChecking(false);
@@ -1872,8 +1881,10 @@ export default function DashboardPage() {
                                     { id: 'VENDAS', icon: ShoppingCart, label: 'Vendas', color: 'group-hover:text-blue-400' },
                                     { id: 'PRODUÇÃO', icon: Layers, label: 'Fábrica', color: 'group-hover:text-[#39FF14]' },
                                     { id: 'ESTOQUE', icon: Box, label: 'Estoque', color: 'group-hover:text-purple-400' },
-                                    { id: 'FINANCEIRO', icon: Wallet, label: 'Financeiro', color: 'group-hover:text-orange-400' },
-                                    { id: 'CAIXA', icon: DollarSign, label: 'Caixa', color: 'group-hover:text-emerald-400' },
+                                    ...(!isRestricted ? [
+                                        { id: 'FINANCEIRO', icon: Wallet, label: 'Financeiro', color: 'group-hover:text-orange-400' },
+                                        { id: 'CAIXA', icon: DollarSign, label: 'Caixa', color: 'group-hover:text-emerald-400' },
+                                    ] : []),
                                 ].map((mod) => {
                                     const Icon = mod.icon;
                                     return (
@@ -1918,8 +1929,10 @@ export default function DashboardPage() {
                             { id: 'VENDAS', icon: ShoppingCart, label: 'Vendas' },
                             { id: 'PRODUÇÃO', icon: Layers, label: 'Fábrica' },
                             { id: 'ESTOQUE', icon: Box, label: 'Estoque' },
-                            { id: 'FINANCEIRO', icon: Wallet, label: 'Financeiro' },
-                            { id: 'CAIXA', icon: DollarSign, label: 'Caixa' }
+                            ...(!isRestricted ? [
+                                { id: 'FINANCEIRO', icon: Wallet, label: 'Financeiro' },
+                                { id: 'CAIXA', icon: DollarSign, label: 'Caixa' }
+                            ] : [])
                         ].map((tab) => {
                             const Icon = tab.icon;
                             const isActive = activeTab === tab.id;
