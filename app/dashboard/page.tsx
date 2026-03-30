@@ -3217,24 +3217,42 @@ export default function DashboardPage() {
                                             <div className="absolute right-0 top-full mt-1 bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden z-50 shadow-xl min-w-[160px]">
                                                 <button onClick={() => {
                                                     const items = financialItems.filter(item => {
-                                                        if (financeView === 'A PAGAR') return item.type === 'OUTFLOW' && item.status !== 'PAGO';
-                                                        if (financeView === 'A RECEBER') return item.type === 'INFLOW' && item.status !== 'RECEBIDO';
-                                                        if (financeView === 'PAGAS') return item.type === 'OUTFLOW' && item.status === 'PAGO';
-                                                        return item.type === 'INFLOW' && (item.status === 'RECEBIDO' || item.status === 'PAGO');
+                                                        if (financeView === 'A PAGAR') { if (item.type !== 'OUTFLOW' || item.status === 'PAGO') return false; }
+                                                        else if (financeView === 'A RECEBER') { if (item.type !== 'INFLOW' || item.status === 'RECEBIDO') return false; }
+                                                        else if (financeView === 'PAGAS') { if (item.type !== 'OUTFLOW' || item.status !== 'PAGO') return false; }
+                                                        else if (financeView === 'RECEBIDAS') { if (item.type !== 'INFLOW' || (item.status !== 'RECEBIDO' && item.status !== 'PAGO')) return false; }
+                                                        const dateStr = (financeView === 'PAGAS' || financeView === 'RECEBIDAS') ? (item.paid_at || item.due_date || item.created_at) : (item.due_date || item.transaction_date || item.created_at);
+                                                        const datePart = dateStr.split('T')[0];
+                                                        if (financeDateFrom && datePart < financeDateFrom) return false;
+                                                        if (financeDateTo && datePart > financeDateTo) return false;
+                                                        if (financeSearchTerm) {
+                                                            const search = financeSearchTerm.toLowerCase();
+                                                            if (!(item.description || '').toLowerCase().includes(search) && !(item.supplier_name || '').toLowerCase().includes(search) && !(item.payment_method || '').toLowerCase().includes(search)) return false;
+                                                        }
+                                                        return true;
                                                     });
                                                     const titles: Record<string, string> = { 'A PAGAR': 'Contas_a_Pagar', 'A RECEBER': 'Contas_a_Receber', 'PAGAS': 'Contas_Pagas', 'RECEBIDAS': 'Contas_Recebidas' };
-                                                    generateFinancePDF(items, titles[financeView], 'simples');
+                                                    generateFinancePDF(items, titles[financeView] + (financeSearchTerm ? `_${financeSearchTerm}` : ''), 'simples');
                                                     setShowPdfMenu(false);
                                                 }} className="w-full text-left px-4 py-3 text-sm font-bold text-white hover:bg-zinc-800 transition-colors">Relatório Simples</button>
                                                 <button onClick={() => {
                                                     const items = financialItems.filter(item => {
-                                                        if (financeView === 'A PAGAR') return item.type === 'OUTFLOW' && item.status !== 'PAGO';
-                                                        if (financeView === 'A RECEBER') return item.type === 'INFLOW' && item.status !== 'RECEBIDO';
-                                                        if (financeView === 'PAGAS') return item.type === 'OUTFLOW' && item.status === 'PAGO';
-                                                        return item.type === 'INFLOW' && (item.status === 'RECEBIDO' || item.status === 'PAGO');
+                                                        if (financeView === 'A PAGAR') { if (item.type !== 'OUTFLOW' || item.status === 'PAGO') return false; }
+                                                        else if (financeView === 'A RECEBER') { if (item.type !== 'INFLOW' || item.status === 'RECEBIDO') return false; }
+                                                        else if (financeView === 'PAGAS') { if (item.type !== 'OUTFLOW' || item.status !== 'PAGO') return false; }
+                                                        else if (financeView === 'RECEBIDAS') { if (item.type !== 'INFLOW' || (item.status !== 'RECEBIDO' && item.status !== 'PAGO')) return false; }
+                                                        const dateStr = (financeView === 'PAGAS' || financeView === 'RECEBIDAS') ? (item.paid_at || item.due_date || item.created_at) : (item.due_date || item.transaction_date || item.created_at);
+                                                        const datePart = dateStr.split('T')[0];
+                                                        if (financeDateFrom && datePart < financeDateFrom) return false;
+                                                        if (financeDateTo && datePart > financeDateTo) return false;
+                                                        if (financeSearchTerm) {
+                                                            const search = financeSearchTerm.toLowerCase();
+                                                            if (!(item.description || '').toLowerCase().includes(search) && !(item.supplier_name || '').toLowerCase().includes(search) && !(item.payment_method || '').toLowerCase().includes(search)) return false;
+                                                        }
+                                                        return true;
                                                     });
                                                     const titles: Record<string, string> = { 'A PAGAR': 'Contas_a_Pagar', 'A RECEBER': 'Contas_a_Receber', 'PAGAS': 'Contas_Pagas', 'RECEBIDAS': 'Contas_Recebidas' };
-                                                    generateFinancePDF(items, titles[financeView], 'completo');
+                                                    generateFinancePDF(items, titles[financeView] + (financeSearchTerm ? `_${financeSearchTerm}` : ''), 'completo');
                                                     setShowPdfMenu(false);
                                                 }} className="w-full text-left px-4 py-3 text-sm font-bold text-white hover:bg-zinc-800 transition-colors">Relatório Completo</button>
                                             </div>
