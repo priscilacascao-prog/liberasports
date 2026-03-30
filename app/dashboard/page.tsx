@@ -213,6 +213,7 @@ export default function DashboardPage() {
     const [financeGrouping, setFinanceGrouping] = useState<'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY'>('DAILY');
     const [caixaDateFrom, setCaixaDateFrom] = useState(new Date().toISOString().split('T')[0]);
     const [showGastoModal, setShowGastoModal] = useState(false);
+    const [showCadastros, setShowCadastros] = useState(false);
     const [gastoDesc, setGastoDesc] = useState('');
     const [gastoAmount, setGastoAmount] = useState('');
     const [gastoPayMethod, setGastoPayMethod] = useState('PIX');
@@ -3035,54 +3036,20 @@ export default function DashboardPage() {
                                 <h1 className="text-2xl md:text-4xl font-black italic uppercase tracking-tighter">FINANCEIRO</h1>
                                 <p className="text-white text-[13px] md:text-sm mt-0.5">Gestão de contas a pagar e a receber</p>
                             </div>
-                            {(financeView === 'A PAGAR' || financeView === 'A RECEBER') && (
+                            <div className="flex items-center gap-2">
                                 <button
-                                    onClick={() => setIsFinanceModalOpen(true)}
-                                    className="bg-[#39FF14] text-black px-4 md:px-6 py-2.5 md:py-3 rounded-2xl font-black uppercase text-[13px] md:text-sm tracking-widest hover:scale-105 transition-all shadow-lg shadow-[#39FF14]/20 flex items-center gap-1.5 shrink-0"
+                                    onClick={() => setShowCadastros(true)}
+                                    className="bg-zinc-800 text-white px-4 md:px-5 py-2.5 md:py-3 rounded-2xl font-black uppercase text-[13px] md:text-sm tracking-widest hover:scale-105 transition-all flex items-center gap-1.5 shrink-0 border border-zinc-700"
                                 >
-                                    <Plus size={14} /> Nova Conta
+                                    <User size={14} /> Cadastros
                                 </button>
-                            )}
-                        </div>
-
-                        {/* Fornecedores / Clientes / Funcionários */}
-                        <div className="bg-zinc-950 border border-zinc-900 rounded-2xl md:rounded-[32px] overflow-hidden">
-                            <div className="p-4 md:p-6 border-b border-zinc-900 flex justify-between items-center">
-                                <h3 className="text-white text-[13px] md:text-sm font-black uppercase tracking-widest flex items-center gap-2">
-                                    Fornecedores / Clientes / Funcionários
-                                </h3>
-                                <div className="flex items-center gap-2">
-                                    <input type="text" value={fornecedorSearch} onChange={e => setFornecedorSearch(e.target.value)} placeholder="Buscar..."
-                                        className="bg-zinc-900 text-sm px-4 py-2 rounded-xl border border-zinc-800 outline-none text-white focus:border-[#39FF14] transition-colors w-40" />
-                                    <button onClick={() => { setEditingFornecedor(null); setFornecedorName(''); setFornecedorCpfCnpj(''); setFornecedorCpfCnpjError(''); setFornecedorWhatsapp(''); setFornecedorType('CLIENTE'); setFornecedorStartDate(''); setFornecedorModalOpen(true); }}
-                                        className="bg-[#39FF14] text-black px-4 py-2 rounded-xl font-black uppercase text-xs tracking-widest hover:scale-105 transition-all flex items-center gap-1.5 shrink-0">
-                                        <Plus size={12} /> Novo
+                                {(financeView === 'A PAGAR' || financeView === 'A RECEBER') && (
+                                    <button
+                                        onClick={() => setIsFinanceModalOpen(true)}
+                                        className="bg-[#39FF14] text-black px-4 md:px-6 py-2.5 md:py-3 rounded-2xl font-black uppercase text-[13px] md:text-sm tracking-widest hover:scale-105 transition-all shadow-lg shadow-[#39FF14]/20 flex items-center gap-1.5 shrink-0"
+                                    >
+                                        <Plus size={14} /> Nova Conta
                                     </button>
-                                </div>
-                            </div>
-                            <div className="divide-y divide-zinc-900 max-h-[300px] overflow-y-auto">
-                                {fornecedores.filter(f => !fornecedorSearch || f.name.toLowerCase().includes(fornecedorSearch.toLowerCase())).length === 0 ? (
-                                    <div className="p-8 text-center text-white font-bold uppercase text-sm tracking-widest italic">Nenhum cadastro encontrado</div>
-                                ) : (
-                                    fornecedores.filter(f => !fornecedorSearch || f.name.toLowerCase().includes(fornecedorSearch.toLowerCase())).map(f => (
-                                        <div key={f.id} className="p-4 flex items-center justify-between hover:bg-zinc-900/50 transition-colors">
-                                            <div>
-                                                <div className="flex items-center gap-2">
-                                                    <p className="text-sm font-black text-white uppercase">{f.name}</p>
-                                                    <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${f.type === 'FORNECEDOR' ? 'bg-red-500/20 text-red-400' : f.type === 'FUNCIONÁRIO' ? 'bg-blue-500/20 text-blue-400' : 'bg-[#39FF14]/20 text-[#39FF14]'}`}>{f.type === 'FORNECEDOR' ? 'Fornecedor' : f.type === 'FUNCIONÁRIO' ? 'Funcionário' : 'Cliente'}</span>
-                                                </div>
-                                                <p className="text-xs text-white/70">
-                                                    {f.cpf_cnpj ? (f.cpf_cnpj.length === 11 ? f.cpf_cnpj.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4') : f.cpf_cnpj.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5')) : 'Sem CPF/CNPJ'}
-                                                    {f.whatsapp && ` • ${f.whatsapp}`}
-                                                    {f.start_date && ` • Início: ${f.start_date.split('-').reverse().join('/')}`}
-                                                </p>
-                                            </div>
-                                            <div className="flex items-center gap-1">
-                                                <button onClick={() => { setEditingFornecedor(f); setFornecedorName(f.name); setFornecedorCpfCnpj(f.cpf_cnpj ? formatCpfCnpj(f.cpf_cnpj) : ''); setFornecedorWhatsapp(f.whatsapp || ''); setFornecedorType(f.type || 'CLIENTE'); setFornecedorStartDate(f.start_date || ''); setFornecedorModalOpen(true); }} className="text-white/70 hover:text-[#39FF14] transition-colors p-2"><Pencil size={14} /></button>
-                                                <button onClick={() => handleDeleteFornecedor(f.id)} className="text-white/70 hover:text-red-500 transition-colors p-2"><Trash2 size={14} /></button>
-                                            </div>
-                                        </div>
-                                    ))
                                 )}
                             </div>
                         </div>
@@ -3482,6 +3449,53 @@ export default function DashboardPage() {
                     </div>
                 )}
 
+
+                {/* Modal Cadastros */}
+                {showCadastros && (
+                    <div className="fixed inset-0 bg-black/95 z-[600] flex items-center justify-center p-4 backdrop-blur-xl">
+                        <div className="bg-zinc-900 w-full max-w-2xl max-h-[90vh] rounded-[32px] border border-zinc-800 shadow-2xl relative text-white flex flex-col">
+                            <div className="p-6 border-b border-zinc-800 flex justify-between items-center shrink-0">
+                                <h3 className="text-2xl font-black italic uppercase text-[#39FF14]">Cadastros</h3>
+                                <button onClick={() => setShowCadastros(false)} className="text-white hover:text-white transition-colors"><X size={24} /></button>
+                            </div>
+                            <div className="p-6 border-b border-zinc-800 flex justify-between items-center shrink-0">
+                                <input type="text" value={fornecedorSearch} onChange={e => setFornecedorSearch(e.target.value)} placeholder="Buscar por nome..."
+                                    className="bg-zinc-950 text-sm px-4 py-2.5 rounded-xl border border-zinc-800 outline-none text-white focus:border-[#39FF14] transition-colors flex-1 mr-3" />
+                                <button onClick={() => { setEditingFornecedor(null); setFornecedorName(''); setFornecedorCpfCnpj(''); setFornecedorCpfCnpjError(''); setFornecedorWhatsapp(''); setFornecedorType('CLIENTE'); setFornecedorStartDate(''); setFornecedorModalOpen(true); }}
+                                    className="bg-[#39FF14] text-black px-5 py-2.5 rounded-xl font-black uppercase text-xs tracking-widest hover:scale-105 transition-all flex items-center gap-1.5 shrink-0">
+                                    <Plus size={14} /> Novo
+                                </button>
+                            </div>
+                            <div className="flex-1 overflow-y-auto divide-y divide-zinc-800">
+                                {fornecedores.filter(f => !fornecedorSearch || f.name.toLowerCase().includes(fornecedorSearch.toLowerCase())).length === 0 ? (
+                                    <div className="p-12 text-center text-white font-bold uppercase text-sm tracking-widest italic">Nenhum cadastro encontrado</div>
+                                ) : (
+                                    fornecedores.filter(f => !fornecedorSearch || f.name.toLowerCase().includes(fornecedorSearch.toLowerCase())).map(f => (
+                                        <div key={f.id} className="p-4 flex items-center justify-between hover:bg-zinc-800/50 transition-colors">
+                                            <div>
+                                                <div className="flex items-center gap-2">
+                                                    <p className="text-sm font-black text-white uppercase">{f.name}</p>
+                                                    <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${f.type === 'FORNECEDOR' ? 'bg-red-500/20 text-red-400' : f.type === 'FUNCIONÁRIO' ? 'bg-blue-500/20 text-blue-400' : 'bg-[#39FF14]/20 text-[#39FF14]'}`}>
+                                                        {f.type === 'FORNECEDOR' ? 'Fornecedor' : f.type === 'FUNCIONÁRIO' ? 'Funcionário' : 'Cliente'}
+                                                    </span>
+                                                </div>
+                                                <p className="text-xs text-white/70">
+                                                    {f.cpf_cnpj ? (f.cpf_cnpj.length === 11 ? f.cpf_cnpj.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4') : f.cpf_cnpj.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5')) : 'Sem CPF/CNPJ'}
+                                                    {f.whatsapp && ` • ${f.whatsapp}`}
+                                                    {f.start_date && ` • Início: ${f.start_date.split('-').reverse().join('/')}`}
+                                                </p>
+                                            </div>
+                                            <div className="flex items-center gap-1">
+                                                <button onClick={() => { setEditingFornecedor(f); setFornecedorName(f.name); setFornecedorCpfCnpj(f.cpf_cnpj ? formatCpfCnpj(f.cpf_cnpj) : ''); setFornecedorWhatsapp(f.whatsapp || ''); setFornecedorType(f.type || 'CLIENTE'); setFornecedorStartDate(f.start_date || ''); setFornecedorModalOpen(true); }} className="text-white/70 hover:text-[#39FF14] transition-colors p-2"><Pencil size={16} /></button>
+                                                <button onClick={() => handleDeleteFornecedor(f.id)} className="text-white/70 hover:text-red-500 transition-colors p-2"><Trash2 size={16} /></button>
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* Modal Gastos do Dia */}
                 {showGastoModal && (
