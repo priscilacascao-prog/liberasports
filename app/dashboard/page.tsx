@@ -37,6 +37,11 @@ const RESTRICTED_EMAILS = [
     'libera.sports1@gmail.com',
 ];
 
+// Email com acesso ao histórico de movimentações
+const ADMIN_EMAILS = [
+    'prisciladm@icloud.com',
+];
+
 const workflow = ["AGUARDANDO APROVAÇÃO", "GRÁFICA", "CORTE", "COSTURA", "REVISÃO", "EM FASE DE ENTREGA", "PEDIDO ENTREGUE"];
 const displayWorkflow = ["AGUARDANDO APROVAÇÃO", "GRÁFICA", "CORTE", "COSTURA", "REVISÃO", "EM FASE DE ENTREGA", "PENDÊNCIA", "PEDIDO ENTREGUE"];
 
@@ -143,6 +148,8 @@ export default function DashboardPage() {
     const [userId, setUserId] = useState<string | null>(null);
     const [userEmail, setUserEmail] = useState('');
     const isRestricted = RESTRICTED_EMAILS.includes(userEmail);
+    const isAdmin = ADMIN_EMAILS.includes(userEmail);
+    const [showActivityLog, setShowActivityLog] = useState(false);
     const [activeFilter, setActiveFilter] = useState<string | null>(null);
     const [editingObsId, setEditingObsId] = useState<string | null>(null);
     const [obsValue, setObsValue] = useState('');
@@ -1778,6 +1785,15 @@ export default function DashboardPage() {
                     LIBERA SPORTS
                 </button>
                 <div className="flex items-center gap-4">
+                    {isAdmin && (
+                        <button
+                            onClick={() => setShowActivityLog(true)}
+                            className={`p-2 rounded-xl transition-all hover:scale-110 ${isDark ? 'text-white/50 hover:text-white hover:bg-white/10' : 'text-gray-400 hover:text-black hover:bg-gray-200'}`}
+                            title="Histórico de movimentações"
+                        >
+                            <History size={18} />
+                        </button>
+                    )}
                     <button
                         onClick={toggleTheme}
                         className={`p-2 rounded-xl transition-all hover:scale-110 ${isDark ? 'text-yellow-400 hover:bg-yellow-400/10' : 'text-gray-600 hover:bg-gray-200'}`}
@@ -3471,6 +3487,99 @@ export default function DashboardPage() {
                     </div>
                 )}
 
+
+                {/* Modal Histórico de Movimentações */}
+                {showActivityLog && isAdmin && (
+                    <div className="fixed inset-0 bg-black/95 z-[700] flex items-center justify-center p-4 backdrop-blur-xl">
+                        <div className="bg-zinc-900 w-full max-w-3xl max-h-[90vh] rounded-[32px] border border-zinc-800 shadow-2xl relative text-white flex flex-col">
+                            <div className="p-6 border-b border-zinc-800 flex justify-between items-center shrink-0">
+                                <h3 className="text-2xl font-black italic uppercase text-[#39FF14]">Histórico de Movimentações</h3>
+                                <button onClick={() => setShowActivityLog(false)} className="text-white hover:text-white transition-colors"><X size={24} /></button>
+                            </div>
+                            <div className="flex-1 overflow-y-auto divide-y divide-zinc-800">
+                                {(() => {
+                                    // Agrupar todas as movimentações de vendas e financeiro
+                                    const activities: any[] = [];
+
+                                    // Vendas/Pedidos criados
+                                    sales.forEach((s: any) => {
+                                        activities.push({
+                                            type: 'VENDA',
+                                            description: `Venda ${s.order_number || s.sale_number || ''} - ${s.client || 'Sem cliente'}`,
+                                            detail: s.description || (s.items?.map((i: any) => `${i.quantity}x ${i.name}`).join(', ')) || '',
+                                            amount: s.total || s.value || 0,
+                                            operator: s.operator_name || '',
+                                            date: s.created_at || '',
+                                            status: s.status || '',
+                                            source: s.source === 'LOJA' ? 'Loja' : 'Sistema',
+                                        });
+                                        // Logs de movimentação de status
+                                        if (s.order_logs) {
+                                            s.order_logs.forEach((log: any) => {
+                                                activities.push({
+                                                    type: 'STATUS',
+                                                    description: `${s.order_number || ''} → ${log.new_status}`,
+                                                    detail: `De ${log.old_status} para ${log.new_status}`,
+                                                    operator: log.operator_name || '',
+                                                    date: log.created_at || '',
+                                                });
+                                            });
+                                        }
+                                    });
+
+                                    // Movimentações financeiras
+                                    financialItems.forEach((f: any) => {
+                                        activities.push({
+                                            type: f.type === 'INFLOW' ? 'ENTRADA' : 'SAÍDA',
+                                            description: f.description || '',
+                                            detail: `${f.payment_method || ''} • ${f.status || ''}`,
+                                            amount: f.amount || 0,
+                                            operator: f.operator_name || '',
+                                            date: f.created_at || '',
+                                            source: f.source === 'GASTO_DO_DIA' ? 'Gasto do Dia' : '',
+                                        });
+                                    });
+
+                                    // Ordenar por data (mais recente primeiro)
+                                    activities.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+                                    return activities.length === 0 ? (
+                                        <div className="p-12 text-center text-white/50 font-bold uppercase text-sm">Nenhuma movimentação</div>
+                                    ) : activities.slice(0, 200).map((act, idx) => (
+                                        <div key={idx} className="p-4 hover:bg-zinc-800/30 transition-colors">
+                                            <div className="flex items-start justify-between gap-3">
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex items-center gap-2 flex-wrap">
+                                                        <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${
+                                                            act.type === 'VENDA' ? 'bg-[#39FF14]/20 text-[#39FF14]' :
+                                                            act.type === 'STATUS' ? 'bg-blue-500/20 text-blue-400' :
+                                                            act.type === 'ENTRADA' ? 'bg-green-500/20 text-green-400' :
+                                                            'bg-red-500/20 text-red-400'
+                                                        }`}>{act.type}</span>
+                                                        {act.source && <span className="text-[10px] font-bold text-white/30 uppercase">{act.source}</span>}
+                                                        {act.operator && <span className="text-[10px] font-bold text-white/50">por {act.operator}</span>}
+                                                    </div>
+                                                    <p className="text-sm font-bold text-white mt-1" style={{wordBreak: 'break-all'}}>{act.description}</p>
+                                                    {act.detail && <p className="text-xs text-white/50 mt-0.5">{act.detail}</p>}
+                                                </div>
+                                                <div className="text-right shrink-0">
+                                                    {act.amount > 0 && (
+                                                        <p className={`text-sm font-black ${act.type === 'SAÍDA' ? 'text-red-400' : 'text-[#39FF14]'}`}>
+                                                            R$ {act.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                                        </p>
+                                                    )}
+                                                    <p className="text-[10px] text-white/30 mt-0.5">
+                                                        {act.date ? `${act.date.split('T')[0].split('-').reverse().join('/')} ${act.date.split('T')[1]?.substring(0, 5) || ''}` : ''}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ));
+                                })()}
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* Modal Cadastros */}
                 {showCadastros && (
