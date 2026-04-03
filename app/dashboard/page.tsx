@@ -485,6 +485,13 @@ export default function DashboardPage() {
             };
             if (prodImage) newProduct.image = prodImage;
             if (prodImages.length > 0) newProduct.images = prodImages;
+            // Verificar tamanho total
+            const docSize = JSON.stringify(newProduct).length;
+            if (docSize > 900000) {
+                toast.error('Imagens muito grandes! Reduza o tamanho ou quantidade de fotos.');
+                setLoading(false);
+                return;
+            }
             await addDoc(collection(db, productsCollectionPath), newProduct);
             toast.success('Produto adicionado ao estoque!');
             setIsProductModalOpen(false);
@@ -496,9 +503,13 @@ export default function DashboardPage() {
             setProdShowInStore(false);
             setProdImage('');
             setProdImages([]);
-        } catch (err) {
+        } catch (err: any) {
             console.error(err);
-            toast.error('Erro ao adicionar produto');
+            if (err.message?.includes('exceeds the maximum')) {
+                toast.error('Documento muito grande! Reduza o tamanho das imagens.');
+            } else {
+                toast.error('Erro ao adicionar produto: ' + (err.message || ''));
+            }
         } finally {
             setLoading(false);
         }
@@ -4666,8 +4677,8 @@ export default function DashboardPage() {
                                             <input type="file" accept="image/*" className="hidden" onChange={e => {
                                                 const file = e.target.files?.[0];
                                                 if (!file) return;
-                                                if (file.size > 500000) {
-                                                    toast.error('Imagem muito grande (máx 500KB)');
+                                                if (file.size > 200000) {
+                                                    toast.error('Imagem muito grande (máx 200KB)');
                                                     return;
                                                 }
                                                 const reader = new FileReader();
@@ -4697,7 +4708,7 @@ export default function DashboardPage() {
                                                 <input type="file" accept="image/*" className="hidden" onChange={e => {
                                                     const file = e.target.files?.[0];
                                                     if (!file) return;
-                                                    if (file.size > 300000) { toast.error('Imagem muito grande (máx 300KB)'); return; }
+                                                    if (file.size > 200000) { toast.error('Imagem muito grande (máx 200KB)'); return; }
                                                     const reader = new FileReader();
                                                     reader.onload = () => setProdImages([...prodImages, reader.result as string]);
                                                     reader.readAsDataURL(file);
