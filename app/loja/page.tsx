@@ -126,7 +126,7 @@ export default function LojaPage() {
 
     // Agrupar produtos por nome base
     const groupedProducts = useMemo(() => {
-        const groups: Record<string, { baseName: string; image: string; minPrice: number; variants: any[] }> = {};
+        const groups: Record<string, { baseName: string; image: string; minPrice: number; prontaEntrega: boolean; variants: any[] }> = {};
 
         products.forEach((p: any) => {
             const { baseName, size } = extractInfo(p.name);
@@ -137,6 +137,7 @@ export default function LojaPage() {
                     baseName: baseName,
                     image: p.image || '',
                     minPrice: p.sale_price,
+                    prontaEntrega: false,
                     variants: [],
                 };
             }
@@ -144,6 +145,7 @@ export default function LojaPage() {
             groups[key].variants.push({ ...p, extractedSize: size });
             if (p.image && !groups[key].image) groups[key].image = p.image;
             if (p.sale_price < groups[key].minPrice) groups[key].minPrice = p.sale_price;
+            if (p.pronta_entrega) groups[key].prontaEntrega = true;
         });
 
         // Ordenar variantes por tamanho
@@ -151,7 +153,11 @@ export default function LojaPage() {
             g.variants.sort((a, b) => getSizeWeight(a.extractedSize) - getSizeWeight(b.extractedSize));
         });
 
-        return Object.entries(groups).sort((a, b) => a[0].localeCompare(b[0], 'pt-BR', { numeric: true }));
+        // Ordenar: pronta entrega primeiro, depois sob encomenda, alfabético dentro de cada grupo
+        return Object.entries(groups).sort((a, b) => {
+            if (a[1].prontaEntrega !== b[1].prontaEntrega) return a[1].prontaEntrega ? -1 : 1;
+            return a[0].localeCompare(b[0], 'pt-BR', { numeric: true });
+        });
     }, [products]);
 
     const filteredGroups = groupedProducts.filter(([key]) =>
@@ -331,9 +337,16 @@ export default function LojaPage() {
                                     )}
                                 </div>
                                 <div className="p-4">
+                                    <div className="flex items-center gap-1.5 mb-1">
+                                        {group.prontaEntrega ? (
+                                            <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded-full bg-green-100 text-green-700">Pronta Entrega</span>
+                                        ) : (
+                                            <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-600">Sob Encomenda</span>
+                                        )}
+                                    </div>
                                     <h3 className="text-sm font-black uppercase text-black leading-tight">{group.variants.length === 1 ? group.variants[0].name : group.baseName}</h3>
                                     <p className="text-lg font-black text-black mt-2">
-                                        {group.variants.length > 1 ? 'A partir de ' : ''}R$ {group.minPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                        R$ {group.minPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                     </p>
                                     {group.variants.length > 1 && (
                                         <div className="flex flex-wrap gap-1 mt-2">
@@ -521,6 +534,11 @@ export default function LojaPage() {
                                 ) : (
                                     <div className="space-y-3">
                                         <h3 className="font-black uppercase text-sm text-black">Finalizar Pedido</h3>
+                                        {cart.some(item => item.pronta_entrega) && (
+                                            <div className="bg-green-50 border border-green-200 rounded-xl p-3">
+                                                <p className="text-xs font-bold text-green-700">Produtos de pronta entrega podem ser retirados no mesmo dia se o pedido for realizado antes das 17h.</p>
+                                            </div>
+                                        )}
                                         <div className="bg-gray-50 rounded-xl p-3">
                                             <p className="text-xs text-gray-400 uppercase font-bold">Cliente</p>
                                             <p className="text-sm font-bold text-black">{clientData?.name}</p>

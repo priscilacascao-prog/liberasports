@@ -195,6 +195,7 @@ export default function DashboardPage() {
     const [prodCostPrice, setProdCostPrice] = useState('');
     const [prodStock, setProdStock] = useState('');
     const [prodShowInStore, setProdShowInStore] = useState(false);
+    const [prodProntaEntrega, setProdProntaEntrega] = useState(false);
 
     // Form Estado - Financeiro
     const [finAmount, setFinAmount] = useState('');
@@ -220,6 +221,7 @@ export default function DashboardPage() {
     const [editProductImage, setEditProductImage] = useState('');
     const [editProductImages, setEditProductImages] = useState<string[]>([]);
     const [editProductShowInStore, setEditProductShowInStore] = useState(false);
+    const [editProductProntaEntrega, setEditProductProntaEntrega] = useState(false);
     const [editProductStock, setEditProductStock] = useState('');
     const [expandedSaleIds, setExpandedSaleIds] = useState<Record<string, boolean>>({});
 
@@ -480,6 +482,7 @@ export default function DashboardPage() {
                 cost_price: parseBRL(prodCostPrice),
                 stock: parseInt(prodStock),
                 show_in_store: prodShowInStore,
+                pronta_entrega: prodProntaEntrega,
                 created_at: new Date().toISOString(),
                 user_id: userId
             };
@@ -501,6 +504,7 @@ export default function DashboardPage() {
             setProdCostPrice('');
             setProdStock('');
             setProdShowInStore(false);
+            setProdProntaEntrega(false);
             setProdImage('');
             setProdImages([]);
         } catch (err: any) {
@@ -2567,6 +2571,10 @@ export default function DashboardPage() {
                                                             <input type="checkbox" checked={editProductShowInStore} onChange={e => setEditProductShowInStore(e.target.checked)} className="w-4 h-4 rounded accent-[#39FF14]" />
                                                             <span className="text-[11px] font-black uppercase text-white/70">Visível na Loja</span>
                                                         </label>
+                                                        <label className="flex items-center gap-2 cursor-pointer mt-1">
+                                                            <input type="checkbox" checked={editProductProntaEntrega} onChange={e => setEditProductProntaEntrega(e.target.checked)} className="w-4 h-4 rounded accent-[#39FF14]" />
+                                                            <span className="text-[11px] font-black uppercase text-white/70">Pronta Entrega</span>
+                                                        </label>
                                                         <div className="flex items-center gap-2 mt-1">
                                                             <button onClick={async () => {
                                                                 try {
@@ -2579,6 +2587,7 @@ export default function DashboardPage() {
                                                                         image: editProductImage || '',
                                                                         images: editProductImages,
                                                                         show_in_store: editProductShowInStore,
+                                                                        pronta_entrega: editProductProntaEntrega,
                                                                     };
                                                                     await updateDoc(doc(db, productsCollectionPath, p.id), updateData);
                                                                     toast.success('Produto atualizado!');
@@ -2595,6 +2604,7 @@ export default function DashboardPage() {
                                                         <div className="flex items-center gap-2">
                                                             <h3 className="text-base font-black italic uppercase text-white leading-tight">{p.name}</h3>
                                                             {p.show_in_store && <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-[#39FF14]/20 text-[#39FF14]">LOJA</span>}
+                                                            {p.pronta_entrega ? <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400">PRONTA ENTREGA</span> : <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-orange-500/20 text-orange-400">SOB ENCOMENDA</span>}
                                                         </div>
                                                         {p.details && <p className="text-[13px] text-white/50 mt-0.5">{p.details}</p>}
                                                         <div className="mt-2">
@@ -2630,6 +2640,7 @@ export default function DashboardPage() {
                                                         setEditProductImage(p.image || '');
                                                         setEditProductImages(p.images || []);
                                                         setEditProductShowInStore(p.show_in_store || false);
+                                                        setEditProductProntaEntrega(p.pronta_entrega || false);
                                                     }}
                                                     className="p-2 rounded-lg text-white/40 hover:text-[#39FF14] hover:bg-[#39FF14]/10 transition-all"
                                                     title="Editar produto"
@@ -4797,6 +4808,14 @@ export default function DashboardPage() {
                                 <div>
                                     <span className="text-sm font-black uppercase tracking-widest text-white">Visível na Loja</span>
                                     <p className="text-xs text-white/50 mt-0.5">Este produto aparecerá na loja online para clientes</p>
+                                </div>
+                            </label>
+
+                            <label className="flex items-center gap-3 cursor-pointer bg-zinc-950/50 rounded-2xl p-4">
+                                <input type="checkbox" checked={prodProntaEntrega} onChange={e => setProdProntaEntrega(e.target.checked)} className="w-5 h-5 rounded accent-[#39FF14]" />
+                                <div>
+                                    <span className="text-sm font-black uppercase tracking-widest text-white">Pronta Entrega</span>
+                                    <p className="text-xs text-white/50 mt-0.5">Produto disponível para retirada imediata (se desmarcado, será Sob Encomenda)</p>
                                 </div>
                             </label>
 
