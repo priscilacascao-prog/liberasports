@@ -331,7 +331,7 @@ export default function LojaPage() {
                                     )}
                                 </div>
                                 <div className="p-4">
-                                    <h3 className="text-sm font-black uppercase text-black leading-tight">{group.baseName}</h3>
+                                    <h3 className="text-sm font-black uppercase text-black leading-tight">{group.variants.length === 1 ? group.variants[0].name : group.baseName}</h3>
                                     <p className="text-lg font-black text-black mt-2">
                                         {group.variants.length > 1 ? 'A partir de ' : ''}R$ {group.minPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                     </p>
