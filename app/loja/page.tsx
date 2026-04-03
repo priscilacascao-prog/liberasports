@@ -92,6 +92,7 @@ export default function LojaPage() {
     const [deliveryEstado, setDeliveryEstado] = useState('');
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
+    const [selectedImageIdx, setSelectedImageIdx] = useState(0);
     const [selectedSize, setSelectedSize] = useState('');
     const [selectedQty, setSelectedQty] = useState(1);
 
@@ -315,7 +316,7 @@ export default function LojaPage() {
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                         {filteredGroups.map(([key, group]) => (
                             <div key={key}
-                                onClick={() => { setSelectedGroup(key); setSelectedSize(group.variants[0]?.extractedSize || ''); setSelectedQty(1); }}
+                                onClick={() => { setSelectedGroup(key); setSelectedSize(group.variants[0]?.extractedSize || ''); setSelectedQty(1); setSelectedImageIdx(0); }}
                                 className="bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-lg transition-shadow group cursor-pointer">
                                 <div className="aspect-square bg-gray-100 relative overflow-hidden">
                                     {group.image ? (
@@ -356,14 +357,35 @@ export default function LojaPage() {
                     <div className="relative bg-white rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl">
                         <button onClick={() => setSelectedGroup(null)} className="absolute top-4 right-4 z-10 bg-black text-white rounded-full p-2 hover:bg-gray-800"><X size={20} /></button>
 
-                        {/* Image */}
-                        <div className="aspect-square bg-gray-100 relative overflow-hidden rounded-t-2xl">
-                            {(selectedVariant?.image || selectedGroupData.image) ? (
-                                <img src={selectedVariant?.image || selectedGroupData.image} alt={selectedGroupData.baseName} className="w-full h-full object-cover" />
-                            ) : (
-                                <div className="w-full h-full flex items-center justify-center"><Package size={60} className="text-gray-300" /></div>
-                            )}
-                        </div>
+                        {/* Image Gallery */}
+                        {(() => {
+                            const allImages = [
+                                selectedVariant?.image || selectedGroupData.image,
+                                ...(selectedVariant?.images || []),
+                            ].filter(Boolean);
+                            const currentImg = allImages[selectedImageIdx] || allImages[0];
+                            return (
+                                <>
+                                <div className="aspect-square bg-gray-100 relative overflow-hidden rounded-t-2xl">
+                                    {currentImg ? (
+                                        <img src={currentImg} alt={selectedGroupData.baseName} className="w-full h-full object-cover" />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center"><Package size={60} className="text-gray-300" /></div>
+                                    )}
+                                </div>
+                                {allImages.length > 1 && (
+                                    <div className="flex gap-2 px-6 pt-3">
+                                        {allImages.map((img, idx) => (
+                                            <button key={idx} onClick={() => setSelectedImageIdx(idx)}
+                                                className={`w-14 h-14 rounded-lg overflow-hidden border-2 transition-all shrink-0 ${selectedImageIdx === idx ? 'border-black' : 'border-gray-200 opacity-60 hover:opacity-100'}`}>
+                                                <img src={img} alt="" className="w-full h-full object-cover" />
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                                </>
+                            );
+                        })()}
 
                         <div className="p-6 space-y-5">
                             <div>

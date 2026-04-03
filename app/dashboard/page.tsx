@@ -190,6 +190,7 @@ export default function DashboardPage() {
     const [prodName, setProdName] = useState('');
     const [prodDetails, setProdDetails] = useState('');
     const [prodImage, setProdImage] = useState('');
+    const [prodImages, setProdImages] = useState<string[]>([]);
     const [prodSalePrice, setProdSalePrice] = useState('');
     const [prodCostPrice, setProdCostPrice] = useState('');
     const [prodStock, setProdStock] = useState('');
@@ -217,6 +218,7 @@ export default function DashboardPage() {
     const [editProductSalePrice, setEditProductSalePrice] = useState('');
     const [editProductCostPrice, setEditProductCostPrice] = useState('');
     const [editProductImage, setEditProductImage] = useState('');
+    const [editProductImages, setEditProductImages] = useState<string[]>([]);
     const [editProductShowInStore, setEditProductShowInStore] = useState(false);
     const [editProductStock, setEditProductStock] = useState('');
     const [expandedSaleIds, setExpandedSaleIds] = useState<Record<string, boolean>>({});
@@ -482,6 +484,7 @@ export default function DashboardPage() {
                 user_id: userId
             };
             if (prodImage) newProduct.image = prodImage;
+            if (prodImages.length > 0) newProduct.images = prodImages;
             await addDoc(collection(db, productsCollectionPath), newProduct);
             toast.success('Produto adicionado ao estoque!');
             setIsProductModalOpen(false);
@@ -492,6 +495,7 @@ export default function DashboardPage() {
             setProdStock('');
             setProdShowInStore(false);
             setProdImage('');
+            setProdImages([]);
         } catch (err) {
             console.error(err);
             toast.error('Erro ao adicionar produto');
@@ -2526,6 +2530,7 @@ export default function DashboardPage() {
                                                                         cost_price: parseBRL(editProductCostPrice),
                                                                         stock: parseInt(editProductStock) || 0,
                                                                         image: editProductImage || '',
+                                                                        images: editProductImages,
                                                                         show_in_store: editProductShowInStore,
                                                                     };
                                                                     await updateDoc(doc(db, productsCollectionPath, p.id), updateData);
@@ -2576,6 +2581,7 @@ export default function DashboardPage() {
                                                         setEditProductCostPrice(p.cost_price.toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
                                                         setEditProductStock(String(p.stock));
                                                         setEditProductImage(p.image || '');
+                                                        setEditProductImages(p.images || []);
                                                         setEditProductShowInStore(p.show_in_store || false);
                                                     }}
                                                     className="p-2 rounded-lg text-white/40 hover:text-[#39FF14] hover:bg-[#39FF14]/10 transition-all"
@@ -4669,6 +4675,35 @@ export default function DashboardPage() {
                                                 reader.readAsDataURL(file);
                                             }} />
                                         </label>
+                                    </div>
+                                </div>
+
+                                {/* Imagens extras */}
+                                <div>
+                                    <label className="block text-sm font-black uppercase tracking-widest mb-2 text-white">Fotos Extras ({prodImages.length}/3)</label>
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                        {prodImages.map((img, idx) => (
+                                            <div key={idx} className="relative w-14 h-14 rounded-xl overflow-hidden border border-zinc-800 shrink-0">
+                                                <img src={img} alt={`Extra ${idx + 1}`} className="w-full h-full object-cover" />
+                                                <button type="button" onClick={() => setProdImages(prodImages.filter((_, i) => i !== idx))}
+                                                    className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center">
+                                                    <X size={8} />
+                                                </button>
+                                            </div>
+                                        ))}
+                                        {prodImages.length < 3 && (
+                                            <label className="w-14 h-14 rounded-xl border border-dashed border-zinc-700 flex items-center justify-center cursor-pointer hover:border-[#39FF14]/50 transition-all shrink-0">
+                                                <Plus size={16} className="text-white/50" />
+                                                <input type="file" accept="image/*" className="hidden" onChange={e => {
+                                                    const file = e.target.files?.[0];
+                                                    if (!file) return;
+                                                    if (file.size > 300000) { toast.error('Imagem muito grande (máx 300KB)'); return; }
+                                                    const reader = new FileReader();
+                                                    reader.onload = () => setProdImages([...prodImages, reader.result as string]);
+                                                    reader.readAsDataURL(file);
+                                                }} />
+                                            </label>
+                                        )}
                                     </div>
                                 </div>
 
