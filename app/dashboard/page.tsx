@@ -2436,6 +2436,14 @@ export default function DashboardPage() {
                             </div>
                         </div>
 
+                        <input
+                            type="text"
+                            value={productSearch}
+                            onChange={e => setProductSearch(e.target.value)}
+                            placeholder="Buscar produto por nome..."
+                            className="w-full bg-zinc-950/80 border border-zinc-900 rounded-xl p-3 text-white outline-none focus:border-[#39FF14] transition-colors text-sm font-bold placeholder:text-zinc-600 mb-4"
+                        />
+
                         {stockLoading ? (
                             <div className="flex justify-center py-20">
                                 <Loader2 className="animate-spin text-[#39FF14]" size={40} />
@@ -2447,7 +2455,7 @@ export default function DashboardPage() {
                             </div>
                         ) : (
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {products.map((p) => (
+                                {products.filter(p => !productSearch || p.name.toLowerCase().includes(productSearch.toLowerCase())).map((p) => (
                                     <div key={p.id} className="bg-zinc-900/50 border border-zinc-800 p-5 rounded-[32px] hover:border-[#39FF14]/30 transition-all">
                                         <div className="flex gap-4 mb-4">
                                             {p.image ? (
