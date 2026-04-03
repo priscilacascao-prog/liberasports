@@ -2504,6 +2504,34 @@ export default function DashboardPage() {
                                                                 </label>
                                                             </div>
                                                         </div>
+                                                        {/* Fotos extras na edição */}
+                                                        <div>
+                                                            <p className="text-[11px] text-white/70 font-bold uppercase mb-1">Fotos Extras ({editProductImages.length}/3)</p>
+                                                            <div className="flex items-center gap-2 flex-wrap">
+                                                                {editProductImages.map((img, idx) => (
+                                                                    <div key={idx} className="relative w-12 h-12 rounded-lg overflow-hidden border border-zinc-700 shrink-0">
+                                                                        <img src={img} alt={`Extra ${idx + 1}`} className="w-full h-full object-cover" />
+                                                                        <button type="button" onClick={() => setEditProductImages(editProductImages.filter((_, i) => i !== idx))}
+                                                                            className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center">
+                                                                            <X size={8} />
+                                                                        </button>
+                                                                    </div>
+                                                                ))}
+                                                                {editProductImages.length < 3 && (
+                                                                    <label className="w-12 h-12 rounded-lg border border-dashed border-zinc-700 flex items-center justify-center cursor-pointer hover:border-[#39FF14]/50 transition-all shrink-0">
+                                                                        <Plus size={14} className="text-white/50" />
+                                                                        <input type="file" accept="image/*" className="hidden" onChange={e => {
+                                                                            const file = e.target.files?.[0];
+                                                                            if (!file) return;
+                                                                            if (file.size > 200000) { toast.error('Imagem muito grande (máx 200KB)'); return; }
+                                                                            const reader = new FileReader();
+                                                                            reader.onload = () => setEditProductImages([...editProductImages, reader.result as string]);
+                                                                            reader.readAsDataURL(file);
+                                                                        }} />
+                                                                    </label>
+                                                                )}
+                                                            </div>
+                                                        </div>
                                                         <div className="grid grid-cols-3 gap-2">
                                                             <div>
                                                                 <p className="text-[11px] text-white/70 font-bold uppercase mb-1">Preço Venda</p>
