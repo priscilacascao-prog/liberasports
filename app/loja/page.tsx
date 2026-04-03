@@ -364,13 +364,29 @@ export default function LojaPage() {
                                 ...(selectedVariant?.images || []),
                             ].filter(Boolean);
                             const currentImg = allImages[selectedImageIdx] || allImages[0];
+                            let touchStartX = 0;
                             return (
                                 <>
-                                <div className="aspect-square bg-gray-100 relative overflow-hidden rounded-t-2xl">
+                                <div className="aspect-square bg-gray-100 relative overflow-hidden rounded-t-2xl"
+                                    onTouchStart={e => { touchStartX = e.touches[0].clientX; }}
+                                    onTouchEnd={e => {
+                                        const diff = touchStartX - e.changedTouches[0].clientX;
+                                        if (allImages.length > 1) {
+                                            if (diff > 50) setSelectedImageIdx(prev => Math.min(prev + 1, allImages.length - 1));
+                                            else if (diff < -50) setSelectedImageIdx(prev => Math.max(prev - 1, 0));
+                                        }
+                                    }}>
                                     {currentImg ? (
                                         <img src={currentImg} alt={selectedGroupData.baseName} className="w-full h-full object-cover" />
                                     ) : (
                                         <div className="w-full h-full flex items-center justify-center"><Package size={60} className="text-gray-300" /></div>
+                                    )}
+                                    {allImages.length > 1 && (
+                                        <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5">
+                                            {allImages.map((_, idx) => (
+                                                <div key={idx} className={`w-2 h-2 rounded-full transition-all ${selectedImageIdx === idx ? 'bg-black scale-125' : 'bg-black/30'}`} />
+                                            ))}
+                                        </div>
                                     )}
                                 </div>
                                 {allImages.length > 1 && (
@@ -389,7 +405,7 @@ export default function LojaPage() {
 
                         <div className="p-6 space-y-5">
                             <div>
-                                <h2 className="text-xl font-black uppercase text-black">{selectedGroupData.baseName}</h2>
+                                <h2 className="text-xl font-black uppercase text-black">{selectedGroupData.variants.length === 1 ? selectedGroupData.variants[0].name : selectedGroupData.baseName}</h2>
                                 {selectedVariant?.details && <p className="text-sm text-gray-500 mt-1">{selectedVariant.details}</p>}
                             </div>
 
