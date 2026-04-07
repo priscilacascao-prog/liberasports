@@ -1704,6 +1704,7 @@ export default function DashboardPage() {
         const rowsHtml = items.map((i, idx) => `
             <tr style="background:${idx % 2 === 0 ? '#fff' : '#f9f9f9'}">
                 <td style="padding:6px 8px;font-size:11px;border-bottom:1px solid #eee;">${(i.description || '').substring(0, 60)}</td>
+                <td style="padding:6px 8px;font-size:11px;border-bottom:1px solid #eee;">${(i.supplier_name || '-').substring(0, 40)}</td>
                 <td style="padding:6px 8px;font-size:11px;border-bottom:1px solid #eee;white-space:nowrap;">${new Date(i.due_date || i.transaction_date || i.created_at).toLocaleDateString('pt-BR')}</td>
                 <td style="padding:6px 8px;font-size:11px;border-bottom:1px solid #eee;white-space:nowrap;">${getPaymentInfo(i)}</td>
                 <td style="padding:6px 8px;font-size:11px;border-bottom:1px solid #eee;text-align:right;white-space:nowrap;">${fmtMoney(i.amount)}</td>
@@ -1723,6 +1724,7 @@ export default function DashboardPage() {
             <table style="width:100%;border-collapse:collapse;">
                 <thead><tr style="background:#1e1e1e;">
                     <th style="padding:8px;font-size:11px;color:#39FF14;text-align:left;font-weight:900;">Descrição</th>
+                    <th style="padding:8px;font-size:11px;color:#39FF14;text-align:left;font-weight:900;">Fornecedor/Cliente</th>
                     <th style="padding:8px;font-size:11px;color:#39FF14;text-align:left;font-weight:900;">Vencimento</th>
                     <th style="padding:8px;font-size:11px;color:#39FF14;text-align:left;font-weight:900;">Pagamento</th>
                     <th style="padding:8px;font-size:11px;color:#39FF14;text-align:right;font-weight:900;">Valor</th>
@@ -1730,7 +1732,7 @@ export default function DashboardPage() {
                 </tr></thead>
                 <tbody>${rowsHtml}</tbody>
                 <tfoot><tr style="background:#1e1e1e;">
-                    <td style="padding:8px;font-size:11px;color:#fff;font-weight:900;" colspan="3">${items.length} itens</td>
+                    <td style="padding:8px;font-size:11px;color:#fff;font-weight:900;" colspan="4">${items.length} itens</td>
                     <td style="padding:8px;font-size:11px;color:#fff;font-weight:900;text-align:right;">${fmtMoney(total)}</td>
                     <td></td>
                 </tr></tfoot>
