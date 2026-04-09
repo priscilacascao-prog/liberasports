@@ -80,7 +80,7 @@ export default function DashboardPage() {
         accentText: isDark ? 'text-black' : 'text-white',
         card: isDark ? 'bg-zinc-950 border-zinc-900' : 'bg-white border-gray-200',
         cardHover: isDark ? 'hover:border-zinc-800' : 'hover:border-gray-300',
-        input: isDark ? 'bg-zinc-950/80 border-transparent text-white placeholder:text-zinc-600' : 'bg-gray-100 border-gray-200 text-gray-900 placeholder:text-gray-400',
+        input: isDark ? 'bg-zinc-800 border-transparent text-white placeholder:text-zinc-600' : 'bg-gray-100 border-gray-200 text-gray-900 placeholder:text-gray-400',
         nav: isDark ? 'bg-black border-zinc-900' : 'bg-white border-gray-200',
         divider: isDark ? 'divide-zinc-900' : 'divide-gray-200',
         border: isDark ? 'border-zinc-900' : 'border-gray-200',
@@ -2447,7 +2447,7 @@ export default function DashboardPage() {
                             value={productSearch}
                             onChange={e => setProductSearch(e.target.value)}
                             placeholder="Buscar produto por nome..."
-                            className="w-full bg-zinc-950/80 border border-zinc-900 rounded-xl p-3 text-white outline-none focus:border-[#39FF14] transition-colors text-sm font-bold placeholder:text-zinc-600 mb-4"
+                            className="w-full bg-zinc-800 border border-zinc-900 rounded-xl p-3 text-white outline-none focus:border-[#39FF14] transition-colors text-sm font-bold placeholder:text-zinc-600 mb-4"
                         />
 
                         {stockLoading ? (
@@ -2715,7 +2715,7 @@ export default function DashboardPage() {
                                     value={productSearch}
                                     onChange={e => setProductSearch(e.target.value)}
                                     placeholder="Buscar produto..."
-                                    className="w-full bg-zinc-950/80 border border-zinc-900 rounded-xl p-3 text-white outline-none focus:ring-1 focus:ring-[#39FF14] text-sm font-bold placeholder:text-zinc-600"
+                                    className="w-full bg-zinc-800 border border-zinc-900 rounded-xl p-3 text-white outline-none focus:ring-1 focus:ring-[#39FF14] text-sm font-bold placeholder:text-zinc-600"
                                 />
                                 <div className="grid grid-cols-1 gap-3 max-h-[600px] overflow-y-auto pr-1">
                                     {products.filter(p => !productSearch || p.name.toLowerCase().includes(productSearch.toLowerCase())).map(p => (
@@ -2803,7 +2803,7 @@ export default function DashboardPage() {
                                             onFocus={() => { if (saleClient.length > 0) setShowClientSuggestions(true); }}
                                             onBlur={() => setTimeout(() => setShowClientSuggestions(false), 200)}
                                             placeholder="Nome do cliente..."
-                                            className="w-full bg-zinc-950/80 border-transparent rounded-xl p-3 text-white outline-none focus:ring-1 focus:ring-[#39FF14] text-sm font-bold placeholder:text-zinc-600" />
+                                            className="w-full bg-zinc-800 border-transparent rounded-xl p-3 text-white outline-none focus:ring-1 focus:ring-[#39FF14] text-sm font-bold placeholder:text-zinc-600" />
                                         {showClientSuggestions && saleClient.length > 1 && (
                                             <div className="absolute left-0 right-0 top-full mt-1 bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden z-50 shadow-xl max-h-[200px] overflow-y-auto">
                                                 {fornecedores.filter(f => f.name.toLowerCase().includes(saleClient.toLowerCase()) || (f.cpf_cnpj && f.cpf_cnpj.includes(saleClient.replace(/\D/g, '')))).map(f => (
@@ -2844,32 +2844,32 @@ export default function DashboardPage() {
                                     <div className="grid grid-cols-2 gap-2">
                                         <div>
                                             <label className="block text-[11px] font-black uppercase tracking-widest text-white mb-1">WhatsApp</label>
-                                            <input type="text" value={saleWhatsapp} onChange={e => setSaleWhatsapp(e.target.value)} placeholder="(00) 00000-0000" className="w-full bg-zinc-950/80 border-transparent rounded-xl p-3 text-white outline-none focus:ring-1 focus:ring-[#39FF14] text-sm font-bold placeholder:text-zinc-600" />
+                                            <input type="text" value={saleWhatsapp} onChange={e => setSaleWhatsapp(e.target.value)} placeholder="(00) 00000-0000" className="w-full bg-zinc-800 border-transparent rounded-xl p-3 text-white outline-none focus:ring-1 focus:ring-[#39FF14] text-sm font-bold placeholder:text-zinc-600" />
                                         </div>
                                         <div>
                                             <label className="block text-[11px] font-black uppercase tracking-widest text-white mb-1">CPF/CNPJ</label>
-                                            <input type="text" value={saleCpfCnpj} onChange={e => { const formatted = formatCpfCnpj(e.target.value); setSaleCpfCnpj(formatted); const d = e.target.value.replace(/\D/g, ''); if (d.length === 11 || d.length === 14) setSaleCpfCnpjError(validateCpfCnpj(d) ? '' : 'Inválido'); else setSaleCpfCnpjError(''); }} placeholder="000.000.000-00" className={`w-full bg-zinc-950/80 border-transparent rounded-xl p-3 text-white outline-none focus:ring-1 text-sm font-bold placeholder:text-zinc-600 ${saleCpfCnpjError ? 'ring-1 ring-red-500' : 'focus:ring-[#39FF14]'}`} />
+                                            <input type="text" value={saleCpfCnpj} onChange={e => { const formatted = formatCpfCnpj(e.target.value); setSaleCpfCnpj(formatted); const d = e.target.value.replace(/\D/g, ''); if (d.length === 11 || d.length === 14) setSaleCpfCnpjError(validateCpfCnpj(d) ? '' : 'Inválido'); else setSaleCpfCnpjError(''); }} placeholder="000.000.000-00" className={`w-full bg-zinc-800 border-transparent rounded-xl p-3 text-white outline-none focus:ring-1 text-sm font-bold placeholder:text-zinc-600 ${saleCpfCnpjError ? 'ring-1 ring-red-500' : 'focus:ring-[#39FF14]'}`} />
                                             {saleCpfCnpjError && <p className="text-red-500 text-[10px] font-bold mt-0.5">{saleCpfCnpjError}</p>}
                                         </div>
                                     </div>
                                     <div>
                                         <label className="block text-sm font-black uppercase tracking-widest text-white mb-1">Descrição / Grade</label>
-                                        <textarea value={saleDescription} onChange={e => setSaleDescription(e.target.value)} placeholder="Detalhes do pedido..." rows={2} className="w-full bg-zinc-950/80 border-transparent rounded-xl p-3 text-white outline-none focus:ring-1 focus:ring-[#39FF14] text-sm font-bold placeholder:text-zinc-600 resize-none" />
+                                        <textarea value={saleDescription} onChange={e => setSaleDescription(e.target.value)} placeholder="Detalhes do pedido..." rows={2} className="w-full bg-zinc-800 border-transparent rounded-xl p-3 text-white outline-none focus:ring-1 focus:ring-[#39FF14] text-sm font-bold placeholder:text-zinc-600 resize-none" />
                                     </div>
                                     {cart.length === 0 && (
                                         <div>
                                             <label className="block text-sm font-black uppercase tracking-widest text-[#39FF14] mb-1">Valor Total (R$)</label>
-                                            <input type="text" value={saleManualValue} onChange={e => setSaleManualValue(formatCurrency(e.target.value))} placeholder="0,00" className="w-full bg-zinc-950/80 border-transparent rounded-xl p-3 text-white outline-none focus:ring-1 focus:ring-[#39FF14] text-sm font-bold placeholder:text-zinc-600" />
+                                            <input type="text" value={saleManualValue} onChange={e => setSaleManualValue(formatCurrency(e.target.value))} placeholder="0,00" className="w-full bg-zinc-800 border-transparent rounded-xl p-3 text-white outline-none focus:ring-1 focus:ring-[#39FF14] text-sm font-bold placeholder:text-zinc-600" />
                                         </div>
                                     )}
                                     <div className="grid grid-cols-2 gap-2">
                                         <div>
                                             <label className="block text-[11px] font-black uppercase tracking-widest text-white mb-1">Prazo de Entrega</label>
-                                            <input type="date" value={saleDeadline} onChange={e => setSaleDeadline(e.target.value)} className="w-full bg-zinc-950/80 border-transparent rounded-xl p-3 text-white outline-none focus:ring-1 focus:ring-[#39FF14] text-sm font-bold [color-scheme:dark]" />
+                                            <input type="date" value={saleDeadline} onChange={e => setSaleDeadline(e.target.value)} className="w-full bg-zinc-800 border-transparent rounded-xl p-3 text-white outline-none focus:ring-1 focus:ring-[#39FF14] text-sm font-bold [color-scheme:dark]" />
                                         </div>
                                         <div>
                                             <label className="block text-[11px] font-black uppercase tracking-widest text-white mb-1">Método de Entrega</label>
-                                            <select value={saleDeliveryMethod} onChange={e => setSaleDeliveryMethod(e.target.value as any)} className="w-full bg-zinc-950/80 border-transparent rounded-xl p-3 text-white outline-none focus:ring-1 focus:ring-[#39FF14] text-sm font-bold appearance-none">
+                                            <select value={saleDeliveryMethod} onChange={e => setSaleDeliveryMethod(e.target.value as any)} className="w-full bg-zinc-800 border-transparent rounded-xl p-3 text-white outline-none focus:ring-1 focus:ring-[#39FF14] text-sm font-bold appearance-none">
                                                 <option value="MOTOBOY">MOTOBOY</option>
                                                 <option value="CORREIOS/TRANSPORTADORA">CORREIOS/TRANSPORTADORA</option>
                                                 <option value="RETIRADA">RETIRADA</option>
@@ -2878,7 +2878,7 @@ export default function DashboardPage() {
                                     </div>
                                     <div>
                                         <label className="block text-sm font-black uppercase tracking-widest text-white mb-1">Endereço de Entrega</label>
-                                        <textarea value={saleDeliveryAddress} onChange={e => setSaleDeliveryAddress(e.target.value)} placeholder="Rua, número, bairro, cidade..." rows={2} className="w-full bg-zinc-950/80 border-transparent rounded-xl p-3 text-white outline-none focus:ring-1 focus:ring-[#39FF14] text-sm font-bold placeholder:text-zinc-600 resize-none" />
+                                        <textarea value={saleDeliveryAddress} onChange={e => setSaleDeliveryAddress(e.target.value)} placeholder="Rua, número, bairro, cidade..." rows={2} className="w-full bg-zinc-800 border-transparent rounded-xl p-3 text-white outline-none focus:ring-1 focus:ring-[#39FF14] text-sm font-bold placeholder:text-zinc-600 resize-none" />
                                     </div>
                                     <label className="flex items-center gap-3 cursor-pointer mt-2 bg-zinc-950/50 rounded-xl p-3">
                                         <input type="checkbox" checked={saleEntersProduction} onChange={e => setSaleEntersProduction(e.target.checked)} className="w-5 h-5 rounded accent-[#39FF14]" />
@@ -2916,7 +2916,7 @@ export default function DashboardPage() {
                                                 value={transactionDate}
                                                 onChange={e => setTransactionDate(e.target.value)}
                                                 required
-                                                className="w-full bg-zinc-950/80 border border-zinc-900 rounded-xl p-3 text-white outline-none focus:ring-1 focus:ring-[#39FF14] transition-all [color-scheme:dark] text-xs"
+                                                className="w-full bg-zinc-800 border border-zinc-900 rounded-xl p-3 text-white outline-none focus:ring-1 focus:ring-[#39FF14] transition-all [color-scheme:dark] text-xs"
                                             />
                                         </div>
                                         {paymentMethod === 'CARTÃO CRÉDITO' && (
@@ -2927,7 +2927,7 @@ export default function DashboardPage() {
                                                 <select
                                                     value={installments}
                                                     onChange={e => setInstallments(parseInt(e.target.value))}
-                                                    className="w-full bg-zinc-950/80 border border-zinc-900 rounded-xl p-3 text-white outline-none focus:ring-1 focus:ring-[#39FF14] transition-all appearance-none text-center text-xs"
+                                                    className="w-full bg-zinc-800 border border-zinc-900 rounded-xl p-3 text-white outline-none focus:ring-1 focus:ring-[#39FF14] transition-all appearance-none text-center text-xs"
                                                 >
                                                     {Array.from({ length: 12 }, (_, i) => i + 1).map(num => (
                                                         <option key={num} value={num}>
@@ -2943,14 +2943,14 @@ export default function DashboardPage() {
                                             <div>
                                                 <label className="block text-[13px] font-black uppercase tracking-widest mb-1 text-[#39FF14]">Qtd. Boletos</label>
                                                 <select value={saleBoletoQty} onChange={e => setSaleBoletoQty(parseInt(e.target.value))}
-                                                    className="w-full bg-zinc-950/80 border border-zinc-900 rounded-xl p-3 text-white outline-none focus:ring-1 focus:ring-[#39FF14] transition-all appearance-none text-center text-xs">
+                                                    className="w-full bg-zinc-800 border border-zinc-900 rounded-xl p-3 text-white outline-none focus:ring-1 focus:ring-[#39FF14] transition-all appearance-none text-center text-xs">
                                                     {[1,2,3,4,5,6].map(n => <option key={n} value={n}>{n}x</option>)}
                                                 </select>
                                             </div>
                                             <div>
                                                 <label className="block text-[13px] font-black uppercase tracking-widest mb-1 text-[#39FF14]">Intervalo</label>
                                                 <select value={saleBoletoInterval} onChange={e => setSaleBoletoInterval(parseInt(e.target.value))}
-                                                    className="w-full bg-zinc-950/80 border border-zinc-900 rounded-xl p-3 text-white outline-none focus:ring-1 focus:ring-[#39FF14] transition-all appearance-none text-center text-xs">
+                                                    className="w-full bg-zinc-800 border border-zinc-900 rounded-xl p-3 text-white outline-none focus:ring-1 focus:ring-[#39FF14] transition-all appearance-none text-center text-xs">
                                                     <option value={30}>30 dias</option>
                                                     <option value={60}>60 dias</option>
                                                     <option value={90}>90 dias</option>
@@ -2959,7 +2959,7 @@ export default function DashboardPage() {
                                             <div>
                                                 <label className="block text-[13px] font-black uppercase tracking-widest mb-1 text-[#39FF14]">1º Vencimento</label>
                                                 <input type="date" value={saleBoletoFirstDate} onChange={e => setSaleBoletoFirstDate(e.target.value)}
-                                                    className="w-full bg-zinc-950/80 border border-zinc-900 rounded-xl p-3 text-white outline-none focus:ring-1 focus:ring-[#39FF14] transition-all [color-scheme:dark] text-xs" />
+                                                    className="w-full bg-zinc-800 border border-zinc-900 rounded-xl p-3 text-white outline-none focus:ring-1 focus:ring-[#39FF14] transition-all [color-scheme:dark] text-xs" />
                                             </div>
                                         </div>
                                     )}
@@ -3335,7 +3335,7 @@ export default function DashboardPage() {
                                     value={financeSearchTerm}
                                     onChange={e => setFinanceSearchTerm(e.target.value)}
                                     placeholder="Buscar por fornecedor, descrição..."
-                                    className="w-full bg-zinc-950/80 border border-zinc-800 rounded-xl p-3 text-white outline-none focus:border-[#39FF14] transition-colors text-sm font-bold placeholder:text-zinc-600"
+                                    className="w-full bg-zinc-800 border border-zinc-800 rounded-xl p-3 text-white outline-none focus:border-[#39FF14] transition-colors text-sm font-bold placeholder:text-zinc-600"
                                 />
                             </div>
 
@@ -3725,12 +3725,12 @@ export default function DashboardPage() {
                                 <div>
                                     <label className="block text-sm font-black uppercase tracking-widest mb-2">Descrição</label>
                                     <input type="text" value={gastoDesc} onChange={e => setGastoDesc(e.target.value)} placeholder="Ex: Almoço, Gasolina, Material..."
-                                        className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-red-500 font-bold placeholder:text-zinc-600" />
+                                        className="w-full bg-zinc-800 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-red-500 font-bold placeholder:text-zinc-600" />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-black uppercase tracking-widest mb-2">Valor (R$)</label>
                                     <input type="text" value={gastoAmount} onChange={e => setGastoAmount(formatCurrency(e.target.value))} placeholder="0,00"
-                                        className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-red-500 font-bold placeholder:text-zinc-600" />
+                                        className="w-full bg-zinc-800 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-red-500 font-bold placeholder:text-zinc-600" />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-black uppercase tracking-widest mb-2">Forma de Pagamento</label>
@@ -3869,22 +3869,22 @@ export default function DashboardPage() {
                                 </div>
                                 <div>
                                     <label className="block text-sm font-black uppercase tracking-widest mb-2">Nome</label>
-                                    <input type="text" value={fornecedorName} onChange={e => setFornecedorName(e.target.value)} placeholder={fornecedorType === 'CLIENTE' ? 'Nome do cliente...' : fornecedorType === 'FORNECEDOR' ? 'Nome do fornecedor...' : 'Nome do funcionário...'} className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14]" required />
+                                    <input type="text" value={fornecedorName} onChange={e => setFornecedorName(e.target.value)} placeholder={fornecedorType === 'CLIENTE' ? 'Nome do cliente...' : fornecedorType === 'FORNECEDOR' ? 'Nome do fornecedor...' : 'Nome do funcionário...'} className="w-full bg-zinc-800 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14]" required />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-black uppercase tracking-widest mb-2">CPF/CNPJ</label>
-                                    <input type="text" value={fornecedorCpfCnpj} onChange={e => handleFornecedorCpfCnpjChange(e.target.value)} placeholder="000.000.000-00" className={`w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 ${fornecedorCpfCnpjError ? 'ring-1 ring-red-500' : 'focus:ring-[#39FF14]'}`} />
+                                    <input type="text" value={fornecedorCpfCnpj} onChange={e => handleFornecedorCpfCnpjChange(e.target.value)} placeholder="000.000.000-00" className={`w-full bg-zinc-800 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 ${fornecedorCpfCnpjError ? 'ring-1 ring-red-500' : 'focus:ring-[#39FF14]'}`} />
                                     {fornecedorCpfCnpjError && <p className="text-red-500 text-xs font-bold mt-1">{fornecedorCpfCnpjError}</p>}
                                 </div>
                                 <div>
                                     <label className="block text-sm font-black uppercase tracking-widest mb-2">WhatsApp</label>
-                                    <input type="text" value={fornecedorWhatsapp} onChange={e => setFornecedorWhatsapp(e.target.value)} placeholder="(00) 00000-0000" className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14]" />
+                                    <input type="text" value={fornecedorWhatsapp} onChange={e => setFornecedorWhatsapp(e.target.value)} placeholder="(00) 00000-0000" className="w-full bg-zinc-800 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14]" />
                                 </div>
                                 {fornecedorType === 'FUNCIONÁRIO' && (
                                     <div>
                                         <label className="block text-sm font-black uppercase tracking-widest mb-2">Início na Empresa</label>
                                         <input type="date" value={fornecedorStartDate} onChange={e => setFornecedorStartDate(e.target.value)}
-                                            className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] [color-scheme:dark]" />
+                                            className="w-full bg-zinc-800 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] [color-scheme:dark]" />
                                     </div>
                                 )}
                                 <button onClick={handleSaveFornecedor} className="w-full bg-[#39FF14] text-black py-4 rounded-2xl font-black uppercase text-sm tracking-widest hover:scale-[1.02] transition-all">
@@ -3962,7 +3962,7 @@ export default function DashboardPage() {
                                         value={editingFinanceItem.editDesc}
                                         onChange={e => setEditingFinanceItem({ ...editingFinanceItem, editDesc: e.target.value })}
                                         required
-                                        className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all font-bold"
+                                        className="w-full bg-zinc-800 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-700 transition-all font-bold"
                                     />
                                 </div>
 
@@ -3973,7 +3973,7 @@ export default function DashboardPage() {
                                         value={editingFinanceItem.editAmount}
                                         onChange={e => setEditingFinanceItem({ ...editingFinanceItem, editAmount: formatCurrency(e.target.value) })}
                                         required
-                                        className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all font-bold"
+                                        className="w-full bg-zinc-800 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-700 transition-all font-bold"
                                     />
                                 </div>
 
@@ -3984,7 +3984,7 @@ export default function DashboardPage() {
                                         value={editingFinanceItem.editDueDate}
                                         onChange={e => setEditingFinanceItem({ ...editingFinanceItem, editDueDate: e.target.value })}
                                         required
-                                        className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all font-bold [color-scheme:dark]"
+                                        className="w-full bg-zinc-800 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-700 transition-all font-bold [color-scheme:dark]"
                                     />
                                 </div>
 
@@ -4011,7 +4011,7 @@ export default function DashboardPage() {
                                         onChange={e => setEditingFinanceItem({ ...editingFinanceItem, editObs: e.target.value })}
                                         placeholder="Informações adicionais..."
                                         rows={2}
-                                        className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all font-bold placeholder:text-zinc-600 resize-none"
+                                        className="w-full bg-zinc-800 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-700 transition-all font-bold placeholder:text-zinc-600 resize-none"
                                     />
                                 </div>
 
@@ -4382,7 +4382,7 @@ export default function DashboardPage() {
                                             onChange={e => setClient(e.target.value)}
                                             placeholder="Nome do cliente..."
                                             required
-                                            className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all placeholder:text-zinc-600"
+                                            className="w-full bg-zinc-800 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-700 transition-all placeholder:text-zinc-600"
                                         />
                                     </div>
 
@@ -4393,7 +4393,7 @@ export default function DashboardPage() {
                                                 type="text"
                                                 value={clientWhatsapp}
                                                 onChange={e => setClientWhatsapp(e.target.value)}
-                                                className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all placeholder:text-zinc-600"
+                                                className="w-full bg-zinc-800 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-700 transition-all placeholder:text-zinc-600"
                                                 placeholder="(00) 00000-0000"
                                             />
                                         </div>
@@ -4403,7 +4403,7 @@ export default function DashboardPage() {
                                                 type="text"
                                                 value={clientCpfCnpj}
                                                 onChange={e => handleCpfCnpjChange(e.target.value)}
-                                                className={`w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 transition-all placeholder:text-zinc-600 ${cpfCnpjError ? 'focus:ring-red-500 ring-1 ring-red-500' : 'focus:ring-[#39FF14] focus:bg-zinc-900'}`}
+                                                className={`w-full bg-zinc-800 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 transition-all placeholder:text-zinc-600 ${cpfCnpjError ? 'focus:ring-red-500 ring-1 ring-red-500' : 'focus:ring-[#39FF14] focus:bg-zinc-700'}`}
                                                 placeholder="000.000.000-00"
                                                 required
                                             />
@@ -4420,7 +4420,7 @@ export default function DashboardPage() {
                                                 value={value}
                                                 onChange={e => handleValueChange(e.target.value)}
                                                 disabled={!!linkedSaleId}
-                                                className={`w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all placeholder:text-zinc-600 ${linkedSaleId ? 'opacity-60 cursor-not-allowed' : ''}`}
+                                                className={`w-full bg-zinc-800 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-700 transition-all placeholder:text-zinc-600 ${linkedSaleId ? 'opacity-60 cursor-not-allowed' : ''}`}
                                                 placeholder="0,00"
                                                 required
                                             />
@@ -4436,7 +4436,7 @@ export default function DashboardPage() {
                                             value={deadline}
                                             onChange={e => setDeadline(e.target.value)}
                                             required
-                                            className="w-full max-w-[200px] bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all [color-scheme:dark]"
+                                            className="w-full max-w-[200px] bg-zinc-800 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-700 transition-all [color-scheme:dark]"
                                         />
                                     </div>
                                     <div>
@@ -4446,7 +4446,7 @@ export default function DashboardPage() {
                                         <select
                                             value={deliveryMethod}
                                             onChange={e => setDeliveryMethod(e.target.value as 'MOTOBOY' | 'TRANSPORTADORA' | 'RETIRADA')}
-                                            className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all appearance-none"
+                                            className="w-full bg-zinc-800 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-700 transition-all appearance-none"
                                         >
                                             <option value="MOTOBOY">MOTOBOY</option>
                                             <option value="CORREIOS/TRANSPORTADORA">CORREIOS/TRANSPORTADORA</option>
@@ -4486,7 +4486,7 @@ export default function DashboardPage() {
                                             value={transactionDate}
                                             onChange={e => setTransactionDate(e.target.value)}
                                             required
-                                            className="w-full max-w-[200px] bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all [color-scheme:dark]"
+                                            className="w-full max-w-[200px] bg-zinc-800 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-700 transition-all [color-scheme:dark]"
                                         />
                                     </div>
                                     {paymentMethod === 'CARTÃO CRÉDITO' && (
@@ -4497,7 +4497,7 @@ export default function DashboardPage() {
                                             <select
                                                 value={installments}
                                                 onChange={e => setInstallments(parseInt(e.target.value))}
-                                                className="w-full max-w-[200px] bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all appearance-none"
+                                                className="w-full max-w-[200px] bg-zinc-800 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-700 transition-all appearance-none"
                                             >
                                                 {Array.from({ length: 12 }, (_, i) => i + 1).map(num => (
                                                     <option key={num} value={num}>
@@ -4560,7 +4560,7 @@ export default function DashboardPage() {
                                                             setValue('');
                                                         }
                                                     }}
-                                                    className="w-full bg-zinc-950/80 border text-sm font-black uppercase tracking-widest border-zinc-800 rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all appearance-none"
+                                                    className="w-full bg-zinc-800 border text-sm font-black uppercase tracking-widest border-zinc-800 rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-700 transition-all appearance-none"
                                                 >
                                                     <option value="">Selecione uma Venda Recente...</option>
                                                     {sales.slice(0, 50).map(s => (
@@ -4578,7 +4578,7 @@ export default function DashboardPage() {
                                             placeholder="Ex: 5P, 10M, 5G..."
                                             rows={3}
                                             required
-                                            className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all placeholder:text-zinc-600"
+                                            className="w-full bg-zinc-800 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-700 transition-all placeholder:text-zinc-600"
                                         />
                                     </div>
                                 </div>
@@ -4628,7 +4628,7 @@ export default function DashboardPage() {
                                     placeholder="Ex: Falta de tecido, botão quebrado, erro na estampa..."
                                     rows={4}
                                     required
-                                    className="w-full bg-zinc-950/80 border-transparent rounded-[24px] p-6 text-white outline-none focus:ring-1 focus:ring-red-500 focus:bg-zinc-900 transition-all font-semibold placeholder:text-zinc-600"
+                                    className="w-full bg-zinc-800 border-transparent rounded-[24px] p-6 text-white outline-none focus:ring-1 focus:ring-red-500 focus:bg-zinc-700 transition-all font-semibold placeholder:text-zinc-600"
                                 />
                             </div>
 
@@ -4686,7 +4686,7 @@ export default function DashboardPage() {
                                         onChange={e => setProdName(e.target.value)}
                                         placeholder="Ex: Camiseta Libera Basic"
                                         required
-                                        className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all font-bold placeholder:text-zinc-600"
+                                        className="w-full bg-zinc-800 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-700 transition-all font-bold placeholder:text-zinc-600"
                                     />
                                 </div>
 
@@ -4697,7 +4697,7 @@ export default function DashboardPage() {
                                         onChange={e => setProdDetails(e.target.value)}
                                         placeholder="Ex: Tamanhos disponíveis, cores, material..."
                                         rows={2}
-                                        className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all font-bold placeholder:text-zinc-600 resize-none"
+                                        className="w-full bg-zinc-800 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-700 transition-all font-bold placeholder:text-zinc-600 resize-none"
                                     />
                                 </div>
 
@@ -4718,7 +4718,7 @@ export default function DashboardPage() {
                                             </div>
                                         )}
                                         <label className="flex-1 cursor-pointer">
-                                            <div className="bg-zinc-950/80 border border-dashed border-zinc-700 rounded-2xl p-3 text-center hover:border-[#39FF14]/50 transition-all">
+                                            <div className="bg-zinc-800 border border-dashed border-zinc-700 rounded-2xl p-3 text-center hover:border-[#39FF14]/50 transition-all">
                                                 <p className="text-sm font-bold text-white uppercase">
                                                     {prodImage ? 'Trocar foto' : 'Escolher foto'}
                                                 </p>
@@ -4776,7 +4776,7 @@ export default function DashboardPage() {
                                             onChange={e => setProdSalePrice(formatCurrency(e.target.value))}
                                             placeholder="0,00"
                                             required
-                                            className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all font-bold placeholder:text-zinc-600"
+                                            className="w-full bg-zinc-800 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-700 transition-all font-bold placeholder:text-zinc-600"
                                         />
                                     </div>
                                     <div>
@@ -4787,7 +4787,7 @@ export default function DashboardPage() {
                                             onChange={e => setProdCostPrice(formatCurrency(e.target.value))}
                                             placeholder="0,00"
                                             required
-                                            className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-zinc-500 focus:bg-zinc-900 transition-all font-bold placeholder:text-zinc-600"
+                                            className="w-full bg-zinc-800 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-zinc-500 focus:bg-zinc-700 transition-all font-bold placeholder:text-zinc-600"
                                         />
                                     </div>
                                 </div>
@@ -4800,7 +4800,7 @@ export default function DashboardPage() {
                                         onChange={e => setProdStock(e.target.value)}
                                         placeholder="0"
                                         required
-                                        className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all font-bold placeholder:text-zinc-600"
+                                        className="w-full bg-zinc-800 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-700 transition-all font-bold placeholder:text-zinc-600"
                                     />
                                 </div>
                             </div>
@@ -4864,7 +4864,7 @@ export default function DashboardPage() {
                                 <label className="block text-sm font-black uppercase tracking-widest mb-2 text-white">Descrição *</label>
                                 <input type="text" value={contaDesc} onChange={e => setContaDesc(e.target.value)}
                                     placeholder="Ex: Frete Correios, Costureira Lena..."
-                                    className="w-full bg-zinc-950/80 rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all placeholder:text-zinc-600 uppercase" required />
+                                    className="w-full bg-zinc-800 rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-700 transition-all placeholder:text-zinc-600 uppercase" required />
                             </div>
 
                             {/* Categoria */}
@@ -4907,14 +4907,14 @@ export default function DashboardPage() {
                                     <label className="block text-sm font-black uppercase tracking-widest mb-2 text-[#39FF14]">Valor (R$) *</label>
                                     <input type="text" value={contaAmount} onChange={e => setContaAmount(formatCurrency(e.target.value))}
                                         placeholder="0,00"
-                                        className="w-full bg-zinc-950/80 rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all placeholder:text-zinc-600" required />
+                                        className="w-full bg-zinc-800 rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-700 transition-all placeholder:text-zinc-600" required />
                                 </div>
                                 {/* Dia de vencimento */}
                                 <div>
                                     <label className="block text-sm font-black uppercase tracking-widest mb-2 text-white">Dia Vencimento *</label>
                                     <input type="number" min="1" max="31" value={contaDueDay} onChange={e => setContaDueDay(e.target.value)}
                                         placeholder="Ex: 10"
-                                        className="w-full bg-zinc-950/80 rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all placeholder:text-zinc-600" required />
+                                        className="w-full bg-zinc-800 rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-700 transition-all placeholder:text-zinc-600" required />
                                 </div>
                             </div>
 
@@ -4950,7 +4950,7 @@ export default function DashboardPage() {
                                 <textarea value={contaNotes} onChange={e => setContaNotes(e.target.value)}
                                     placeholder="Notas adicionais..."
                                     rows={2}
-                                    className="w-full bg-zinc-950/80 rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all placeholder:text-zinc-600 resize-none" />
+                                    className="w-full bg-zinc-800 rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-700 transition-all placeholder:text-zinc-600 resize-none" />
                             </div>
 
                             <button type="submit"
@@ -5015,7 +5015,7 @@ export default function DashboardPage() {
                                     onChange={e => setFinDesc(e.target.value)}
                                     placeholder="Ex: Compra de Tecido, Conta de Luz..."
                                     required
-                                    className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all font-bold placeholder:text-zinc-600"
+                                    className="w-full bg-zinc-800 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-700 transition-all font-bold placeholder:text-zinc-600"
                                 />
                             </div>
 
@@ -5029,7 +5029,7 @@ export default function DashboardPage() {
                                     onFocus={() => { if (finSupplier.length > 0) setShowSupplierSuggestions(true); }}
                                     onBlur={() => setTimeout(() => setShowSupplierSuggestions(false), 200)}
                                     placeholder="Digite para buscar ou cadastrar..."
-                                    className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all font-bold placeholder:text-zinc-600"
+                                    className="w-full bg-zinc-800 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-700 transition-all font-bold placeholder:text-zinc-600"
                                 />
                                 {showSupplierSuggestions && (
                                     <div className="absolute left-0 right-0 top-full mt-1 bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden z-50 shadow-xl max-h-[200px] overflow-y-auto">
@@ -5060,7 +5060,7 @@ export default function DashboardPage() {
                                     onChange={e => setFinAmount(formatCurrency(e.target.value))}
                                     placeholder="0,00"
                                     required
-                                    className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all font-bold placeholder:text-zinc-600"
+                                    className="w-full bg-zinc-800 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-700 transition-all font-bold placeholder:text-zinc-600"
                                 />
                             </div>
 
@@ -5105,7 +5105,7 @@ export default function DashboardPage() {
                                             value={finDueDate}
                                             onChange={e => setFinDueDate(e.target.value)}
                                             required
-                                            className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all font-bold [color-scheme:dark]"
+                                            className="w-full bg-zinc-800 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-700 transition-all font-bold [color-scheme:dark]"
                                         />
                                     </div>
                                     <p className="text-sm text-white/70 italic px-1">O pagamento via PIX normalmente ocorre no mesmo dia.</p>
@@ -5129,7 +5129,7 @@ export default function DashboardPage() {
                                                     setFinInstallmentDates(calcInstallmentDates(finDueDate, count));
                                                 }
                                             }}
-                                            className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all font-bold"
+                                            className="w-full bg-zinc-800 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-700 transition-all font-bold"
                                         />
                                     </div>
                                     <div>
@@ -5146,7 +5146,7 @@ export default function DashboardPage() {
                                                 }
                                             }}
                                             required
-                                            className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all font-bold [color-scheme:dark]"
+                                            className="w-full bg-zinc-800 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-700 transition-all font-bold [color-scheme:dark]"
                                         />
                                     </div>
                                     {finInstallments > 1 && finInstallmentDates.length > 0 && (
@@ -5196,7 +5196,7 @@ export default function DashboardPage() {
                                                     setFinInstallmentDates(calcInstallmentDates(finDueDate, count));
                                                 }
                                             }}
-                                            className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all font-bold"
+                                            className="w-full bg-zinc-800 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-700 transition-all font-bold"
                                         />
                                     </div>
                                     <div>
@@ -5213,7 +5213,7 @@ export default function DashboardPage() {
                                                 }
                                             }}
                                             required
-                                            className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all font-bold [color-scheme:dark]"
+                                            className="w-full bg-zinc-800 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-700 transition-all font-bold [color-scheme:dark]"
                                         />
                                     </div>
                                     {finInstallments > 1 && finInstallmentDates.length > 0 && (
@@ -5261,7 +5261,7 @@ export default function DashboardPage() {
                                                 setFinDebitDay(day);
                                                 setFinDueDate(getNextDebitDate(day));
                                             }}
-                                            className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all font-bold"
+                                            className="w-full bg-zinc-800 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-700 transition-all font-bold"
                                         />
                                     </div>
                                     <div>
@@ -5284,7 +5284,7 @@ export default function DashboardPage() {
                                             value={finDueDate}
                                             onChange={e => setFinDueDate(e.target.value)}
                                             required
-                                            className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all font-bold [color-scheme:dark]"
+                                            className="w-full bg-zinc-800 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-700 transition-all font-bold [color-scheme:dark]"
                                         />
                                     </div>
                                     {finDebitRecurrent && (
@@ -5303,7 +5303,7 @@ export default function DashboardPage() {
                                             value={finDueDate}
                                             onChange={e => setFinDueDate(e.target.value)}
                                             required
-                                            className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all font-bold [color-scheme:dark]"
+                                            className="w-full bg-zinc-800 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-700 transition-all font-bold [color-scheme:dark]"
                                         />
                                     </div>
                                 </div>
@@ -5320,7 +5320,7 @@ export default function DashboardPage() {
                                     placeholder={finPayMethod === 'OUTRO' ? 'Descreva a forma de pagamento...' : 'Informações adicionais...'}
                                     rows={2}
                                     required={finPayMethod === 'OUTRO'}
-                                    className="w-full bg-zinc-950/80 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-900 transition-all font-bold placeholder:text-zinc-600 resize-none"
+                                    className="w-full bg-zinc-800 border-transparent rounded-2xl p-4 text-white outline-none focus:ring-1 focus:ring-[#39FF14] focus:bg-zinc-700 transition-all font-bold placeholder:text-zinc-600 resize-none"
                                 />
                             </div>
 
