@@ -176,7 +176,14 @@ export default function DashboardPage() {
     const [saleCpfCnpjError, setSaleCpfCnpjError] = useState('');
     const [saleDeadline, setSaleDeadline] = useState(addBusinessDays(new Date(), 20));
     const [saleDeliveryMethod, setSaleDeliveryMethod] = useState<'MOTOBOY' | 'TRANSPORTADORA' | 'RETIRADA'>('MOTOBOY');
-    const [saleDeliveryAddress, setSaleDeliveryAddress] = useState('');
+    const [saleCep, setSaleCep] = useState('');
+    const [saleEndereco, setSaleEndereco] = useState('');
+    const [saleNumero, setSaleNumero] = useState('');
+    const [saleQuadra, setSaleQuadra] = useState('');
+    const [saleLote, setSaleLote] = useState('');
+    const [saleCidade, setSaleCidade] = useState('');
+    const [saleEstado, setSaleEstado] = useState('');
+    const [saleComplemento, setSaleComplemento] = useState('');
     const [saleBoletoQty, setSaleBoletoQty] = useState(1);
     const [saleBoletoInterval, setSaleBoletoInterval] = useState(30);
     const [saleBoletoFirstDate, setSaleBoletoFirstDate] = useState('');
@@ -557,6 +564,36 @@ export default function DashboardPage() {
         setCartTotal(total);
     }, [cart]);
 
+    const buildDeliveryAddress = () => {
+        const endereco = saleEndereco.trim();
+        const numero = saleNumero.trim();
+        const quadra = saleQuadra.trim();
+        const lote = saleLote.trim();
+        const complemento = saleComplemento.trim();
+        const cidade = saleCidade.trim();
+        const estado = saleEstado.trim();
+        const cep = saleCep.trim();
+
+        const firstParts: string[] = [];
+        if (endereco) firstParts.push(endereco);
+        if (numero) firstParts.push(`Nº ${numero}`);
+        if (quadra) firstParts.push(`Qd ${quadra}`);
+        if (lote) firstParts.push(`Lt ${lote}`);
+        if (complemento) firstParts.push(complemento);
+
+        const locationParts: string[] = [];
+        if (cidade && estado) locationParts.push(`${cidade}/${estado}`);
+        else if (cidade) locationParts.push(cidade);
+        else if (estado) locationParts.push(estado);
+        if (cep) locationParts.push(`CEP: ${cep}`);
+
+        const sections: string[] = [];
+        if (firstParts.length) sections.push(firstParts.join(', '));
+        if (locationParts.length) sections.push(locationParts.join(' - '));
+
+        return sections.join(' - ');
+    };
+
     const handleCheckout = async () => {
         if (!userId) return;
         const finalTotal = cart.length > 0 ? cartTotal : parseBRL(saleManualValue);
@@ -590,7 +627,7 @@ export default function DashboardPage() {
                 cpf_cnpj: saleCpfCnpj.replace(/\D/g, ''),
                 deadline: saleDeadline || '',
                 delivery_method: saleDeliveryMethod,
-                delivery_address: saleDeliveryAddress.trim(),
+                delivery_address: buildDeliveryAddress(),
                 description: saleDescription.trim(),
                 payment_method: paymentMethod,
                 has_production: saleEntersProduction,
@@ -666,6 +703,7 @@ export default function DashboardPage() {
                 const deliveryDate = saleDeadline ? saleDeadline.split('-').reverse().join('/') : '';
                 const clientName = saleClient.trim();
                 const formattedValue = finalTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+                const builtDeliveryAddress = buildDeliveryAddress();
                 const msgLines = [
                     `Olá *${clientName}*! Seu pedido na *Libera Sports* foi cadastrado com sucesso!`,
                     '',
@@ -674,7 +712,11 @@ export default function DashboardPage() {
                     ...(deliveryDate ? [`*Entrega prevista:* ${deliveryDate}`] : []),
                     `*Método:* ${saleDeliveryMethod}`,
                     `*Pagamento:* ${paymentMethod}`,
-                    ...(saleDeliveryMethod === 'RETIRADA' ? ['', '*Endereço de retirada:* _Rua Manguapé, Quadra 40-A, Lote 01-A, Vila Alzira, Aparecida de Goiânia-GO, CEP: 74.913-350_'] : []),
+                    ...(saleDeliveryMethod === 'RETIRADA'
+                        ? ['', '*Endereço de retirada:* _Rua Manguapé, Quadra 40-A, Lote 01-A, Vila Alzira, Aparecida de Goiânia-GO, CEP: 74.913-350_']
+                        : builtDeliveryAddress
+                            ? ['', '*Endereço de entrega:*', `_${builtDeliveryAddress}_`]
+                            : []),
                     '',
                     'Acompanhe seu pedido em tempo real:',
                     trackingUrl,
@@ -697,7 +739,14 @@ export default function DashboardPage() {
             setSaleCpfCnpjError('');
             setSaleDeadline(addBusinessDays(new Date(), 20));
             setSaleDeliveryMethod('MOTOBOY');
-            setSaleDeliveryAddress('');
+            setSaleCep('');
+            setSaleEndereco('');
+            setSaleNumero('');
+            setSaleQuadra('');
+            setSaleLote('');
+            setSaleCidade('');
+            setSaleEstado('');
+            setSaleComplemento('');
             setSaleDescription('');
             setSaleBoletoQty(1);
             setSaleBoletoInterval(30);
@@ -2794,16 +2843,16 @@ export default function DashboardPage() {
                                     )}
                                 </div>
 
-                                {/* Dados do Cliente e Produção */}
-                                <div className="space-y-3 mb-6 border-b border-zinc-900 pb-6">
+                                {/* BLOCO 1 — CLIENTE */}
+                                <div className="space-y-2 pb-4 mb-4 border-b border-zinc-800">
                                     <div className="relative">
-                                        <label className="block text-sm font-black uppercase tracking-widest text-white mb-1">Cliente</label>
+                                        <label className="block text-[10px] font-black uppercase tracking-widest text-white mb-1">Cliente</label>
                                         <input type="text" value={saleClient}
                                             onChange={e => { setSaleClient(e.target.value); setShowClientSuggestions(e.target.value.length > 0); }}
                                             onFocus={() => { if (saleClient.length > 0) setShowClientSuggestions(true); }}
                                             onBlur={() => setTimeout(() => setShowClientSuggestions(false), 200)}
                                             placeholder="Nome do cliente..."
-                                            className="w-full bg-zinc-800 border-transparent rounded-xl p-3 text-white outline-none focus:ring-1 focus:ring-[#39FF14] text-sm font-bold placeholder:text-zinc-600" />
+                                            className="w-full bg-zinc-800 border-transparent rounded-xl p-2 text-white outline-none focus:ring-1 focus:ring-[#39FF14] text-sm font-bold placeholder:text-zinc-600" />
                                         {showClientSuggestions && saleClient.length > 1 && (
                                             <div className="absolute left-0 right-0 top-full mt-1 bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden z-50 shadow-xl max-h-[200px] overflow-y-auto">
                                                 {fornecedores.filter(f => f.name.toLowerCase().includes(saleClient.toLowerCase()) || (f.cpf_cnpj && f.cpf_cnpj.includes(saleClient.replace(/\D/g, '')))).map(f => (
@@ -2843,48 +2892,114 @@ export default function DashboardPage() {
                                     </div>
                                     <div className="grid grid-cols-2 gap-2">
                                         <div>
-                                            <label className="block text-[11px] font-black uppercase tracking-widest text-white mb-1">WhatsApp</label>
-                                            <input type="text" value={saleWhatsapp} onChange={e => setSaleWhatsapp(e.target.value)} placeholder="(00) 00000-0000" className="w-full bg-zinc-800 border-transparent rounded-xl p-3 text-white outline-none focus:ring-1 focus:ring-[#39FF14] text-sm font-bold placeholder:text-zinc-600" />
+                                            <label className="block text-[10px] font-black uppercase tracking-widest text-white mb-1">WhatsApp</label>
+                                            <input type="text" value={saleWhatsapp} onChange={e => setSaleWhatsapp(e.target.value)} placeholder="(00) 00000-0000" className="w-full bg-zinc-800 border-transparent rounded-xl p-2 text-white outline-none focus:ring-1 focus:ring-[#39FF14] text-sm font-bold placeholder:text-zinc-600" />
                                         </div>
                                         <div>
-                                            <label className="block text-[11px] font-black uppercase tracking-widest text-white mb-1">CPF/CNPJ</label>
-                                            <input type="text" value={saleCpfCnpj} onChange={e => { const formatted = formatCpfCnpj(e.target.value); setSaleCpfCnpj(formatted); const d = e.target.value.replace(/\D/g, ''); if (d.length === 11 || d.length === 14) setSaleCpfCnpjError(validateCpfCnpj(d) ? '' : 'Inválido'); else setSaleCpfCnpjError(''); }} placeholder="000.000.000-00" className={`w-full bg-zinc-800 border-transparent rounded-xl p-3 text-white outline-none focus:ring-1 text-sm font-bold placeholder:text-zinc-600 ${saleCpfCnpjError ? 'ring-1 ring-red-500' : 'focus:ring-[#39FF14]'}`} />
+                                            <label className="block text-[10px] font-black uppercase tracking-widest text-white mb-1">CPF/CNPJ</label>
+                                            <input type="text" value={saleCpfCnpj} onChange={e => { const formatted = formatCpfCnpj(e.target.value); setSaleCpfCnpj(formatted); const d = e.target.value.replace(/\D/g, ''); if (d.length === 11 || d.length === 14) setSaleCpfCnpjError(validateCpfCnpj(d) ? '' : 'Inválido'); else setSaleCpfCnpjError(''); }} placeholder="000.000.000-00" className={`w-full bg-zinc-800 border-transparent rounded-xl p-2 text-white outline-none focus:ring-1 text-sm font-bold placeholder:text-zinc-600 ${saleCpfCnpjError ? 'ring-1 ring-red-500' : 'focus:ring-[#39FF14]'}`} />
                                             {saleCpfCnpjError && <p className="text-red-500 text-[10px] font-bold mt-0.5">{saleCpfCnpjError}</p>}
                                         </div>
                                     </div>
+                                </div>
+
+                                {/* BLOCO 2 — PEDIDO */}
+                                <div className="space-y-2 pb-4 mb-4 border-b border-zinc-800">
                                     <div>
-                                        <label className="block text-sm font-black uppercase tracking-widest text-white mb-1">Descrição / Grade</label>
-                                        <textarea value={saleDescription} onChange={e => setSaleDescription(e.target.value)} placeholder="Detalhes do pedido..." rows={2} className="w-full bg-zinc-800 border-transparent rounded-xl p-3 text-white outline-none focus:ring-1 focus:ring-[#39FF14] text-sm font-bold placeholder:text-zinc-600 resize-none" />
+                                        <label className="block text-[10px] font-black uppercase tracking-widest text-white mb-1">Descrição / Grade</label>
+                                        <textarea value={saleDescription} onChange={e => setSaleDescription(e.target.value)} placeholder="Detalhes do pedido..." rows={2} className="w-full bg-zinc-800 border-transparent rounded-xl p-2 text-white outline-none focus:ring-1 focus:ring-[#39FF14] text-sm font-bold placeholder:text-zinc-600 resize-none" />
                                     </div>
                                     {cart.length === 0 && (
                                         <div>
-                                            <label className="block text-sm font-black uppercase tracking-widest text-[#39FF14] mb-1">Valor Total (R$)</label>
-                                            <input type="text" value={saleManualValue} onChange={e => setSaleManualValue(formatCurrency(e.target.value))} placeholder="0,00" className="w-full bg-zinc-800 border-transparent rounded-xl p-3 text-white outline-none focus:ring-1 focus:ring-[#39FF14] text-sm font-bold placeholder:text-zinc-600" />
+                                            <label className="block text-[10px] font-black uppercase tracking-widest text-[#39FF14] mb-1">Valor Total (R$)</label>
+                                            <input type="text" value={saleManualValue} onChange={e => setSaleManualValue(formatCurrency(e.target.value))} placeholder="0,00" className="w-full bg-zinc-800 border-transparent rounded-xl p-2 text-white outline-none focus:ring-1 focus:ring-[#39FF14] text-sm font-bold placeholder:text-zinc-600" />
                                         </div>
                                     )}
                                     <div className="grid grid-cols-2 gap-2">
                                         <div>
-                                            <label className="block text-[11px] font-black uppercase tracking-widest text-white mb-1">Prazo de Entrega</label>
-                                            <input type="date" value={saleDeadline} onChange={e => setSaleDeadline(e.target.value)} className="w-full bg-zinc-800 border-transparent rounded-xl p-3 text-white outline-none focus:ring-1 focus:ring-[#39FF14] text-sm font-bold [color-scheme:dark]" />
+                                            <label className="block text-[10px] font-black uppercase tracking-widest text-white mb-1">Prazo de Entrega</label>
+                                            <input type="date" value={saleDeadline} onChange={e => setSaleDeadline(e.target.value)} className="w-full bg-zinc-800 border-transparent rounded-xl p-2 text-white outline-none focus:ring-1 focus:ring-[#39FF14] text-sm font-bold [color-scheme:dark]" />
                                         </div>
                                         <div>
-                                            <label className="block text-[11px] font-black uppercase tracking-widest text-white mb-1">Método de Entrega</label>
-                                            <select value={saleDeliveryMethod} onChange={e => setSaleDeliveryMethod(e.target.value as any)} className="w-full bg-zinc-800 border-transparent rounded-xl p-3 text-white outline-none focus:ring-1 focus:ring-[#39FF14] text-sm font-bold appearance-none">
+                                            <label className="block text-[10px] font-black uppercase tracking-widest text-white mb-1">Método de Entrega</label>
+                                            <select value={saleDeliveryMethod} onChange={e => setSaleDeliveryMethod(e.target.value as any)} className="w-full bg-zinc-800 border-transparent rounded-xl p-2 text-white outline-none focus:ring-1 focus:ring-[#39FF14] text-sm font-bold appearance-none">
                                                 <option value="MOTOBOY">MOTOBOY</option>
                                                 <option value="CORREIOS/TRANSPORTADORA">CORREIOS/TRANSPORTADORA</option>
                                                 <option value="RETIRADA">RETIRADA</option>
                                             </select>
                                         </div>
                                     </div>
-                                    <div>
-                                        <label className="block text-sm font-black uppercase tracking-widest text-white mb-1">Endereço de Entrega</label>
-                                        <textarea value={saleDeliveryAddress} onChange={e => setSaleDeliveryAddress(e.target.value)} placeholder="Rua, número, bairro, cidade..." rows={2} className="w-full bg-zinc-800 border-transparent rounded-xl p-3 text-white outline-none focus:ring-1 focus:ring-[#39FF14] text-sm font-bold placeholder:text-zinc-600 resize-none" />
-                                    </div>
-                                    <label className="flex items-center gap-3 cursor-pointer mt-2 bg-zinc-950/50 rounded-xl p-3">
-                                        <input type="checkbox" checked={saleEntersProduction} onChange={e => setSaleEntersProduction(e.target.checked)} className="w-5 h-5 rounded accent-[#39FF14]" />
-                                        <span className="text-sm font-black uppercase tracking-widest text-white">Entra em Produção</span>
+                                    <label className="flex items-center gap-2 cursor-pointer mt-1 bg-zinc-900/50 rounded-xl p-2">
+                                        <input type="checkbox" checked={saleEntersProduction} onChange={e => setSaleEntersProduction(e.target.checked)} className="w-4 h-4 rounded accent-[#39FF14]" />
+                                        <span className="text-[11px] font-black uppercase tracking-widest text-white">Entra em Produção</span>
                                     </label>
                                 </div>
+
+                                {/* BLOCO 3 — ENDEREÇO DE ENTREGA (só se método ≠ RETIRADA) */}
+                                {saleDeliveryMethod !== 'RETIRADA' && (
+                                    <div className="space-y-2 pb-4 mb-4 border-b border-zinc-800">
+                                        <label className="block text-[10px] font-black uppercase tracking-widest text-white">Endereço de Entrega</label>
+                                        <div>
+                                            <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-1">CEP</label>
+                                            <input type="text" value={saleCep} onChange={async e => {
+                                                const v = e.target.value.replace(/\D/g, '').slice(0, 8);
+                                                const formatted = v.length > 5 ? v.replace(/(\d{5})(\d)/, '$1-$2') : v;
+                                                setSaleCep(formatted);
+                                                if (v.length === 8) {
+                                                    try {
+                                                        const res = await fetch(`https://viacep.com.br/ws/${v}/json/`);
+                                                        const data = await res.json();
+                                                        if (!data.erro) {
+                                                            setSaleEndereco(`${data.logradouro || ''}${data.bairro ? ', ' + data.bairro : ''}`);
+                                                            setSaleCidade(data.localidade || '');
+                                                            setSaleEstado(data.uf || '');
+                                                        }
+                                                    } catch {}
+                                                }
+                                            }} placeholder="00000-000"
+                                                className="w-full bg-zinc-800 border-transparent rounded-xl p-2 text-white outline-none focus:ring-1 focus:ring-[#39FF14] text-sm font-bold placeholder:text-zinc-600" />
+                                        </div>
+                                        <div>
+                                            <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-1">Endereço</label>
+                                            <input type="text" value={saleEndereco} onChange={e => setSaleEndereco(e.target.value)} placeholder="Rua, bairro..."
+                                                className="w-full bg-zinc-800 border-transparent rounded-xl p-2 text-white outline-none focus:ring-1 focus:ring-[#39FF14] text-sm font-bold placeholder:text-zinc-600" />
+                                        </div>
+                                        <div className="grid grid-cols-3 gap-2">
+                                            <div>
+                                                <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-1">Número</label>
+                                                <input type="text" value={saleNumero} onChange={e => setSaleNumero(e.target.value)} placeholder="Nº"
+                                                    className="w-full bg-zinc-800 border-transparent rounded-xl p-2 text-white outline-none focus:ring-1 focus:ring-[#39FF14] text-sm font-bold placeholder:text-zinc-600" />
+                                            </div>
+                                            <div>
+                                                <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-1">Quadra</label>
+                                                <input type="text" value={saleQuadra} onChange={e => setSaleQuadra(e.target.value)} placeholder="Qd"
+                                                    className="w-full bg-zinc-800 border-transparent rounded-xl p-2 text-white outline-none focus:ring-1 focus:ring-[#39FF14] text-sm font-bold placeholder:text-zinc-600" />
+                                            </div>
+                                            <div>
+                                                <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-1">Lote</label>
+                                                <input type="text" value={saleLote} onChange={e => setSaleLote(e.target.value)} placeholder="Lt"
+                                                    className="w-full bg-zinc-800 border-transparent rounded-xl p-2 text-white outline-none focus:ring-1 focus:ring-[#39FF14] text-sm font-bold placeholder:text-zinc-600" />
+                                            </div>
+                                        </div>
+                                        <div className="grid grid-cols-[1fr_80px] gap-2">
+                                            <div>
+                                                <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-1">Cidade</label>
+                                                <input type="text" value={saleCidade} onChange={e => setSaleCidade(e.target.value)} placeholder="Cidade"
+                                                    className="w-full bg-zinc-800 border-transparent rounded-xl p-2 text-white outline-none focus:ring-1 focus:ring-[#39FF14] text-sm font-bold placeholder:text-zinc-600" />
+                                            </div>
+                                            <div>
+                                                <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-1">UF</label>
+                                                <input type="text" value={saleEstado} onChange={e => setSaleEstado(e.target.value.toUpperCase().slice(0, 2))} placeholder="UF"
+                                                    className="w-full bg-zinc-800 border-transparent rounded-xl p-2 text-white outline-none focus:ring-1 focus:ring-[#39FF14] text-sm font-bold placeholder:text-zinc-600 text-center" />
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-1">Complemento</label>
+                                            <input type="text" value={saleComplemento} onChange={e => setSaleComplemento(e.target.value)} placeholder="Apt, bloco, referência..."
+                                                className="w-full bg-zinc-800 border-transparent rounded-xl p-2 text-white outline-none focus:ring-1 focus:ring-[#39FF14] text-sm font-bold placeholder:text-zinc-600" />
+                                        </div>
+                                    </div>
+                                )}
 
                                 <div className="space-y-4 mb-6">
                                     <label className="block text-sm font-black uppercase tracking-widest text-[#39FF14] mb-2 font-bold italic">Forma de Pagamento</label>
