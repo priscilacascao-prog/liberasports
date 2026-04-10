@@ -3001,8 +3001,9 @@ export default function DashboardPage() {
                                     </div>
                                 )}
 
-                                <div className="space-y-4 mb-6">
-                                    <label className="block text-sm font-black uppercase tracking-widest text-[#39FF14] mb-2 font-bold italic">Forma de Pagamento</label>
+                                {/* BLOCO 4 — PAGAMENTO */}
+                                <div className="space-y-2 pb-4 mb-4 border-b border-zinc-800">
+                                    <label className="block text-[10px] font-black uppercase tracking-widest text-[#39FF14] mb-1">Forma de Pagamento</label>
                                     <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                                         {['PIX', 'BOLETO', 'CARTÃO CRÉDITO', 'CARTÃO DÉBITO', 'OUTROS'].map((m) => (
                                             <button
@@ -3021,67 +3022,53 @@ export default function DashboardPage() {
                                             </button>
                                         ))}
                                     </div>
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-2 gap-2">
                                         <div>
-                                            <label className="block text-[13px] font-black uppercase tracking-widest mb-1 text-white">
-                                                Data
-                                            </label>
-                                            <input
-                                                type="date"
-                                                value={transactionDate}
-                                                onChange={e => setTransactionDate(e.target.value)}
-                                                required
-                                                className="w-full bg-zinc-800 border border-zinc-900 rounded-xl p-3 text-white outline-none focus:ring-1 focus:ring-[#39FF14] transition-all [color-scheme:dark] text-xs"
-                                            />
+                                            <label className="block text-[10px] font-black uppercase tracking-widest mb-1 text-white">Data</label>
+                                            <input type="date" value={transactionDate} onChange={e => setTransactionDate(e.target.value)} required
+                                                className="w-full bg-zinc-800 border border-zinc-900 rounded-xl p-2 text-white outline-none focus:ring-1 focus:ring-[#39FF14] transition-all [color-scheme:dark] text-xs" />
                                         </div>
                                         {paymentMethod === 'CARTÃO CRÉDITO' && (
                                             <div>
-                                                <label className="block text-[13px] font-black uppercase tracking-widest mb-1 text-[#39FF14]">
-                                                    Parcelas
-                                                </label>
-                                                <select
-                                                    value={installments}
-                                                    onChange={e => setInstallments(parseInt(e.target.value))}
-                                                    className="w-full bg-zinc-800 border border-zinc-900 rounded-xl p-3 text-white outline-none focus:ring-1 focus:ring-[#39FF14] transition-all appearance-none text-center text-xs"
-                                                >
+                                                <label className="block text-[10px] font-black uppercase tracking-widest mb-1 text-[#39FF14]">Parcelas</label>
+                                                <select value={installments} onChange={e => setInstallments(parseInt(e.target.value))}
+                                                    className="w-full bg-zinc-800 border border-zinc-900 rounded-xl p-2 text-white outline-none focus:ring-1 focus:ring-[#39FF14] transition-all appearance-none text-center text-xs">
                                                     {Array.from({ length: 12 }, (_, i) => i + 1).map(num => (
-                                                        <option key={num} value={num}>
-                                                            {num}x
-                                                        </option>
+                                                        <option key={num} value={num}>{num}x</option>
                                                     ))}
                                                 </select>
                                             </div>
                                         )}
                                     </div>
                                     {paymentMethod === 'BOLETO' && (
-                                        <div className="grid grid-cols-3 gap-3">
+                                        <div className="grid grid-cols-3 gap-2">
                                             <div>
-                                                <label className="block text-[13px] font-black uppercase tracking-widest mb-1 text-[#39FF14]">Qtd. Boletos</label>
+                                                <label className="block text-[10px] font-black uppercase tracking-widest mb-1 text-[#39FF14]">Qtd. Boletos</label>
                                                 <select value={saleBoletoQty} onChange={e => setSaleBoletoQty(parseInt(e.target.value))}
-                                                    className="w-full bg-zinc-800 border border-zinc-900 rounded-xl p-3 text-white outline-none focus:ring-1 focus:ring-[#39FF14] transition-all appearance-none text-center text-xs">
+                                                    className="w-full bg-zinc-800 border border-zinc-900 rounded-xl p-2 text-white outline-none focus:ring-1 focus:ring-[#39FF14] transition-all appearance-none text-center text-xs">
                                                     {[1,2,3,4,5,6].map(n => <option key={n} value={n}>{n}x</option>)}
                                                 </select>
                                             </div>
                                             <div>
-                                                <label className="block text-[13px] font-black uppercase tracking-widest mb-1 text-[#39FF14]">Intervalo</label>
+                                                <label className="block text-[10px] font-black uppercase tracking-widest mb-1 text-[#39FF14]">Intervalo</label>
                                                 <select value={saleBoletoInterval} onChange={e => setSaleBoletoInterval(parseInt(e.target.value))}
-                                                    className="w-full bg-zinc-800 border border-zinc-900 rounded-xl p-3 text-white outline-none focus:ring-1 focus:ring-[#39FF14] transition-all appearance-none text-center text-xs">
+                                                    className="w-full bg-zinc-800 border border-zinc-900 rounded-xl p-2 text-white outline-none focus:ring-1 focus:ring-[#39FF14] transition-all appearance-none text-center text-xs">
                                                     <option value={30}>30 dias</option>
                                                     <option value={60}>60 dias</option>
                                                     <option value={90}>90 dias</option>
                                                 </select>
                                             </div>
                                             <div>
-                                                <label className="block text-[13px] font-black uppercase tracking-widest mb-1 text-[#39FF14]">1º Vencimento</label>
+                                                <label className="block text-[10px] font-black uppercase tracking-widest mb-1 text-[#39FF14]">1º Vencimento</label>
                                                 <input type="date" value={saleBoletoFirstDate} onChange={e => setSaleBoletoFirstDate(e.target.value)}
-                                                    className="w-full bg-zinc-800 border border-zinc-900 rounded-xl p-3 text-white outline-none focus:ring-1 focus:ring-[#39FF14] transition-all [color-scheme:dark] text-xs" />
+                                                    className="w-full bg-zinc-800 border border-zinc-900 rounded-xl p-2 text-white outline-none focus:ring-1 focus:ring-[#39FF14] transition-all [color-scheme:dark] text-xs" />
                                             </div>
                                         </div>
                                     )}
                                 </div>
 
-                                <div className="border-t border-zinc-900 pt-6 mt-6">
-                                    <div className="flex justify-between items-end mb-6">
+                                <div className="pt-4">
+                                    <div className="flex justify-between items-end mb-4">
                                         <p className="text-white text-sm font-black uppercase tracking-widest">Total</p>
                                         <p className="text-2xl font-black text-[#39FF14]">R$ {(cart.length > 0 ? cartTotal : parseBRL(saleManualValue)).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                                     </div>
