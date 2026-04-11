@@ -188,6 +188,7 @@ export default function DashboardPage() {
     const [saleBoletoInterval, setSaleBoletoInterval] = useState(30);
     const [saleBoletoFirstDate, setSaleBoletoFirstDate] = useState('');
     const [saleDescription, setSaleDescription] = useState('');
+    const [showDescription, setShowDescription] = useState(false);
     const [saleEntersProduction, setSaleEntersProduction] = useState(true);
     const [saleManualValue, setSaleManualValue] = useState('');
     const [productSearch, setProductSearch] = useState('');
@@ -2906,8 +2907,13 @@ export default function DashboardPage() {
                                 {/* BLOCO 2 — PEDIDO */}
                                 <div className="space-y-2 pb-4 mb-4 border-b border-zinc-800">
                                     <div>
-                                        <label className="block text-[10px] font-black uppercase tracking-widest text-white mb-1">Descrição / Grade</label>
-                                        <textarea value={saleDescription} onChange={e => setSaleDescription(e.target.value)} placeholder="Detalhes do pedido..." rows={2} className="w-full bg-zinc-800 border-transparent rounded-xl p-2 text-white outline-none focus:ring-1 focus:ring-[#39FF14] text-sm font-bold placeholder:text-zinc-600 resize-none" />
+                                        <button type="button" onClick={() => setShowDescription(!showDescription)} className="flex items-center gap-2 w-full text-left">
+                                            <span className="text-[10px] font-black uppercase tracking-widest text-white">{showDescription ? '▼' : '▶'} Descrição / Grade</span>
+                                            {!showDescription && saleDescription && <span className="text-[10px] text-zinc-500 truncate flex-1">{saleDescription}</span>}
+                                        </button>
+                                        {showDescription && (
+                                            <textarea value={saleDescription} onChange={e => setSaleDescription(e.target.value)} placeholder="Detalhes do pedido..." rows={2} className="w-full bg-zinc-800 border-transparent rounded-xl p-2 text-white outline-none focus:ring-1 focus:ring-[#39FF14] text-sm font-bold placeholder:text-zinc-600 resize-none mt-1" autoFocus />
+                                        )}
                                     </div>
                                     {cart.length === 0 && (
                                         <div>
