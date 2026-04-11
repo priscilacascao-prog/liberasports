@@ -2915,22 +2915,22 @@ export default function DashboardPage() {
                                             <textarea value={saleDescription} onChange={e => setSaleDescription(e.target.value)} placeholder="Detalhes do pedido..." rows={2} className="w-full bg-zinc-800 border-transparent rounded-xl p-2 text-white outline-none focus:ring-1 focus:ring-[#39FF14] text-sm font-bold placeholder:text-zinc-600 resize-none mt-1" autoFocus />
                                         )}
                                     </div>
-                                    {cart.length === 0 && (
+                                    <div className={`grid gap-2 ${cart.length === 0 ? 'grid-cols-3' : 'grid-cols-2'}`}>
+                                        {cart.length === 0 && (
+                                            <div>
+                                                <label className="block text-[10px] font-black uppercase tracking-widest text-[#39FF14] mb-1">Valor (R$)</label>
+                                                <input type="text" value={saleManualValue} onChange={e => setSaleManualValue(formatCurrency(e.target.value))} placeholder="0,00" className="w-full bg-zinc-800 border-transparent rounded-xl p-2 text-white outline-none focus:ring-1 focus:ring-[#39FF14] text-sm font-bold placeholder:text-zinc-600" />
+                                            </div>
+                                        )}
                                         <div>
-                                            <label className="block text-[10px] font-black uppercase tracking-widest text-[#39FF14] mb-1">Valor Total (R$)</label>
-                                            <input type="text" value={saleManualValue} onChange={e => setSaleManualValue(formatCurrency(e.target.value))} placeholder="0,00" className="w-full bg-zinc-800 border-transparent rounded-xl p-2 text-white outline-none focus:ring-1 focus:ring-[#39FF14] text-sm font-bold placeholder:text-zinc-600" />
-                                        </div>
-                                    )}
-                                    <div className="grid grid-cols-2 gap-2">
-                                        <div>
-                                            <label className="block text-[10px] font-black uppercase tracking-widest text-white mb-1">Prazo de Entrega</label>
+                                            <label className="block text-[10px] font-black uppercase tracking-widest text-white mb-1">Prazo</label>
                                             <input type="date" value={saleDeadline} onChange={e => setSaleDeadline(e.target.value)} className="w-full bg-zinc-800 border-transparent rounded-xl p-2 text-white outline-none focus:ring-1 focus:ring-[#39FF14] text-sm font-bold [color-scheme:dark]" />
                                         </div>
                                         <div>
-                                            <label className="block text-[10px] font-black uppercase tracking-widest text-white mb-1">Método de Entrega</label>
+                                            <label className="block text-[10px] font-black uppercase tracking-widest text-white mb-1">Entrega</label>
                                             <select value={saleDeliveryMethod} onChange={e => setSaleDeliveryMethod(e.target.value as any)} className="w-full bg-zinc-800 border-transparent rounded-xl p-2 text-white outline-none focus:ring-1 focus:ring-[#39FF14] text-sm font-bold appearance-none">
                                                 <option value="MOTOBOY">MOTOBOY</option>
-                                                <option value="CORREIOS/TRANSPORTADORA">CORREIOS/TRANSPORTADORA</option>
+                                                <option value="CORREIOS/TRANSPORTADORA">CORREIOS</option>
                                                 <option value="RETIRADA">RETIRADA</option>
                                             </select>
                                         </div>
