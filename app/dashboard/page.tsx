@@ -790,9 +790,9 @@ export default function DashboardPage() {
             setPixSplit(false);
             setTransactionDate(new Date().toISOString().split('T')[0]);
             setInstallments(1);
-        } catch (err) {
-            console.error(err);
-            toast.error('Erro ao processar venda');
+        } catch (err: any) {
+            console.error('Erro detalhado ao processar venda:', err);
+            toast.error(`Erro ao processar venda: ${err?.message || err}`);
         } finally {
             setLoading(false);
         }
