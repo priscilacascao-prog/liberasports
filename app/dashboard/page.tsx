@@ -2496,7 +2496,7 @@ export default function DashboardPage() {
                                                             className="flex items-center gap-2 text-sm font-black uppercase tracking-widest text-white hover:text-[#39FF14] transition-colors"
                                                         >
                                                             {expandedObs[order.id] ? <X size={12} /> : <Plus size={12} />}
-                                                            {expandedObs[order.id] ? 'Fechar Observações' : 'Ver Observações Internas'}
+                                                            {expandedObs[order.id] ? 'Fechar Observações' : order.observations ? 'Ver Observações Internas' : 'Deseja adicionar alguma observação?'}
                                                             {order.observations && !expandedObs[order.id] && (
                                                                 <span className="w-1.5 h-1.5 rounded-full bg-[#39FF14] ml-1 animate-pulse" />
                                                             )}
