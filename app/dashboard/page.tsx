@@ -3398,6 +3398,33 @@ export default function DashboardPage() {
                                                             <p className="text-base md:text-xl font-black text-white tabular-nums">
                                                                 R$ {sale.total?.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                                             </p>
+                                                            {sale.client_whatsapp && (
+                                                                <button
+                                                                    onClick={() => {
+                                                                        const phone = sale.client_whatsapp.replace(/\D/g, '');
+                                                                        const trackUrl = `${window.location.origin}/rastreio?id=${sale.id}`;
+                                                                        const deliveryDate = sale.deadline ? sale.deadline.split('-').reverse().join('/') : '';
+                                                                        const msg = [
+                                                                            `Olá *${sale.client || ''}*! Seu pedido na *Libera Sports* foi cadastrado com sucesso!`,
+                                                                            '',
+                                                                            `*Pedido:* ${sale.order_number || sale.sale_number}`,
+                                                                            `*Valor:* R$ ${Number(sale.total || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+                                                                            ...(deliveryDate ? [`*Entrega prevista:* ${deliveryDate}`] : []),
+                                                                            `*Pagamento:* ${sale.payment_method || 'PIX'}`,
+                                                                            '',
+                                                                            'Acompanhe seu pedido em tempo real:',
+                                                                            trackUrl,
+                                                                            '',
+                                                                            '_Libera Sports - Vista Libera e viva a liberdade_'
+                                                                        ].map(l => encodeURIComponent(l)).join('%0a');
+                                                                        window.open(`https://wa.me/${phone}?text=${msg}`, '_blank');
+                                                                    }}
+                                                                    className="bg-green-500/10 text-green-500 p-2.5 rounded-xl hover:bg-green-500 hover:text-[#fff] transition-all"
+                                                                    title="Enviar WhatsApp"
+                                                                >
+                                                                    <MessageCircle size={14} />
+                                                                </button>
+                                                            )}
                                                             <button
                                                                 onClick={() => handleDeleteSale(sale.id)}
                                                                 disabled={loading}
