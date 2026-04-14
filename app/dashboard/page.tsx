@@ -1103,6 +1103,34 @@ export default function DashboardPage() {
         }
     };
 
+    const handleUploadProductionImage = async (orderId: string, file: File) => {
+        if (file.size > 500000) { toast.error('Imagem muito grande (máx 500KB)'); return; }
+        const reader = new FileReader();
+        reader.onload = async () => {
+            try {
+                const orderRef = doc(db, salesCollectionPath, orderId);
+                await updateDoc(orderRef, { production_image: reader.result as string });
+                toast.success('Imagem da gráfica anexada!');
+            } catch (error) {
+                console.error('Error uploading production image:', error);
+                toast.error('Erro ao anexar imagem');
+            }
+        };
+        reader.readAsDataURL(file);
+    };
+
+    const handleRemoveProductionImage = async (orderId: string) => {
+        if (!confirm('Remover imagem da gráfica?')) return;
+        try {
+            const orderRef = doc(db, salesCollectionPath, orderId);
+            await updateDoc(orderRef, { production_image: '' });
+            toast.success('Imagem removida!');
+        } catch (error) {
+            console.error('Error removing production image:', error);
+            toast.error('Erro ao remover imagem');
+        }
+    };
+
     const generateOrderNumber = async () => {
         const year = new Date().getFullYear().toString().slice(-2);
         // Fetch orders from this year to count
@@ -2240,12 +2268,6 @@ export default function DashboardPage() {
                                                     </div>
                                                 </div>
                                                 <div className="flex items-center gap-6 shrink-0">
-                                                    <div className="text-right">
-                                                        <span className="block text-sm text-white/70 font-bold uppercase tracking-widest">Valor</span>
-                                                        <span className="text-xs font-black text-[#39FF14]">
-                                                            R$ {Number(order.value || order.total || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                                                        </span>
-                                                    </div>
                                                     <div className="p-2 rounded-lg bg-zinc-950 border border-zinc-900 text-white group-hover:text-white transition-all">
                                                         <ChevronDown size={14} />
                                                     </div>
@@ -2324,14 +2346,8 @@ export default function DashboardPage() {
                                                         )}
                                                     </div>
 
-                                                    {/* Valor */}
-                                                    <div className="flex items-center justify-between mt-1 mb-2">
-                                                        <div>
-                                                            <span className="block text-sm text-white/70 font-bold uppercase tracking-widest">Valor Total</span>
-                                                            <span className="text-lg font-black text-[#39FF14]">
-                                                                R$ {Number(order.value || order.total || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                                                            </span>
-                                                        </div>
+                                                    {/* Ações */}
+                                                    <div className="flex items-center justify-end mt-1 mb-2">
                                                         <div className="flex items-center gap-2">
                                                             <button onClick={() => {
                                                                 const items = order.items && order.items.length > 0
@@ -2490,6 +2506,52 @@ export default function DashboardPage() {
                                                                     </p>
                                                                 )}
                                                             </div>
+                                                        )}
+                                                    </div>
+
+                                                    {/* Imagem da Gráfica */}
+                                                    <div className="mt-4 border-t border-zinc-900 pt-4">
+                                                        <div className="flex items-center justify-between mb-3">
+                                                            <span className="text-sm font-black uppercase tracking-widest text-white flex items-center gap-2">
+                                                                <Paperclip size={12} className="text-[#39FF14]" /> Imagem da Gráfica
+                                                            </span>
+                                                            {order.production_image && (
+                                                                <button
+                                                                    onClick={() => handleRemoveProductionImage(order.id)}
+                                                                    className="text-sm font-black uppercase text-white/40 hover:text-red-500 transition-colors"
+                                                                >
+                                                                    Remover
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                        {order.production_image ? (
+                                                            <div className="relative group/img">
+                                                                <img
+                                                                    src={order.production_image}
+                                                                    alt="Imagem da gráfica"
+                                                                    className="w-full max-h-[300px] object-contain rounded-xl border border-zinc-800 bg-zinc-950 cursor-pointer"
+                                                                    onClick={() => window.open(order.production_image, '_blank')}
+                                                                />
+                                                                <label className="absolute bottom-2 right-2 bg-zinc-900/90 border border-zinc-700 text-white text-xs font-black uppercase px-3 py-1.5 rounded-lg cursor-pointer hover:bg-[#39FF14] hover:text-black transition-all">
+                                                                    Trocar
+                                                                    <input type="file" accept="image/*" className="hidden" onChange={e => {
+                                                                        const file = e.target.files?.[0];
+                                                                        if (file) handleUploadProductionImage(order.id, file);
+                                                                    }} />
+                                                                </label>
+                                                            </div>
+                                                        ) : (
+                                                            <label className="block cursor-pointer">
+                                                                <div className="bg-zinc-950 border border-dashed border-zinc-700 rounded-xl p-6 text-center hover:border-[#39FF14]/50 transition-all">
+                                                                    <Paperclip size={24} className="mx-auto mb-2 text-white/30" />
+                                                                    <p className="text-sm font-black uppercase text-white/50">Anexar imagem do pedido</p>
+                                                                    <p className="text-xs text-white/30 mt-1">Máx 500KB • Clique para selecionar</p>
+                                                                </div>
+                                                                <input type="file" accept="image/*" className="hidden" onChange={e => {
+                                                                    const file = e.target.files?.[0];
+                                                                    if (file) handleUploadProductionImage(order.id, file);
+                                                                }} />
+                                                            </label>
                                                         )}
                                                     </div>
 
