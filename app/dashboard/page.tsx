@@ -740,7 +740,8 @@ export default function DashboardPage() {
             // 4. Enviar WhatsApp (se entra em produção e tem WhatsApp)
             if (saleEntersProduction && saleWhatsapp.trim()) {
                 const trackingUrl = `${window.location.origin}/rastreio?id=${docRef.id}`;
-                const whatsappPhone = saleWhatsapp.replace(/\D/g, '');
+                let whatsappPhone = saleWhatsapp.replace(/\D/g, '');
+                if (!whatsappPhone.startsWith('55')) whatsappPhone = '55' + whatsappPhone;
                 const deliveryDate = saleDeadline ? saleDeadline.split('-').reverse().join('/') : '';
                 const clientName = saleClient.trim();
                 const formattedValue = finalTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
@@ -1215,7 +1216,8 @@ export default function DashboardPage() {
             // Se aprovou pedido (primeiro passo), enviar WhatsApp com rastreio
             if ((currentStatus === 'AGUARDANDO APROVAÇÃO' || currentStatus === 'PEDIDO FEITO') && orderData?.client_whatsapp) {
                 const trackingUrl = `${window.location.origin}/rastreio?id=${orderId}`;
-                const whatsappPhone = orderData.client_whatsapp.replace(/\D/g, '');
+                let whatsappPhone = orderData.client_whatsapp.replace(/\D/g, '');
+                if (!whatsappPhone.startsWith('55')) whatsappPhone = '55' + whatsappPhone;
                 const clientName = (orderData.client || '').trim();
                 const orderNumber = orderData.order_number || '';
                 const formattedValue = (orderData.total || orderData.value || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
@@ -1454,7 +1456,8 @@ export default function DashboardPage() {
 
             // Gerar link de rastreio e enviar WhatsApp
             const trackingUrl = `${window.location.origin}/rastreio?id=${docRef.id}`;
-            const whatsappPhone = clientWhatsapp.replace(/\D/g, '');
+            let whatsappPhone = clientWhatsapp.replace(/\D/g, '');
+            if (!whatsappPhone.startsWith('55')) whatsappPhone = '55' + whatsappPhone;
             const deliveryDate = deadline.split('-').reverse().join('/');
             const clientName = client.trim();
             const formattedValue = parseFloat(normalizedValue).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
@@ -2364,7 +2367,7 @@ export default function DashboardPage() {
                                                                         </span>
                                                                         {order.client_whatsapp && (
                                                                             <a
-                                                                                href={`https://wa.me/${order.client_whatsapp.replace(/\D/g, '')}`}
+                                                                                href={`https://wa.me/${order.client_whatsapp.replace(/\D/g, '').startsWith('55') ? '' : '55'}${order.client_whatsapp.replace(/\D/g, '')}`}
                                                                                 target="_blank"
                                                                                 className="p-1 rounded bg-zinc-900 text-[#39FF14] hover:bg-[#39FF14] hover:text-black transition-all"
                                                                             >
@@ -3401,7 +3404,8 @@ export default function DashboardPage() {
                                                             {sale.client_whatsapp && (
                                                                 <button
                                                                     onClick={() => {
-                                                                        const phone = sale.client_whatsapp.replace(/\D/g, '');
+                                                                        let phone = sale.client_whatsapp.replace(/\D/g, '');
+                                                                        if (!phone.startsWith('55')) phone = '55' + phone;
                                                                         const trackUrl = `${window.location.origin}/rastreio?id=${sale.id}`;
                                                                         const deliveryDate = sale.deadline ? sale.deadline.split('-').reverse().join('/') : '';
                                                                         const msg = [
