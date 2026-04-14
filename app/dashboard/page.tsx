@@ -740,8 +740,7 @@ export default function DashboardPage() {
             // 4. Enviar WhatsApp (se entra em produção e tem WhatsApp)
             if (saleEntersProduction && saleWhatsapp.trim()) {
                 const trackingUrl = `${window.location.origin}/rastreio?id=${docRef.id}`;
-                let whatsappPhone = saleWhatsapp.replace(/\D/g, '');
-                if (!whatsappPhone.startsWith('55')) whatsappPhone = '55' + whatsappPhone;
+                const whatsappPhone = normalizePhone(saleWhatsapp);
                 const deliveryDate = saleDeadline ? saleDeadline.split('-').reverse().join('/') : '';
                 const clientName = saleClient.trim();
                 const formattedValue = finalTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
@@ -1216,8 +1215,7 @@ export default function DashboardPage() {
             // Se aprovou pedido (primeiro passo), enviar WhatsApp com rastreio
             if ((currentStatus === 'AGUARDANDO APROVAÇÃO' || currentStatus === 'PEDIDO FEITO') && orderData?.client_whatsapp) {
                 const trackingUrl = `${window.location.origin}/rastreio?id=${orderId}`;
-                let whatsappPhone = orderData.client_whatsapp.replace(/\D/g, '');
-                if (!whatsappPhone.startsWith('55')) whatsappPhone = '55' + whatsappPhone;
+                const whatsappPhone = normalizePhone(orderData.client_whatsapp);
                 const clientName = (orderData.client || '').trim();
                 const orderNumber = orderData.order_number || '';
                 const formattedValue = (orderData.total || orderData.value || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
@@ -1279,6 +1277,15 @@ export default function DashboardPage() {
         } finally {
             setLoading(false);
         }
+    };
+
+    const normalizePhone = (raw: string): string => {
+        let digits = raw.replace(/\D/g, '');
+        // Só o número sem DDD (8-9 dígitos) → adiciona DDD 62
+        if (digits.length <= 9) digits = '62' + digits;
+        // Sem código do país → adiciona 55
+        if (!digits.startsWith('55')) digits = '55' + digits;
+        return digits;
     };
 
     const parseBRL = (val: string): number => {
@@ -1456,8 +1463,7 @@ export default function DashboardPage() {
 
             // Gerar link de rastreio e enviar WhatsApp
             const trackingUrl = `${window.location.origin}/rastreio?id=${docRef.id}`;
-            let whatsappPhone = clientWhatsapp.replace(/\D/g, '');
-            if (!whatsappPhone.startsWith('55')) whatsappPhone = '55' + whatsappPhone;
+            const whatsappPhone = normalizePhone(clientWhatsapp);
             const deliveryDate = deadline.split('-').reverse().join('/');
             const clientName = client.trim();
             const formattedValue = parseFloat(normalizedValue).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
@@ -2367,7 +2373,7 @@ export default function DashboardPage() {
                                                                         </span>
                                                                         {order.client_whatsapp && (
                                                                             <a
-                                                                                href={`https://wa.me/${order.client_whatsapp.replace(/\D/g, '').startsWith('55') ? '' : '55'}${order.client_whatsapp.replace(/\D/g, '')}`}
+                                                                                href={`https://wa.me/${normalizePhone(order.client_whatsapp)}`}
                                                                                 target="_blank"
                                                                                 className="p-1 rounded bg-zinc-900 text-[#39FF14] hover:bg-[#39FF14] hover:text-black transition-all"
                                                                             >
@@ -3404,8 +3410,7 @@ export default function DashboardPage() {
                                                             {sale.client_whatsapp && (
                                                                 <button
                                                                     onClick={() => {
-                                                                        let phone = sale.client_whatsapp.replace(/\D/g, '');
-                                                                        if (!phone.startsWith('55')) phone = '55' + phone;
+                                                                        const phone = normalizePhone(sale.client_whatsapp);
                                                                         const trackUrl = `${window.location.origin}/rastreio?id=${sale.id}`;
                                                                         const deliveryDate = sale.deadline ? sale.deadline.split('-').reverse().join('/') : '';
                                                                         const msg = [
