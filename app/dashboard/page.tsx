@@ -618,11 +618,19 @@ export default function DashboardPage() {
             );
             const newOrderNumber = `LIBERA-${String(maxNum + 1).padStart(4, '0')}`;
 
-            // 1. Criar Venda
+            // 1. Criar Venda (remover imagens base64 dos itens para não estourar limite do Firestore)
+            const cleanCartItems = cart.map(({ image, images, ...item }) => ({
+                id: item.id,
+                name: item.name,
+                quantity: item.quantity,
+                sale_price: item.sale_price,
+                cost_price: item.cost_price,
+                stock: item.stock,
+            }));
             const saleData: any = {
                 order_number: newOrderNumber,
                 sale_number: newOrderNumber,
-                items: cart.length > 0 ? cart : [],
+                items: cart.length > 0 ? cleanCartItems : [],
                 total: finalTotal,
                 value: finalTotal,
                 client: saleClient.trim().toUpperCase() || '',
