@@ -114,6 +114,7 @@ export default function DashboardPage() {
     const [deadline, setDeadline] = useState<string>(addBusinessDays(new Date(), 20));
     const [deliveryMethod, setDeliveryMethod] = useState<'MOTOBOY' | 'TRANSPORTADORA' | 'RETIRADA'>('MOTOBOY');
     const [paymentMethod, setPaymentMethod] = useState<'PIX' | 'BOLETO' | 'CARTÃO CRÉDITO' | 'CARTÃO DÉBITO' | 'OUTROS'>('PIX');
+    const [pixSplit, setPixSplit] = useState(false);
     const [description, setDescription] = useState('');
     const [linkSale, setLinkSale] = useState(false);
     const [linkedSaleId, setLinkedSaleId] = useState('');
@@ -631,7 +632,8 @@ export default function DashboardPage() {
                 delivery_method: saleDeliveryMethod,
                 delivery_address: buildDeliveryAddress(),
                 description: saleDescription.trim(),
-                payment_method: paymentMethod,
+                payment_method: pixSplit && paymentMethod === 'PIX' ? 'PIX 50/50' : paymentMethod,
+                pix_split: paymentMethod === 'PIX' && pixSplit,
                 has_production: saleEntersProduction,
                 created_at: new Date().toISOString(),
                 user_id: userId,
@@ -656,7 +658,36 @@ export default function DashboardPage() {
             const finDesc = cart.length > 0
                 ? `[${newOrderNumber}] ${cart.map((i: any) => `${i.quantity}x ${i.name}`).join(', ')}`
                 : `[${newOrderNumber}] ${saleDescription || saleClient}`;
-            if (paymentMethod === 'BOLETO' && saleBoletoQty > 1) {
+            if (paymentMethod === 'PIX' && pixSplit) {
+                // PIX 50/50: 50% recebido agora, 50% a receber na entrega
+                const halfValue = Math.round((finalTotal / 2) * 100) / 100;
+                await addDoc(collection(db, financeCollectionPath), {
+                    type: 'INFLOW',
+                    amount: halfValue,
+                    description: `${finDesc} (PIX 1/2 - No Pedido)`,
+                    status: 'RECEBIDO',
+                    payment_method: 'PIX 50/50',
+                    created_at: new Date().toISOString(),
+                    transaction_date: transactionDate,
+                    due_date: transactionDate,
+                    order_id: docRef.id,
+                    user_id: userId,
+                    operator_name: operatorName,
+                });
+                await addDoc(collection(db, financeCollectionPath), {
+                    type: 'INFLOW',
+                    amount: finalTotal - halfValue,
+                    description: `${finDesc} (PIX 2/2 - Na Entrega)`,
+                    status: 'A RECEBER',
+                    payment_method: 'PIX 50/50',
+                    created_at: new Date().toISOString(),
+                    transaction_date: transactionDate,
+                    due_date: saleDeadline ? new Date(saleDeadline + 'T12:00:00').toISOString() : transactionDate,
+                    order_id: docRef.id,
+                    user_id: userId,
+                    operator_name: operatorName,
+                });
+            } else if (paymentMethod === 'BOLETO' && saleBoletoQty > 1) {
                 // Gerar múltiplos boletos
                 const boletoValue = finalTotal / saleBoletoQty;
                 const firstDate = saleBoletoFirstDate ? new Date(saleBoletoFirstDate + 'T12:00:00') : new Date();
@@ -756,6 +787,7 @@ export default function DashboardPage() {
             setSaleEntersProduction(true);
             setSaleManualValue('');
             setPaymentMethod('PIX');
+            setPixSplit(false);
             setTransactionDate(new Date().toISOString().split('T')[0]);
             setInstallments(1);
         } catch (err) {
@@ -3151,6 +3183,7 @@ export default function DashboardPage() {
                                                 onClick={() => {
                                                     setPaymentMethod(m as any);
                                                     if (m !== 'CARTÃO CRÉDITO') setInstallments(1);
+                                                    if (m !== 'PIX') setPixSplit(false);
                                                 }}
                                                 className={`p-2 rounded-xl border text-sm font-black uppercase tracking-widest transition-all ${paymentMethod === m
                                                     ? 'border-[#39FF14] bg-[#39FF14]/10 text-[#39FF14]'
@@ -3161,6 +3194,16 @@ export default function DashboardPage() {
                                             </button>
                                         ))}
                                     </div>
+                                    {paymentMethod === 'PIX' && (
+                                        <label className="flex items-center gap-3 cursor-pointer bg-zinc-900/50 rounded-xl p-3 border border-zinc-800 hover:border-[#39FF14]/30 transition-all mt-1">
+                                            <input type="checkbox" checked={pixSplit} onChange={e => setPixSplit(e.target.checked)}
+                                                className="w-4 h-4 accent-[#39FF14] rounded" />
+                                            <div>
+                                                <span className="text-sm font-black uppercase text-white">PIX 50% + 50%</span>
+                                                <p className="text-xs text-white/50">50% no ato do pedido • 50% na entrega</p>
+                                            </div>
+                                        </label>
+                                    )}
                                     <div className="grid grid-cols-2 gap-2">
                                         <div>
                                             <label className="block text-xs font-black uppercase tracking-widest mb-1 text-white">Data</label>

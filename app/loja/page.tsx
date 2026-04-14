@@ -80,6 +80,7 @@ export default function LojaPage() {
     const [checkoutLoading, setCheckoutLoading] = useState(false);
     const [deliveryMethod, setDeliveryMethod] = useState('MOTOBOY');
     const [paymentMethod, setPaymentMethod] = useState('PIX');
+    const [pixSplit, setPixSplit] = useState(false);
     const [observations, setObservations] = useState('');
     const [deliveryAddress, setDeliveryAddress] = useState('');
     const [deliveryCep, setDeliveryCep] = useState('');
@@ -214,7 +215,8 @@ export default function LojaPage() {
                 client_uid: user.uid, delivery_method: deliveryMethod, delivery_cep: cepDigits,
                 delivery_address: `${deliveryAddress.trim()}, Nº ${deliveryNumero.trim()}, Qd ${deliveryQuadra.trim()}, Lt ${deliveryLote.trim()} - ${deliveryCidade.trim()}/${deliveryEstado.trim()}${deliveryComplemento.trim() ? ' - ' + deliveryComplemento.trim() : ''}`,
                 delivery_numero: deliveryNumero.trim(), delivery_quadra: deliveryQuadra.trim(), delivery_lote: deliveryLote.trim(), delivery_cidade: deliveryCidade.trim(), delivery_estado: deliveryEstado.trim(), delivery_complemento: deliveryComplemento.trim(),
-                payment_method: paymentMethod,
+                payment_method: pixSplit && paymentMethod === 'PIX' ? 'PIX 50/50' : paymentMethod,
+                pix_split: paymentMethod === 'PIX' && pixSplit,
                 installments: paymentMethod === 'CARTÃO CRÉDITO' ? storeInstallments : 1,
                 description: observations || cart.map(i => `${i.quantity}x ${i.name}`).join(', '),
                 deadline: addBusinessDays(new Date(), 20),
@@ -224,13 +226,36 @@ export default function LojaPage() {
             };
 
             const docRef = await addDoc(collection(db, salesPath), saleData);
-            await addDoc(collection(db, financePath), {
-                type: 'INFLOW', amount: cartTotal,
-                description: `[${orderNumber}] Pedido Loja - ${clientData.name}`,
-                status: 'A RECEBER', created_at: new Date().toISOString(),
-                transaction_date: new Date().toISOString(), due_date: new Date().toISOString(),
-                order_id: docRef.id, user_id: user.uid,
-            });
+            if (paymentMethod === 'PIX' && pixSplit) {
+                // PIX 50/50: 50% recebido agora, 50% a receber na entrega
+                const halfValue = Math.round((cartTotal / 2) * 100) / 100;
+                const deadlineDate = addBusinessDays(new Date(), 20);
+                await addDoc(collection(db, financePath), {
+                    type: 'INFLOW', amount: halfValue,
+                    description: `[${orderNumber}] Pedido Loja - ${clientData.name} (PIX 1/2 - No Pedido)`,
+                    payment_method: 'PIX 50/50',
+                    status: 'RECEBIDO', created_at: new Date().toISOString(),
+                    transaction_date: new Date().toISOString(), due_date: new Date().toISOString(),
+                    order_id: docRef.id, user_id: user.uid,
+                });
+                await addDoc(collection(db, financePath), {
+                    type: 'INFLOW', amount: cartTotal - halfValue,
+                    description: `[${orderNumber}] Pedido Loja - ${clientData.name} (PIX 2/2 - Na Entrega)`,
+                    payment_method: 'PIX 50/50',
+                    status: 'A RECEBER', created_at: new Date().toISOString(),
+                    transaction_date: new Date().toISOString(), due_date: new Date(deadlineDate + 'T12:00:00').toISOString(),
+                    order_id: docRef.id, user_id: user.uid,
+                });
+            } else {
+                await addDoc(collection(db, financePath), {
+                    type: 'INFLOW', amount: cartTotal,
+                    description: `[${orderNumber}] Pedido Loja - ${clientData.name}`,
+                    payment_method: paymentMethod,
+                    status: 'A RECEBER', created_at: new Date().toISOString(),
+                    transaction_date: new Date().toISOString(), due_date: new Date().toISOString(),
+                    order_id: docRef.id, user_id: user.uid,
+                });
+            }
 
             for (const item of cart) {
                 const pRef = doc(db, productsPath, item.id);
@@ -262,7 +287,7 @@ export default function LojaPage() {
             } catch (e) { console.error('Erro ao cadastrar cliente:', e); }
 
             toast.success('Pedido realizado com sucesso!');
-            setCart([]); setShowCart(false); setShowCheckout(false); setObservations('');
+            setCart([]); setShowCart(false); setShowCheckout(false); setObservations(''); setPixSplit(false);
             router.push('/loja/meus-pedidos');
         } catch (err) { console.error(err); toast.error('Erro ao realizar pedido'); }
         finally { setCheckoutLoading(false); }
@@ -619,12 +644,22 @@ export default function LojaPage() {
                                             <label className="block text-xs font-bold uppercase text-black mb-1">Pagamento</label>
                                             <div className="grid grid-cols-2 gap-2">
                                                 {['PIX', 'CARTÃO CRÉDITO'].map(m => (
-                                                    <button key={m} type="button" onClick={() => { setPaymentMethod(m); if (m === 'PIX') setStoreInstallments(1); }}
+                                                    <button key={m} type="button" onClick={() => { setPaymentMethod(m); if (m === 'PIX') setStoreInstallments(1); if (m !== 'PIX') setPixSplit(false); }}
                                                         className={`py-2 rounded-lg text-xs font-bold uppercase border transition-colors ${paymentMethod === m ? 'border-black bg-black text-white' : 'border-gray-200 text-black hover:border-gray-400'}`}>
                                                         {m === 'CARTÃO CRÉDITO' ? 'Cartão de Crédito' : m}
                                                     </button>
                                                 ))}
                                             </div>
+                                            {paymentMethod === 'PIX' && (
+                                                <label className="flex items-center gap-3 cursor-pointer bg-gray-50 rounded-xl p-3 border border-gray-200 hover:border-black/30 transition-all mt-2">
+                                                    <input type="checkbox" checked={pixSplit} onChange={e => setPixSplit(e.target.checked)}
+                                                        className="w-4 h-4 accent-black rounded" />
+                                                    <div>
+                                                        <span className="text-sm font-black uppercase text-black">PIX 50% + 50%</span>
+                                                        <p className="text-xs text-gray-400">50% no ato do pedido • 50% na entrega</p>
+                                                    </div>
+                                                </label>
+                                            )}
                                             {paymentMethod === 'PIX' && (
                                                 <div className="mt-3 bg-gray-50 rounded-xl p-5 text-center">
                                                     <img src="/pix-qrcode.png" alt="QR Code PIX" className="w-full max-w-sm mx-auto rounded-xl object-contain mb-4" />
