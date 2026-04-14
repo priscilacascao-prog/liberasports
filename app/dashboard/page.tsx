@@ -72,18 +72,19 @@ export default function DashboardPage() {
         localStorage.setItem('libera_theme', next ? 'dark' : 'light');
     };
     const t = {
-        bg: isDark ? 'bg-black' : 'bg-gray-50',
+        bg: isDark ? 'bg-zinc-900' : 'bg-gray-50',
         text: isDark ? 'text-white' : 'text-gray-900',
-        textMuted: isDark ? 'text-white/70' : 'text-gray-500',
+        textMuted: isDark ? 'text-zinc-300' : 'text-gray-500',
+        textSub: isDark ? 'text-zinc-400' : 'text-gray-400',
         accent: isDark ? 'text-[#39FF14]' : 'text-green-600',
         accentBg: isDark ? 'bg-[#39FF14]' : 'bg-green-600',
-        accentText: isDark ? 'text-black' : 'text-white',
-        card: isDark ? 'bg-zinc-950 border-zinc-900' : 'bg-white border-gray-200',
-        cardHover: isDark ? 'hover:border-zinc-800' : 'hover:border-gray-300',
-        input: isDark ? 'bg-zinc-800 border-transparent text-white placeholder:text-zinc-600' : 'bg-gray-100 border-gray-200 text-gray-900 placeholder:text-gray-400',
-        nav: isDark ? 'bg-black border-zinc-900' : 'bg-white border-gray-200',
-        divider: isDark ? 'divide-zinc-900' : 'divide-gray-200',
-        border: isDark ? 'border-zinc-900' : 'border-gray-200',
+        accentText: isDark ? 'text-black' : 'text-[#fff]',
+        card: isDark ? 'bg-zinc-800 border-zinc-700' : 'bg-white border-gray-200',
+        cardHover: isDark ? 'hover:border-zinc-600' : 'hover:border-gray-300',
+        input: isDark ? 'bg-zinc-700 border-zinc-600 text-white placeholder:text-zinc-400' : 'bg-gray-100 border-gray-200 text-gray-900 placeholder:text-gray-400',
+        nav: isDark ? 'bg-zinc-900 border-zinc-700' : 'bg-white border-gray-200',
+        divider: isDark ? 'divide-zinc-700' : 'divide-gray-200',
+        border: isDark ? 'border-zinc-700' : 'border-gray-200',
     };
 
     // Core App State
@@ -1846,7 +1847,77 @@ export default function DashboardPage() {
     });
 
     return (
-        <div className={`min-h-screen ${t.bg} ${t.text} selection:bg-[#39FF14] selection:text-black font-sans pb-20 transition-colors duration-300`}>
+        <div className={`min-h-screen ${t.bg} ${t.text} selection:bg-[#39FF14] selection:text-black font-sans pb-20 transition-colors duration-300 ${!isDark ? 'dashboard-light' : ''}`}>
+            {/* Light mode CSS overrides - remaps hardcoded dark-mode classes */}
+            {!isDark && (
+                <style>{`
+                    /* Text: white → dark */
+                    .dashboard-light .text-white { color: #111827 !important; }
+                    .dashboard-light .text-white\\/70 { color: #374151 !important; }
+                    .dashboard-light .text-white\\/60 { color: #4b5563 !important; }
+                    .dashboard-light .text-white\\/50 { color: #6b7280 !important; }
+                    .dashboard-light .text-white\\/40 { color: #9ca3af !important; }
+                    .dashboard-light .text-white\\/30 { color: #9ca3af !important; }
+
+                    /* Text: zinc → readable on light bg */
+                    .dashboard-light .text-zinc-300 { color: #374151 !important; }
+                    .dashboard-light .text-zinc-400 { color: #6b7280 !important; }
+                    .dashboard-light .text-zinc-500 { color: #6b7280 !important; }
+                    .dashboard-light .text-zinc-600 { color: #4b5563 !important; }
+                    .dashboard-light .text-zinc-800 { color: #1f2937 !important; }
+
+                    /* Background: dark → light */
+                    .dashboard-light .bg-black { background-color: #e5e7eb !important; }
+                    .dashboard-light .bg-zinc-950 { background-color: #f3f4f6 !important; }
+                    .dashboard-light .bg-zinc-900 { background-color: #f9fafb !important; }
+                    .dashboard-light .bg-zinc-800 { background-color: #ffffff !important; }
+                    .dashboard-light .bg-zinc-700 { background-color: #f3f4f6 !important; }
+
+                    /* Background with opacity */
+                    .dashboard-light .bg-zinc-950\\/50 { background-color: rgba(229,231,235,0.5) !important; }
+                    .dashboard-light .bg-zinc-950\\/20 { background-color: rgba(229,231,235,0.2) !important; }
+                    .dashboard-light .bg-zinc-900\\/50 { background-color: rgba(243,244,246,0.5) !important; }
+                    .dashboard-light .bg-zinc-900\\/40 { background-color: rgba(243,244,246,0.4) !important; }
+                    .dashboard-light .bg-zinc-900\\/30 { background-color: rgba(243,244,246,0.3) !important; }
+                    .dashboard-light .bg-zinc-800\\/50 { background-color: rgba(229,231,235,0.5) !important; }
+                    .dashboard-light .bg-zinc-800\\/30 { background-color: rgba(229,231,235,0.3) !important; }
+
+                    /* Borders */
+                    .dashboard-light .border-zinc-600 { border-color: #d1d5db !important; }
+                    .dashboard-light .border-zinc-700 { border-color: #e5e7eb !important; }
+                    .dashboard-light .border-zinc-800 { border-color: #e5e7eb !important; }
+                    .dashboard-light .border-zinc-900 { border-color: #d1d5db !important; }
+                    .dashboard-light .border-zinc-950 { border-color: #d1d5db !important; }
+                    .dashboard-light .border-zinc-900\\/50 { border-color: rgba(209,213,219,0.5) !important; }
+
+                    /* Dividers */
+                    .dashboard-light .divide-zinc-700 > * + * { border-color: #e5e7eb !important; }
+                    .dashboard-light .divide-zinc-800 > * + * { border-color: #e5e7eb !important; }
+                    .dashboard-light .divide-zinc-900 > * + * { border-color: #d1d5db !important; }
+
+                    /* Hover states */
+                    .dashboard-light .hover\\:text-white:hover { color: #111827 !important; }
+                    .dashboard-light .hover\\:text-white\\/60:hover { color: #4b5563 !important; }
+                    .dashboard-light .hover\\:bg-zinc-700:hover { background-color: #e5e7eb !important; }
+                    .dashboard-light .hover\\:bg-zinc-800:hover { background-color: #f3f4f6 !important; }
+                    .dashboard-light .hover\\:bg-zinc-900:hover { background-color: #f3f4f6 !important; }
+                    .dashboard-light .hover\\:bg-white\\/10:hover { background-color: rgba(0,0,0,0.05) !important; }
+                    .dashboard-light .hover\\:border-zinc-600:hover { border-color: #d1d5db !important; }
+                    .dashboard-light .hover\\:border-zinc-700:hover { border-color: #d1d5db !important; }
+
+                    /* Group hover */
+                    .dashboard-light .group:hover .group-hover\\:text-white { color: #111827 !important; }
+
+                    /* Placeholder */
+                    .dashboard-light .placeholder\\:text-zinc-400::placeholder { color: #9ca3af !important; }
+                    .dashboard-light .placeholder\\:text-zinc-600::placeholder { color: #6b7280 !important; }
+
+                    /* Ring & Shadow */
+                    .dashboard-light .ring-zinc-500 { --tw-ring-color: #d1d5db !important; }
+                    .dashboard-light .focus\\:ring-zinc-500:focus { --tw-ring-color: #d1d5db !important; }
+                    .dashboard-light .shadow-white { --tw-shadow-color: rgba(0,0,0,0.1) !important; }
+                `}</style>
+            )}
             {/* Navbar */}
             <nav className={`px-6 py-4 border-b ${t.border} ${t.nav} sticky top-0 z-50 flex justify-between items-center transition-colors duration-300`}>
                 <button
@@ -1994,7 +2065,7 @@ export default function DashboardPage() {
                         <div className="text-center max-w-lg animate-fade-in-up-delay">
                             <p className="text-white/70 text-lg md:text-2xl font-light italic leading-relaxed tracking-wide"><span className="tracking-normal">&ldquo; </span>{phrase}<span className="tracking-normal">&rdquo;</span></p>
                             <div className="mt-6 w-12 h-[2px] bg-[#39FF14] mx-auto rounded-full" />
-                            <p className="mt-4 text-[#39FF14] text-[13px] font-black uppercase tracking-[0.3em]">
+                            <p className="mt-4 text-[#39FF14] text-sm font-black uppercase tracking-[0.3em]">
                                 Libera Sports
                             </p>
                         </div>
@@ -2086,7 +2157,7 @@ export default function DashboardPage() {
                                     ${step === 'PENDÊNCIA' && isBottomRow ? 'col-span-1' : ''}
                                 `}
                                     >
-                                        <span className={`text-[13px] font-black uppercase tracking-widest mb-1 transition-colors ${isActive ? (step === 'PENDÊNCIA' ? 'text-black' : 'text-black') : 'text-white group-hover:text-white'}`}>
+                                        <span className={`text-sm font-black uppercase tracking-widest mb-1 transition-colors ${isActive ? (step === 'PENDÊNCIA' ? 'text-black' : 'text-black') : 'text-white group-hover:text-white'}`}>
                                             {step}
                                         </span>
 
@@ -2156,15 +2227,15 @@ export default function DashboardPage() {
                                                         <Package className="text-[#39FF14]/50 group-hover:text-[#39FF14]" size={16} />
                                                     </div>
                                                     <div className="flex flex-col">
-                                                        <span className="text-white/70 text-[13px] font-black uppercase tracking-widest">{order.order_number}</span>
+                                                        <span className="text-white/70 text-sm font-black uppercase tracking-widest">{order.order_number}</span>
                                                         <h3 className="text-sm font-black text-white group-hover:text-[#39FF14] transition-colors truncate">{order.client || 'Sem cliente'}</h3>
                                                     </div>
                                                     <div className="hidden md:flex flex-col">
-                                                        <span className="text-white text-[13px] font-black uppercase tracking-widest">Entrega</span>
+                                                        <span className="text-white text-sm font-black uppercase tracking-widest">Entrega</span>
                                                         <span className="text-sm text-white/70 font-bold">{order.deadline ? order.deadline.split('-').reverse().join('/') : '-'}</span>
                                                     </div>
                                                     <div className="hidden lg:flex flex-col max-w-[200px]">
-                                                        <span className="text-white text-[13px] font-black uppercase tracking-widest">Grade</span>
+                                                        <span className="text-white text-sm font-black uppercase tracking-widest">Grade</span>
                                                         <span className="text-sm text-white font-medium truncate">{order.description}</span>
                                                     </div>
                                                 </div>
@@ -2199,16 +2270,16 @@ export default function DashboardPage() {
                                                         <span className="text-white/70 text-sm font-black uppercase tracking-widest">
                                                             {order.order_number || `#${order.id.slice(0, 5).toUpperCase()}`}
                                                         </span>
-                                                        <span className="bg-zinc-900 text-white/70 px-1.5 py-0.5 rounded text-[13px] font-bold flex items-center gap-1">
+                                                        <span className="bg-zinc-900 text-white/70 px-1.5 py-0.5 rounded text-sm font-bold flex items-center gap-1">
                                                             <Clock size={9} /> {new Date(order.created_at).toLocaleDateString('pt-BR')}
                                                         </span>
-                                                        <span className="bg-zinc-900 text-white/70 px-1.5 py-0.5 rounded text-[13px] font-bold flex items-center gap-1">
+                                                        <span className="bg-zinc-900 text-white/70 px-1.5 py-0.5 rounded text-sm font-bold flex items-center gap-1">
                                                             <Calendar size={9} /> {order.deadline ? order.deadline.split('-').reverse().join('/') : '-'}
                                                         </span>
-                                                        <span className="bg-zinc-900 text-[#39FF14] px-1.5 py-0.5 rounded text-[13px] font-bold flex items-center gap-1 uppercase">
+                                                        <span className="bg-zinc-900 text-[#39FF14] px-1.5 py-0.5 rounded text-sm font-bold flex items-center gap-1 uppercase">
                                                             <Truck size={9} /> {order.delivery_method || '-'}
                                                         </span>
-                                                        <span className="bg-zinc-900 text-orange-500 px-1.5 py-0.5 rounded text-[13px] font-bold flex items-center gap-1 uppercase">
+                                                        <span className="bg-zinc-900 text-orange-500 px-1.5 py-0.5 rounded text-sm font-bold flex items-center gap-1 uppercase">
                                                             <TrendingUp size={9} /> {order.payment_method || 'PIX'}
                                                         </span>
                                                     </div>
@@ -2220,7 +2291,7 @@ export default function DashboardPage() {
                                                                     <User className="text-[#39FF14]" size={18} />
                                                                 </div>
                                                                 <div className="min-w-0 flex-1">
-                                                                    <h3 className="text-[13px] md:text-xl font-black tracking-tighter text-white uppercase italic">
+                                                                    <h3 className="text-sm md:text-xl font-black tracking-tighter text-white uppercase italic">
                                                                         {order.client || 'Sem cliente'}
                                                                     </h3>
                                                                     <div className="flex items-center gap-2 mt-1">
@@ -2246,8 +2317,8 @@ export default function DashboardPage() {
                                                             <div className="bg-[#FF3D00]/10 border border-[#FF3D00]/20 p-3 rounded-xl mb-3 mt-2 flex items-start gap-2">
                                                                 <AlertCircle className="text-[#FF3D00] shrink-0" size={14} />
                                                                 <div>
-                                                                    <p className="text-[#FF3D00] text-[13px] font-black uppercase tracking-widest mb-0.5">Pendência</p>
-                                                                    <p className="text-white text-[13px] font-medium">{order.pending_reason}</p>
+                                                                    <p className="text-[#FF3D00] text-sm font-black uppercase tracking-widest mb-0.5">Pendência</p>
+                                                                    <p className="text-white text-sm font-medium">{order.pending_reason}</p>
                                                                 </div>
                                                             </div>
                                                         )}
@@ -2378,13 +2449,13 @@ export default function DashboardPage() {
                                                         {expandedObs[order.id] && (
                                                             <div className="mt-4 bg-black/50 border border-zinc-950 rounded-2xl p-4 animate-in slide-in-from-top-2 duration-300">
                                                                 <div className="flex justify-between items-center mb-3">
-                                                                    <label className="text-[13px] font-black uppercase tracking-[0.2em] text-[#39FF14]/70">Notas de Produção</label>
+                                                                    <label className="text-sm font-black uppercase tracking-[0.2em] text-[#39FF14]/70">Notas de Produção</label>
                                                                     <button
                                                                         onClick={() => {
                                                                             setEditingObsId(order.id);
                                                                             setObsValue(order.observations || '');
                                                                         }}
-                                                                        className="text-[13px] font-black uppercase text-white hover:text-[#39FF14] transition-colors"
+                                                                        className="text-sm font-black uppercase text-white hover:text-[#39FF14] transition-colors"
                                                                     >
                                                                         {order.observations ? 'Editar' : 'Adicionar'}
                                                                     </button>
@@ -2427,7 +2498,7 @@ export default function DashboardPage() {
                                                         <div className="flex items-center gap-4">
                                                             <button
                                                                 onClick={() => setExpandedHistoryIds(prev => ({ ...prev, [order.id]: !prev[order.id] }))}
-                                                                className="text-[13px] font-black uppercase tracking-widest text-white hover:text-[#39FF14] transition-colors flex items-center gap-1"
+                                                                className="text-sm font-black uppercase tracking-widest text-white hover:text-[#39FF14] transition-colors flex items-center gap-1"
                                                             >
                                                                 <History size={10} /> {expandedHistoryIds[order.id] ? 'Ocultar Histórico' : 'Ver Histórico'}
                                                             </button>
@@ -2456,7 +2527,7 @@ export default function DashboardPage() {
                                                                                 </span>
                                                                                 <span className="text-sm text-white/70 font-bold uppercase">{new Date(log.created_at).toLocaleString('pt-BR')}</span>
                                                                             </div>
-                                                                            <span className="text-[13px] text-white font-bold uppercase mt-0.5">Operador: <span className="text-white">{log.operator_name}</span></span>
+                                                                            <span className="text-sm text-white font-bold uppercase mt-0.5">Operador: <span className="text-white">{log.operator_name}</span></span>
                                                                         </div>
                                                                     </div>
                                                                 ))}
@@ -2527,24 +2598,24 @@ export default function DashboardPage() {
                                                 {editingProductId === p.id ? (
                                                     <div className="space-y-3">
                                                         <div>
-                                                            <p className="text-[11px] text-white/70 font-bold uppercase mb-1">Nome</p>
+                                                            <p className="text-xs text-white/70 font-bold uppercase mb-1">Nome</p>
                                                             <input type="text" value={editProductName} onChange={e => setEditProductName(e.target.value)}
                                                                 className="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-2 text-sm text-white font-bold uppercase outline-none focus:border-[#39FF14]" />
                                                         </div>
                                                         <div>
-                                                            <p className="text-[11px] text-white/70 font-bold uppercase mb-1">Detalhes</p>
+                                                            <p className="text-xs text-white/70 font-bold uppercase mb-1">Detalhes</p>
                                                             <textarea value={editProductDetails} onChange={e => setEditProductDetails(e.target.value)}
                                                                 placeholder="Detalhes do produto..." rows={2}
                                                                 className="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-2 text-sm text-white outline-none focus:border-[#39FF14] resize-none" />
                                                         </div>
                                                         <div>
-                                                            <p className="text-[11px] text-white/70 font-bold uppercase mb-1">Foto</p>
+                                                            <p className="text-xs text-white/70 font-bold uppercase mb-1">Foto</p>
                                                             <div className="flex items-center gap-3">
                                                                 {editProductImage ? (
                                                                     <div className="relative w-12 h-12 rounded-lg overflow-hidden border border-zinc-700 shrink-0">
                                                                         <img src={editProductImage} alt="Preview" className="w-full h-full object-cover" />
                                                                         <button type="button" onClick={() => setEditProductImage('')}
-                                                                            className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center">
+                                                                            className="absolute -top-1 -right-1 bg-red-500 text-[#fff] rounded-full w-4 h-4 flex items-center justify-center">
                                                                             <X size={8} />
                                                                         </button>
                                                                     </div>
@@ -2555,7 +2626,7 @@ export default function DashboardPage() {
                                                                 )}
                                                                 <label className="flex-1 cursor-pointer">
                                                                     <div className="bg-zinc-900 border border-dashed border-zinc-700 rounded-lg p-2 text-center hover:border-[#39FF14]/50 transition-all">
-                                                                        <p className="text-[11px] font-bold text-white uppercase">{editProductImage ? 'Trocar' : 'Escolher foto'}</p>
+                                                                        <p className="text-xs font-bold text-white uppercase">{editProductImage ? 'Trocar' : 'Escolher foto'}</p>
                                                                     </div>
                                                                     <input type="file" accept="image/*" className="hidden" onChange={e => {
                                                                         const file = e.target.files?.[0];
@@ -2570,13 +2641,13 @@ export default function DashboardPage() {
                                                         </div>
                                                         {/* Fotos extras na edição */}
                                                         <div>
-                                                            <p className="text-[11px] text-white/70 font-bold uppercase mb-1">Fotos Extras ({editProductImages.length}/3)</p>
+                                                            <p className="text-xs text-white/70 font-bold uppercase mb-1">Fotos Extras ({editProductImages.length}/3)</p>
                                                             <div className="flex items-center gap-2 flex-wrap">
                                                                 {editProductImages.map((img, idx) => (
                                                                     <div key={idx} className="relative w-12 h-12 rounded-lg overflow-hidden border border-zinc-700 shrink-0">
                                                                         <img src={img} alt={`Extra ${idx + 1}`} className="w-full h-full object-cover" />
                                                                         <button type="button" onClick={() => setEditProductImages(editProductImages.filter((_, i) => i !== idx))}
-                                                                            className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center">
+                                                                            className="absolute -top-1 -right-1 bg-red-500 text-[#fff] rounded-full w-4 h-4 flex items-center justify-center">
                                                                             <X size={8} />
                                                                         </button>
                                                                     </div>
@@ -2598,17 +2669,17 @@ export default function DashboardPage() {
                                                         </div>
                                                         <div className="grid grid-cols-3 gap-2">
                                                             <div>
-                                                                <p className="text-[11px] text-white/70 font-bold uppercase mb-1">Preço Venda</p>
+                                                                <p className="text-xs text-white/70 font-bold uppercase mb-1">Preço Venda</p>
                                                                 <input type="text" value={editProductSalePrice} onChange={e => setEditProductSalePrice(formatCurrency(e.target.value))}
                                                                     className="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-2 text-sm text-white font-bold outline-none focus:border-[#39FF14]" />
                                                             </div>
                                                             <div>
-                                                                <p className="text-[11px] text-white/70 font-bold uppercase mb-1">Preço Custo</p>
+                                                                <p className="text-xs text-white/70 font-bold uppercase mb-1">Preço Custo</p>
                                                                 <input type="text" value={editProductCostPrice} onChange={e => setEditProductCostPrice(formatCurrency(e.target.value))}
                                                                     className="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-2 text-sm text-white font-bold outline-none focus:border-[#39FF14]" />
                                                             </div>
                                                             <div>
-                                                                <p className="text-[11px] text-white/70 font-bold uppercase mb-1">Estoque</p>
+                                                                <p className="text-xs text-white/70 font-bold uppercase mb-1">Estoque</p>
                                                                 <div className="flex items-center gap-1">
                                                                     <button onClick={() => setEditProductStock(String(Math.max(0, parseInt(editProductStock || '0') - 1)))}
                                                                         className="w-7 h-8 rounded-lg bg-zinc-800 text-white font-black flex items-center justify-center hover:bg-zinc-700 text-sm">−</button>
@@ -2621,11 +2692,11 @@ export default function DashboardPage() {
                                                         </div>
                                                         <label className="flex items-center gap-2 cursor-pointer mt-1">
                                                             <input type="checkbox" checked={editProductShowInStore} onChange={e => setEditProductShowInStore(e.target.checked)} className="w-4 h-4 rounded accent-[#39FF14]" />
-                                                            <span className="text-[11px] font-black uppercase text-white/70">Visível na Loja</span>
+                                                            <span className="text-xs font-black uppercase text-white/70">Visível na Loja</span>
                                                         </label>
                                                         <label className="flex items-center gap-2 cursor-pointer mt-1">
                                                             <input type="checkbox" checked={editProductProntaEntrega} onChange={e => setEditProductProntaEntrega(e.target.checked)} className="w-4 h-4 rounded accent-[#39FF14]" />
-                                                            <span className="text-[11px] font-black uppercase text-white/70">Pronta Entrega</span>
+                                                            <span className="text-xs font-black uppercase text-white/70">Pronta Entrega</span>
                                                         </label>
                                                         <div className="flex items-center gap-2 mt-1">
                                                             <button onClick={async () => {
@@ -2658,9 +2729,9 @@ export default function DashboardPage() {
                                                             {p.show_in_store && <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-[#39FF14]/20 text-[#39FF14]">LOJA</span>}
                                                             {p.pronta_entrega ? <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400">PRONTA ENTREGA</span> : <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-orange-500/20 text-orange-400">SOB ENCOMENDA</span>}
                                                         </div>
-                                                        {p.details && <p className="text-[13px] text-white/50 mt-0.5">{p.details}</p>}
+                                                        {p.details && <p className="text-sm text-white/50 mt-0.5">{p.details}</p>}
                                                         <div className="mt-2">
-                                                            <p className="text-[13px] text-white/70 font-bold uppercase mb-1">Em Estoque</p>
+                                                            <p className="text-sm text-white/70 font-bold uppercase mb-1">Em Estoque</p>
                                                             <p className={`text-2xl font-black ${p.stock <= 5 ? 'text-orange-500' : 'text-white'}`}>
                                                                 {p.stock} un
                                                             </p>
@@ -2672,11 +2743,11 @@ export default function DashboardPage() {
                                         <div className="flex items-end justify-between pt-4 border-t border-zinc-800">
                                             <div className="grid grid-cols-2 gap-4 flex-1">
                                                 <div>
-                                                    <p className="text-[13px] text-white/70 font-bold uppercase">Preço Venda</p>
+                                                    <p className="text-sm text-white/70 font-bold uppercase">Preço Venda</p>
                                                     <p className="text-lg font-black text-[#39FF14]">R$ {p.sale_price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                                                 </div>
                                                 <div>
-                                                    <p className="text-[13px] text-white/70 font-bold uppercase">Preço Custo</p>
+                                                    <p className="text-sm text-white/70 font-bold uppercase">Preço Custo</p>
                                                     <p className="text-lg font-black text-white/70">R$ {p.cost_price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                                                 </div>
                                             </div>
@@ -2805,8 +2876,8 @@ export default function DashboardPage() {
                                         cart.map(item => (
                                             <div key={item.id} className="flex justify-between items-center gap-3">
                                                 <div className="flex-1 min-w-0">
-                                                    <p className="text-[13px] font-black text-white uppercase truncate">{item.name}</p>
-                                                    <p className="text-[13px] text-white font-bold uppercase">R$ {item.sale_price.toLocaleString('pt-BR')} un</p>
+                                                    <p className="text-sm font-black text-white uppercase truncate">{item.name}</p>
+                                                    <p className="text-sm text-white font-bold uppercase">R$ {item.sale_price.toLocaleString('pt-BR')} un</p>
                                                 </div>
                                                 <div className="flex items-center gap-1.5 shrink-0">
                                                     <button
@@ -2829,7 +2900,7 @@ export default function DashboardPage() {
                                                                 updateCartQuantity(item.id, 1, item.stock);
                                                             }
                                                         }}
-                                                        className="w-10 h-7 rounded-lg bg-zinc-900 border border-zinc-800 text-white text-center text-[13px] font-black outline-none focus:border-[#39FF14]"
+                                                        className="w-10 h-7 rounded-lg bg-zinc-900 border border-zinc-800 text-white text-center text-sm font-black outline-none focus:border-[#39FF14]"
                                                     />
                                                     <button
                                                         onClick={() => updateCartQuantity(item.id, item.quantity + 1, item.stock, true)}
@@ -2847,7 +2918,7 @@ export default function DashboardPage() {
                                 {/* BLOCO 1 — CLIENTE */}
                                 <div className="space-y-2 pb-4 mb-4 border-b border-zinc-800">
                                     <div className="relative">
-                                        <label className="block text-[10px] font-black uppercase tracking-widest text-white mb-1">Cliente</label>
+                                        <label className="block text-xs font-black uppercase tracking-widest text-white mb-1">Cliente</label>
                                         <input type="text" value={saleClient}
                                             onChange={e => { setSaleClient(e.target.value); setShowClientSuggestions(e.target.value.length > 0); }}
                                             onFocus={() => { if (saleClient.length > 0) setShowClientSuggestions(true); }}
@@ -2893,13 +2964,13 @@ export default function DashboardPage() {
                                     </div>
                                     <div className="grid grid-cols-2 gap-2">
                                         <div>
-                                            <label className="block text-[10px] font-black uppercase tracking-widest text-white mb-1">WhatsApp</label>
+                                            <label className="block text-xs font-black uppercase tracking-widest text-white mb-1">WhatsApp</label>
                                             <input type="text" value={saleWhatsapp} onChange={e => setSaleWhatsapp(e.target.value)} placeholder="(00) 00000-0000" className="w-full bg-zinc-800 border-transparent rounded-xl p-2 text-white outline-none focus:ring-1 focus:ring-[#39FF14] text-sm font-bold placeholder:text-zinc-600" />
                                         </div>
                                         <div>
-                                            <label className="block text-[10px] font-black uppercase tracking-widest text-white mb-1">CPF/CNPJ</label>
+                                            <label className="block text-xs font-black uppercase tracking-widest text-white mb-1">CPF/CNPJ</label>
                                             <input type="text" value={saleCpfCnpj} onChange={e => { const formatted = formatCpfCnpj(e.target.value); setSaleCpfCnpj(formatted); const d = e.target.value.replace(/\D/g, ''); if (d.length === 11 || d.length === 14) setSaleCpfCnpjError(validateCpfCnpj(d) ? '' : 'Inválido'); else setSaleCpfCnpjError(''); }} placeholder="000.000.000-00" className={`w-full bg-zinc-800 border-transparent rounded-xl p-2 text-white outline-none focus:ring-1 text-sm font-bold placeholder:text-zinc-600 ${saleCpfCnpjError ? 'ring-1 ring-red-500' : 'focus:ring-[#39FF14]'}`} />
-                                            {saleCpfCnpjError && <p className="text-red-500 text-[10px] font-bold mt-0.5">{saleCpfCnpjError}</p>}
+                                            {saleCpfCnpjError && <p className="text-red-500 text-xs font-bold mt-0.5">{saleCpfCnpjError}</p>}
                                         </div>
                                     </div>
                                 </div>
@@ -2908,8 +2979,8 @@ export default function DashboardPage() {
                                 <div className="space-y-2 pb-4 mb-4 border-b border-zinc-800">
                                     <div>
                                         <button type="button" onClick={() => setShowDescription(!showDescription)} className="flex items-center gap-2 w-full text-left">
-                                            <span className="text-[10px] font-black uppercase tracking-widest text-white">{showDescription ? '▼' : '▶'} Descrição / Grade</span>
-                                            {!showDescription && saleDescription && <span className="text-[10px] text-zinc-500 truncate flex-1">{saleDescription}</span>}
+                                            <span className="text-xs font-black uppercase tracking-widest text-white">{showDescription ? '▼' : '▶'} Descrição / Grade</span>
+                                            {!showDescription && saleDescription && <span className="text-xs text-zinc-500 truncate flex-1">{saleDescription}</span>}
                                         </button>
                                         {showDescription && (
                                             <textarea value={saleDescription} onChange={e => setSaleDescription(e.target.value)} placeholder="Detalhes do pedido..." rows={2} className="w-full bg-zinc-800 border-transparent rounded-xl p-2 text-white outline-none focus:ring-1 focus:ring-[#39FF14] text-sm font-bold placeholder:text-zinc-600 resize-none mt-1" autoFocus />
@@ -2918,16 +2989,16 @@ export default function DashboardPage() {
                                     <div className={`grid gap-2 ${cart.length === 0 ? 'grid-cols-3' : 'grid-cols-2'}`}>
                                         {cart.length === 0 && (
                                             <div>
-                                                <label className="block text-[10px] font-black uppercase tracking-widest text-[#39FF14] mb-1">Valor (R$)</label>
+                                                <label className="block text-xs font-black uppercase tracking-widest text-[#39FF14] mb-1">Valor (R$)</label>
                                                 <input type="text" value={saleManualValue} onChange={e => setSaleManualValue(formatCurrency(e.target.value))} placeholder="0,00" className="w-full bg-zinc-800 border-transparent rounded-xl p-2 text-white outline-none focus:ring-1 focus:ring-[#39FF14] text-sm font-bold placeholder:text-zinc-600" />
                                             </div>
                                         )}
                                         <div>
-                                            <label className="block text-[10px] font-black uppercase tracking-widest text-white mb-1">Prazo</label>
+                                            <label className="block text-xs font-black uppercase tracking-widest text-white mb-1">Prazo</label>
                                             <input type="date" value={saleDeadline} onChange={e => setSaleDeadline(e.target.value)} className="w-full bg-zinc-800 border-transparent rounded-xl p-2 text-white outline-none focus:ring-1 focus:ring-[#39FF14] text-sm font-bold [color-scheme:dark]" />
                                         </div>
                                         <div>
-                                            <label className="block text-[10px] font-black uppercase tracking-widest text-white mb-1">Entrega</label>
+                                            <label className="block text-xs font-black uppercase tracking-widest text-white mb-1">Entrega</label>
                                             <select value={saleDeliveryMethod} onChange={e => setSaleDeliveryMethod(e.target.value as any)} className="w-full bg-zinc-800 border-transparent rounded-xl p-2 text-white outline-none focus:ring-1 focus:ring-[#39FF14] text-sm font-bold appearance-none">
                                                 <option value="MOTOBOY">MOTOBOY</option>
                                                 <option value="CORREIOS/TRANSPORTADORA">CORREIOS</option>
@@ -2937,16 +3008,16 @@ export default function DashboardPage() {
                                     </div>
                                     <label className="flex items-center gap-2 cursor-pointer mt-1 bg-zinc-900/50 rounded-xl p-2">
                                         <input type="checkbox" checked={saleEntersProduction} onChange={e => setSaleEntersProduction(e.target.checked)} className="w-4 h-4 rounded accent-[#39FF14]" />
-                                        <span className="text-[11px] font-black uppercase tracking-widest text-white">Entra em Produção</span>
+                                        <span className="text-xs font-black uppercase tracking-widest text-white">Entra em Produção</span>
                                     </label>
                                 </div>
 
                                 {/* BLOCO 3 — ENDEREÇO DE ENTREGA (só se método ≠ RETIRADA) */}
                                 {saleDeliveryMethod !== 'RETIRADA' && (
                                     <div className="space-y-2 pb-4 mb-4 border-b border-zinc-800">
-                                        <label className="block text-[10px] font-black uppercase tracking-widest text-white">Endereço de Entrega</label>
+                                        <label className="block text-xs font-black uppercase tracking-widest text-white">Endereço de Entrega</label>
                                         <div>
-                                            <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-1">CEP</label>
+                                            <label className="block text-xs font-black uppercase tracking-widest text-zinc-500 mb-1">CEP</label>
                                             <input type="text" value={saleCep} onChange={async e => {
                                                 const v = e.target.value.replace(/\D/g, '').slice(0, 8);
                                                 const formatted = v.length > 5 ? v.replace(/(\d{5})(\d)/, '$1-$2') : v;
@@ -2966,41 +3037,41 @@ export default function DashboardPage() {
                                                 className="w-full bg-zinc-800 border-transparent rounded-xl p-2 text-white outline-none focus:ring-1 focus:ring-[#39FF14] text-sm font-bold placeholder:text-zinc-600" />
                                         </div>
                                         <div>
-                                            <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-1">Endereço</label>
+                                            <label className="block text-xs font-black uppercase tracking-widest text-zinc-500 mb-1">Endereço</label>
                                             <input type="text" value={saleEndereco} onChange={e => setSaleEndereco(e.target.value)} placeholder="Rua, bairro..."
                                                 className="w-full bg-zinc-800 border-transparent rounded-xl p-2 text-white outline-none focus:ring-1 focus:ring-[#39FF14] text-sm font-bold placeholder:text-zinc-600" />
                                         </div>
                                         <div className="grid grid-cols-3 gap-2">
                                             <div>
-                                                <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-1">Número</label>
+                                                <label className="block text-xs font-black uppercase tracking-widest text-zinc-500 mb-1">Número</label>
                                                 <input type="text" value={saleNumero} onChange={e => setSaleNumero(e.target.value)} placeholder="Nº"
                                                     className="w-full bg-zinc-800 border-transparent rounded-xl p-2 text-white outline-none focus:ring-1 focus:ring-[#39FF14] text-sm font-bold placeholder:text-zinc-600" />
                                             </div>
                                             <div>
-                                                <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-1">Quadra</label>
+                                                <label className="block text-xs font-black uppercase tracking-widest text-zinc-500 mb-1">Quadra</label>
                                                 <input type="text" value={saleQuadra} onChange={e => setSaleQuadra(e.target.value)} placeholder="Qd"
                                                     className="w-full bg-zinc-800 border-transparent rounded-xl p-2 text-white outline-none focus:ring-1 focus:ring-[#39FF14] text-sm font-bold placeholder:text-zinc-600" />
                                             </div>
                                             <div>
-                                                <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-1">Lote</label>
+                                                <label className="block text-xs font-black uppercase tracking-widest text-zinc-500 mb-1">Lote</label>
                                                 <input type="text" value={saleLote} onChange={e => setSaleLote(e.target.value)} placeholder="Lt"
                                                     className="w-full bg-zinc-800 border-transparent rounded-xl p-2 text-white outline-none focus:ring-1 focus:ring-[#39FF14] text-sm font-bold placeholder:text-zinc-600" />
                                             </div>
                                         </div>
                                         <div className="grid grid-cols-[1fr_80px] gap-2">
                                             <div>
-                                                <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-1">Cidade</label>
+                                                <label className="block text-xs font-black uppercase tracking-widest text-zinc-500 mb-1">Cidade</label>
                                                 <input type="text" value={saleCidade} onChange={e => setSaleCidade(e.target.value)} placeholder="Cidade"
                                                     className="w-full bg-zinc-800 border-transparent rounded-xl p-2 text-white outline-none focus:ring-1 focus:ring-[#39FF14] text-sm font-bold placeholder:text-zinc-600" />
                                             </div>
                                             <div>
-                                                <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-1">UF</label>
+                                                <label className="block text-xs font-black uppercase tracking-widest text-zinc-500 mb-1">UF</label>
                                                 <input type="text" value={saleEstado} onChange={e => setSaleEstado(e.target.value.toUpperCase().slice(0, 2))} placeholder="UF"
                                                     className="w-full bg-zinc-800 border-transparent rounded-xl p-2 text-white outline-none focus:ring-1 focus:ring-[#39FF14] text-sm font-bold placeholder:text-zinc-600 text-center" />
                                             </div>
                                         </div>
                                         <div>
-                                            <label className="block text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-1">Complemento</label>
+                                            <label className="block text-xs font-black uppercase tracking-widest text-zinc-500 mb-1">Complemento</label>
                                             <input type="text" value={saleComplemento} onChange={e => setSaleComplemento(e.target.value)} placeholder="Apt, bloco, referência..."
                                                 className="w-full bg-zinc-800 border-transparent rounded-xl p-2 text-white outline-none focus:ring-1 focus:ring-[#39FF14] text-sm font-bold placeholder:text-zinc-600" />
                                         </div>
@@ -3009,7 +3080,7 @@ export default function DashboardPage() {
 
                                 {/* BLOCO 4 — PAGAMENTO */}
                                 <div className="space-y-2 pb-4 mb-4 border-b border-zinc-800">
-                                    <label className="block text-[10px] font-black uppercase tracking-widest text-[#39FF14] mb-1">Forma de Pagamento</label>
+                                    <label className="block text-xs font-black uppercase tracking-widest text-[#39FF14] mb-1">Forma de Pagamento</label>
                                     <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                                         {['PIX', 'BOLETO', 'CARTÃO CRÉDITO', 'CARTÃO DÉBITO', 'OUTROS'].map((m) => (
                                             <button
@@ -3019,7 +3090,7 @@ export default function DashboardPage() {
                                                     setPaymentMethod(m as any);
                                                     if (m !== 'CARTÃO CRÉDITO') setInstallments(1);
                                                 }}
-                                                className={`p-2 rounded-xl border text-[13px] font-black uppercase tracking-widest transition-all ${paymentMethod === m
+                                                className={`p-2 rounded-xl border text-sm font-black uppercase tracking-widest transition-all ${paymentMethod === m
                                                     ? 'border-[#39FF14] bg-[#39FF14]/10 text-[#39FF14]'
                                                     : 'border-zinc-800 bg-zinc-900/50 text-white hover:border-zinc-700'
                                                     }`}
@@ -3030,13 +3101,13 @@ export default function DashboardPage() {
                                     </div>
                                     <div className="grid grid-cols-2 gap-2">
                                         <div>
-                                            <label className="block text-[10px] font-black uppercase tracking-widest mb-1 text-white">Data</label>
+                                            <label className="block text-xs font-black uppercase tracking-widest mb-1 text-white">Data</label>
                                             <input type="date" value={transactionDate} onChange={e => setTransactionDate(e.target.value)} required
                                                 className="w-full bg-zinc-800 border border-zinc-900 rounded-xl p-2 text-white outline-none focus:ring-1 focus:ring-[#39FF14] transition-all [color-scheme:dark] text-xs" />
                                         </div>
                                         {paymentMethod === 'CARTÃO CRÉDITO' && (
                                             <div>
-                                                <label className="block text-[10px] font-black uppercase tracking-widest mb-1 text-[#39FF14]">Parcelas</label>
+                                                <label className="block text-xs font-black uppercase tracking-widest mb-1 text-[#39FF14]">Parcelas</label>
                                                 <select value={installments} onChange={e => setInstallments(parseInt(e.target.value))}
                                                     className="w-full bg-zinc-800 border border-zinc-900 rounded-xl p-2 text-white outline-none focus:ring-1 focus:ring-[#39FF14] transition-all appearance-none text-center text-xs">
                                                     {Array.from({ length: 12 }, (_, i) => i + 1).map(num => (
@@ -3049,14 +3120,14 @@ export default function DashboardPage() {
                                     {paymentMethod === 'BOLETO' && (
                                         <div className="grid grid-cols-3 gap-2">
                                             <div>
-                                                <label className="block text-[10px] font-black uppercase tracking-widest mb-1 text-[#39FF14]">Qtd. Boletos</label>
+                                                <label className="block text-xs font-black uppercase tracking-widest mb-1 text-[#39FF14]">Qtd. Boletos</label>
                                                 <select value={saleBoletoQty} onChange={e => setSaleBoletoQty(parseInt(e.target.value))}
                                                     className="w-full bg-zinc-800 border border-zinc-900 rounded-xl p-2 text-white outline-none focus:ring-1 focus:ring-[#39FF14] transition-all appearance-none text-center text-xs">
                                                     {[1,2,3,4,5,6].map(n => <option key={n} value={n}>{n}x</option>)}
                                                 </select>
                                             </div>
                                             <div>
-                                                <label className="block text-[10px] font-black uppercase tracking-widest mb-1 text-[#39FF14]">Intervalo</label>
+                                                <label className="block text-xs font-black uppercase tracking-widest mb-1 text-[#39FF14]">Intervalo</label>
                                                 <select value={saleBoletoInterval} onChange={e => setSaleBoletoInterval(parseInt(e.target.value))}
                                                     className="w-full bg-zinc-800 border border-zinc-900 rounded-xl p-2 text-white outline-none focus:ring-1 focus:ring-[#39FF14] transition-all appearance-none text-center text-xs">
                                                     <option value={30}>30 dias</option>
@@ -3065,7 +3136,7 @@ export default function DashboardPage() {
                                                 </select>
                                             </div>
                                             <div>
-                                                <label className="block text-[10px] font-black uppercase tracking-widest mb-1 text-[#39FF14]">1º Vencimento</label>
+                                                <label className="block text-xs font-black uppercase tracking-widest mb-1 text-[#39FF14]">1º Vencimento</label>
                                                 <input type="date" value={saleBoletoFirstDate} onChange={e => setSaleBoletoFirstDate(e.target.value)}
                                                     className="w-full bg-zinc-800 border border-zinc-900 rounded-xl p-2 text-white outline-none focus:ring-1 focus:ring-[#39FF14] transition-all [color-scheme:dark] text-xs" />
                                             </div>
@@ -3135,7 +3206,7 @@ export default function DashboardPage() {
                                             const w = window.open('', '_blank');
                                             if (w) { w.document.write(printContent); w.document.close(); w.print(); }
                                         }}
-                                        className="text-[13px] font-black uppercase tracking-widest text-white hover:text-[#39FF14] transition-colors flex items-center gap-1.5 px-3 py-2 rounded-xl border border-zinc-800 hover:border-[#39FF14]/50"
+                                        className="text-sm font-black uppercase tracking-widest text-white hover:text-[#39FF14] transition-colors flex items-center gap-1.5 px-3 py-2 rounded-xl border border-zinc-800 hover:border-[#39FF14]/50"
                                     >
                                         <FileText size={12} /> Relatório PDF
                                     </button>
@@ -3161,20 +3232,20 @@ export default function DashboardPage() {
                                                                 <span className="text-sm font-bold uppercase tracking-widest text-white/70">{sale.payment_method}</span>
                                                             </div>
                                                             {!isExpanded ? (
-                                                                <p className="text-[13px] font-bold text-white italic mt-1 line-clamp-1">
+                                                                <p className="text-sm font-bold text-white italic mt-1 line-clamp-1">
                                                                     {summary}
                                                                 </p>
                                                             ) : (
                                                                 <div className="mt-3 space-y-2">
                                                                     <div className="bg-zinc-900/50 rounded-xl px-3 py-2">
-                                                                        <span className="text-[11px] text-white/50 font-bold uppercase">Valor: </span>
+                                                                        <span className="text-xs text-white/50 font-bold uppercase">Valor: </span>
                                                                         <span className="text-sm font-bold text-[#39FF14]">R$ {(sale.total || sale.value || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                                                                         <span className="text-sm text-white/50 ml-2">• {sale.payment_method}</span>
                                                                         <span className="text-sm text-white/50 ml-2">• {new Date(sale.created_at).toLocaleDateString('pt-BR')}</span>
                                                                     </div>
                                                                     {sale.client && (
                                                                         <div className="bg-zinc-900/50 rounded-xl px-3 py-2">
-                                                                            <span className="text-[11px] text-white/50 font-bold uppercase">Cliente: </span>
+                                                                            <span className="text-xs text-white/50 font-bold uppercase">Cliente: </span>
                                                                             <span className="text-sm font-bold text-white uppercase">{sale.client}</span>
                                                                             {sale.client_whatsapp && <span className="text-sm text-white/50 ml-2">• {sale.client_whatsapp}</span>}
                                                                             {sale.cpf_cnpj && <span className="text-sm text-white/50 ml-2">• {sale.cpf_cnpj.length === 11 ? sale.cpf_cnpj.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4') : sale.cpf_cnpj.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5')}</span>}
@@ -3182,13 +3253,13 @@ export default function DashboardPage() {
                                                                     )}
                                                                     {sale.description && (
                                                                         <div className="bg-zinc-900/50 rounded-xl px-3 py-2">
-                                                                            <span className="text-[11px] text-white/50 font-bold uppercase">Descrição: </span>
+                                                                            <span className="text-xs text-white/50 font-bold uppercase">Descrição: </span>
                                                                             <span className="text-sm font-bold text-white">{sale.description}</span>
                                                                         </div>
                                                                     )}
                                                                     {sale.deadline && (
                                                                         <div className="bg-zinc-900/50 rounded-xl px-3 py-2">
-                                                                            <span className="text-[11px] text-white/50 font-bold uppercase">Entrega: </span>
+                                                                            <span className="text-xs text-white/50 font-bold uppercase">Entrega: </span>
                                                                             <span className="text-sm font-bold text-white">{sale.deadline.split('-').reverse().join('/')}</span>
                                                                             {sale.delivery_method && <span className="text-sm text-white/50 ml-2">• {sale.delivery_method}</span>}
                                                                         </div>
@@ -3199,14 +3270,14 @@ export default function DashboardPage() {
                                                                         </div>
                                                                     )}
                                                                     {hasItems && sale.items.map((item: any, idx: number) => (
-                                                                        <div key={idx} className="flex flex-wrap justify-between text-[13px] bg-zinc-900/50 rounded-xl px-3 py-2 gap-x-4">
+                                                                        <div key={idx} className="flex flex-wrap justify-between text-sm bg-zinc-900/50 rounded-xl px-3 py-2 gap-x-4">
                                                                             <span className="font-bold text-white">{item.quantity}x {item.name}</span>
                                                                             <span className="font-bold text-white/70 ml-auto">R$ {((item.sale_price || item.price || 0) * item.quantity).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                                                                         </div>
                                                                     ))}
                                                                 </div>
                                                             )}
-                                                            <p className="text-[13px] text-white/70 mt-1">
+                                                            <p className="text-sm text-white/70 mt-1">
                                                                 {isExpanded ? 'Toque para fechar' : 'Toque para ver detalhes'}
                                                             </p>
                                                         </div>
@@ -3217,7 +3288,7 @@ export default function DashboardPage() {
                                                             <button
                                                                 onClick={() => handleDeleteSale(sale.id)}
                                                                 disabled={loading}
-                                                                className="bg-red-500/10 text-red-500 p-2.5 rounded-xl hover:bg-red-500 hover:text-white transition-all disabled:opacity-50"
+                                                                className="bg-red-500/10 text-red-500 p-2.5 rounded-xl hover:bg-red-500 hover:text-[#fff] transition-all disabled:opacity-50"
                                                                 title="Excluir Venda"
                                                             >
                                                                 <Trash2 size={14} />
@@ -3241,19 +3312,19 @@ export default function DashboardPage() {
                         <div className="flex justify-between items-start gap-3">
                             <div>
                                 <h1 className="text-2xl md:text-4xl font-black italic uppercase tracking-tighter">FINANCEIRO</h1>
-                                <p className="text-white text-[13px] md:text-sm mt-0.5">Gestão de contas a pagar e a receber</p>
+                                <p className="text-white text-sm md:text-sm mt-0.5">Gestão de contas a pagar e a receber</p>
                             </div>
                             <div className="flex items-center gap-2">
                                 <button
                                     onClick={() => setShowCadastros(true)}
-                                    className="bg-zinc-800 text-white px-4 md:px-5 py-2.5 md:py-3 rounded-2xl font-black uppercase text-[13px] md:text-sm tracking-widest hover:scale-105 transition-all flex items-center gap-1.5 shrink-0 border border-zinc-700"
+                                    className="bg-zinc-800 text-white px-4 md:px-5 py-2.5 md:py-3 rounded-2xl font-black uppercase text-sm md:text-sm tracking-widest hover:scale-105 transition-all flex items-center gap-1.5 shrink-0 border border-zinc-700"
                                 >
                                     <User size={14} /> Cadastros
                                 </button>
                                 {(financeView === 'A PAGAR' || financeView === 'A RECEBER') && (
                                     <button
                                         onClick={() => setIsFinanceModalOpen(true)}
-                                        className="bg-[#39FF14] text-black px-4 md:px-6 py-2.5 md:py-3 rounded-2xl font-black uppercase text-[13px] md:text-sm tracking-widest hover:scale-105 transition-all shadow-lg shadow-[#39FF14]/20 flex items-center gap-1.5 shrink-0"
+                                        className="bg-[#39FF14] text-black px-4 md:px-6 py-2.5 md:py-3 rounded-2xl font-black uppercase text-sm md:text-sm tracking-widest hover:scale-105 transition-all shadow-lg shadow-[#39FF14]/20 flex items-center gap-1.5 shrink-0"
                                     >
                                         <Plus size={14} /> Nova Conta
                                     </button>
@@ -3265,13 +3336,13 @@ export default function DashboardPage() {
                         <div className="flex gap-1 p-1 bg-zinc-950 rounded-2xl overflow-x-auto">
                             <button
                                 onClick={() => { setFinanceView('A PAGAR'); setFinanceStatusFilter(''); }}
-                                className={`flex-1 py-3 rounded-xl font-black uppercase text-xs tracking-widest transition-all flex items-center justify-center gap-1.5 shrink-0 ${financeView === 'A PAGAR' ? 'bg-red-500 text-white shadow-lg shadow-red-500/20' : 'text-white hover:text-white'}`}
+                                className={`flex-1 py-3 rounded-xl font-black uppercase text-xs tracking-widest transition-all flex items-center justify-center gap-1.5 shrink-0 ${financeView === 'A PAGAR' ? 'bg-red-500 text-[#fff] shadow-lg shadow-red-500/20' : 'text-white hover:text-white'}`}
                             >
                                 <ArrowDownLeft size={12} /> A Pagar
                             </button>
                             <button
                                 onClick={() => { setFinanceView('PAGAS'); setFinanceStatusFilter(''); }}
-                                className={`flex-1 py-3 rounded-xl font-black uppercase text-xs tracking-widest transition-all flex items-center justify-center gap-1.5 shrink-0 ${financeView === 'PAGAS' ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20' : 'text-white hover:text-white'}`}
+                                className={`flex-1 py-3 rounded-xl font-black uppercase text-xs tracking-widest transition-all flex items-center justify-center gap-1.5 shrink-0 ${financeView === 'PAGAS' ? 'bg-blue-500 text-[#fff] shadow-lg shadow-blue-500/20' : 'text-white hover:text-white'}`}
                             >
                                 <Check size={12} /> Pagas
                             </button>
@@ -3283,7 +3354,7 @@ export default function DashboardPage() {
                             </button>
                             <button
                                 onClick={() => { setFinanceView('RECEBIDAS'); setFinanceStatusFilter(''); }}
-                                className={`flex-1 py-3 rounded-xl font-black uppercase text-xs tracking-widest transition-all flex items-center justify-center gap-1.5 shrink-0 ${financeView === 'RECEBIDAS' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : 'text-white hover:text-white'}`}
+                                className={`flex-1 py-3 rounded-xl font-black uppercase text-xs tracking-widest transition-all flex items-center justify-center gap-1.5 shrink-0 ${financeView === 'RECEBIDAS' ? 'bg-emerald-500 text-[#fff] shadow-lg shadow-emerald-500/20' : 'text-white hover:text-white'}`}
                             >
                                 <Check size={12} /> Recebidas
                             </button>
@@ -3351,7 +3422,7 @@ export default function DashboardPage() {
                         {/* Lista de contas */}
                         <div className="bg-zinc-950 border border-zinc-900 rounded-2xl md:rounded-[32px] overflow-hidden">
                             <div className="p-4 md:p-6 border-b border-zinc-900 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
-                                <h3 className="text-white text-[13px] md:text-sm font-black uppercase tracking-widest flex items-center gap-2">
+                                <h3 className="text-white text-sm md:text-sm font-black uppercase tracking-widest flex items-center gap-2">
                                     {financeView === 'A PAGAR' && <><ArrowDownLeft size={11} /> Contas a Pagar</>}
                                     {financeView === 'A RECEBER' && <><ArrowUpRight size={11} /> Contas a Receber</>}
                                     {financeView === 'PAGAS' && <><Check size={11} /> Contas Pagas</>}
@@ -3506,7 +3577,7 @@ export default function DashboardPage() {
                                                             {item.payment_method && <span className="ml-1.5 text-white/70">• {item.payment_method}</span>}
                                                         </p>
                                                         {item.observations && <p className="text-sm text-white/70 italic mt-0.5" style={{wordBreak: 'break-all'}}>{item.observations}</p>}
-                                                        <p className="text-[11px] text-white/40 mt-1">
+                                                        <p className="text-xs text-white/40 mt-1">
                                                             {item.created_at ? new Date(item.created_at).toLocaleDateString('pt-BR') + ' ' + new Date(item.created_at).toLocaleTimeString('pt-BR') : ''}
                                                             {item.operator_name ? ` • ${item.operator_name}` : ''}
                                                         </p>
@@ -3520,10 +3591,10 @@ export default function DashboardPage() {
                                                                     } else if (item.attachment.startsWith('data:application/pdf')) {
                                                                         const w = window.open(''); if (w) { w.document.write(`<iframe src="${item.attachment}" style="width:100%;height:100vh;border:none"></iframe>`); w.document.close(); }
                                                                     }
-                                                                }} className="text-[11px] font-bold text-blue-400 hover:text-blue-300 flex items-center gap-1">
+                                                                }} className="text-xs font-bold text-blue-400 hover:text-blue-300 flex items-center gap-1">
                                                                     <Paperclip size={10} /> Ver anexo
                                                                 </button>
-                                                                <label className="text-[11px] font-bold text-white/30 hover:text-white/60 cursor-pointer">
+                                                                <label className="text-xs font-bold text-white/30 hover:text-white/60 cursor-pointer">
                                                                     Trocar
                                                                     <input type="file" accept="image/*,.pdf" className="hidden" onChange={async (e) => {
                                                                         const file = e.target.files?.[0];
@@ -3539,13 +3610,13 @@ export default function DashboardPage() {
                                                                 <button onClick={async () => {
                                                                     if (!confirm('Remover o anexo?')) return;
                                                                     try { await updateDoc(doc(db, financeCollectionPath, item.id), { attachment: '' }); toast.success('Anexo removido!'); } catch { toast.error('Erro ao remover'); }
-                                                                }} className="text-[11px] font-bold text-red-400/50 hover:text-red-400">
+                                                                }} className="text-xs font-bold text-red-400/50 hover:text-red-400">
                                                                     Remover
                                                                 </button>
                                                                 </>
                                                             ) : (
                                                                 (financeView === 'A PAGAR' || financeView === 'PAGAS') && (
-                                                                    <label className="text-[11px] font-bold text-white/30 hover:text-white/60 flex items-center gap-1 cursor-pointer">
+                                                                    <label className="text-xs font-bold text-white/30 hover:text-white/60 flex items-center gap-1 cursor-pointer">
                                                                         <Paperclip size={10} /> Anexar
                                                                         <input type="file" accept="image/*,.pdf" className="hidden" onChange={async (e) => {
                                                                             const file = e.target.files?.[0];
@@ -3593,7 +3664,7 @@ export default function DashboardPage() {
                                                                     await updateDoc(doc(db, financeCollectionPath, item.id), { status: newStatus, paid_at: '' });
                                                                     toast.success(`Conta voltou para ${newStatus}`);
                                                                 } catch { toast.error('Erro ao desfazer'); }
-                                                            }} className="text-[11px] font-bold text-orange-400/70 hover:text-orange-400 transition-colors">
+                                                            }} className="text-xs font-bold text-orange-400/70 hover:text-orange-400 transition-colors">
                                                                 Desfazer
                                                             </button>
                                                         )}
@@ -3724,14 +3795,14 @@ export default function DashboardPage() {
                                             <div className="flex items-start justify-between gap-3">
                                                 <div className="flex-1 min-w-0">
                                                     <div className="flex items-center gap-2 flex-wrap">
-                                                        <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${
+                                                        <span className={`text-xs font-black uppercase px-2 py-0.5 rounded-full ${
                                                             act.type === 'VENDA' ? 'bg-[#39FF14]/20 text-[#39FF14]' :
                                                             act.type === 'STATUS' ? 'bg-blue-500/20 text-blue-400' :
                                                             act.type === 'ENTRADA' ? 'bg-green-500/20 text-green-400' :
                                                             'bg-red-500/20 text-red-400'
                                                         }`}>{act.type}</span>
-                                                        {act.source && <span className="text-[10px] font-bold text-white/30 uppercase">{act.source}</span>}
-                                                        {act.operator && <span className="text-[10px] font-bold text-white/50">por {act.operator}</span>}
+                                                        {act.source && <span className="text-xs font-bold text-white/30 uppercase">{act.source}</span>}
+                                                        {act.operator && <span className="text-xs font-bold text-white/50">por {act.operator}</span>}
                                                     </div>
                                                     <p className="text-sm font-bold text-white mt-1" style={{wordBreak: 'break-all'}}>{act.description}</p>
                                                     {act.detail && <p className="text-xs text-white/50 mt-0.5">{act.detail}</p>}
@@ -3742,7 +3813,7 @@ export default function DashboardPage() {
                                                             R$ {act.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                                         </p>
                                                     )}
-                                                    <p className="text-[10px] text-white/30 mt-0.5">
+                                                    <p className="text-xs text-white/30 mt-0.5">
                                                         {act.date ? `${act.date.split('T')[0].split('-').reverse().join('/')} ${act.date.split('T')[1]?.substring(0, 5) || ''}` : ''}
                                                     </p>
                                                 </div>
@@ -3776,7 +3847,7 @@ export default function DashboardPage() {
                                     {(['TODOS', 'CLIENTE', 'FORNECEDOR', 'FUNCIONÁRIO'] as const).map(tipo => (
                                         <button key={tipo} onClick={() => setCadastroFilter(tipo)}
                                             className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${cadastroFilter === tipo
-                                                ? tipo === 'CLIENTE' ? 'bg-[#39FF14] text-black' : tipo === 'FORNECEDOR' ? 'bg-red-500 text-white' : tipo === 'FUNCIONÁRIO' ? 'bg-blue-500 text-white' : 'bg-white text-black'
+                                                ? tipo === 'CLIENTE' ? 'bg-[#39FF14] text-black' : tipo === 'FORNECEDOR' ? 'bg-red-500 text-[#fff]' : tipo === 'FUNCIONÁRIO' ? 'bg-blue-500 text-[#fff]' : 'bg-white text-black'
                                                 : 'bg-zinc-800 text-white/70 hover:text-white'}`}>
                                             {tipo === 'TODOS' ? 'Todos' : tipo === 'CLIENTE' ? 'Clientes' : tipo === 'FORNECEDOR' ? 'Fornecedores' : 'Funcionários'}
                                         </button>
@@ -3800,7 +3871,7 @@ export default function DashboardPage() {
                                             <div>
                                                 <div className="flex items-center gap-2">
                                                     <p className="text-sm font-black text-white uppercase">{f.name}</p>
-                                                    <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${f.type === 'FORNECEDOR' ? 'bg-red-500/20 text-red-400' : f.type === 'FUNCIONÁRIO' ? 'bg-blue-500/20 text-blue-400' : 'bg-[#39FF14]/20 text-[#39FF14]'}`}>
+                                                    <span className={`text-xs font-black uppercase px-2 py-0.5 rounded-full ${f.type === 'FORNECEDOR' ? 'bg-red-500/20 text-red-400' : f.type === 'FUNCIONÁRIO' ? 'bg-blue-500/20 text-blue-400' : 'bg-[#39FF14]/20 text-[#39FF14]'}`}>
                                                         {f.type === 'FORNECEDOR' ? 'Fornecedor' : f.type === 'FUNCIONÁRIO' ? 'Funcionário' : 'Cliente'}
                                                     </span>
                                                 </div>
@@ -3845,7 +3916,7 @@ export default function DashboardPage() {
                                     <div className="grid grid-cols-3 gap-2">
                                         {['PIX', 'DINHEIRO', 'CARTÃO'].map(m => (
                                             <button key={m} type="button" onClick={() => setGastoPayMethod(m)}
-                                                className={`py-3 rounded-xl font-black uppercase text-xs tracking-widest transition-all ${gastoPayMethod === m ? 'bg-red-500 text-white' : 'bg-zinc-950 text-white border border-zinc-800 hover:border-zinc-700'}`}>
+                                                className={`py-3 rounded-xl font-black uppercase text-xs tracking-widest transition-all ${gastoPayMethod === m ? 'bg-red-500 text-[#fff]' : 'bg-zinc-950 text-white border border-zinc-800 hover:border-zinc-700'}`}>
                                                 {m}
                                             </button>
                                         ))}
@@ -3878,7 +3949,7 @@ export default function DashboardPage() {
                                             setGastoDesc(''); setGastoAmount(''); setGastoPayMethod('PIX');
                                         } catch (err) { console.error(err); toast.error('Erro ao registrar gasto'); }
                                     }}
-                                    className="w-full bg-red-500 text-white py-4 rounded-2xl font-black uppercase text-sm tracking-widest hover:scale-[1.02] transition-all"
+                                    className="w-full bg-red-500 text-[#fff] py-4 rounded-2xl font-black uppercase text-sm tracking-widest hover:scale-[1.02] transition-all"
                                 >
                                     Registrar Gasto
                                 </button>
@@ -3967,11 +4038,11 @@ export default function DashboardPage() {
                                         Cliente
                                     </button>
                                     <button type="button" onClick={() => setFornecedorType('FORNECEDOR')}
-                                        className={`flex-1 py-2.5 rounded-lg font-black uppercase text-xs tracking-widest transition-all ${fornecedorType === 'FORNECEDOR' ? 'bg-red-500 text-white' : 'text-white'}`}>
+                                        className={`flex-1 py-2.5 rounded-lg font-black uppercase text-xs tracking-widest transition-all ${fornecedorType === 'FORNECEDOR' ? 'bg-red-500 text-[#fff]' : 'text-white'}`}>
                                         Fornecedor
                                     </button>
                                     <button type="button" onClick={() => setFornecedorType('FUNCIONÁRIO')}
-                                        className={`flex-1 py-2.5 rounded-lg font-black uppercase text-xs tracking-widest transition-all ${fornecedorType === 'FUNCIONÁRIO' ? 'bg-blue-500 text-white' : 'text-white'}`}>
+                                        className={`flex-1 py-2.5 rounded-lg font-black uppercase text-xs tracking-widest transition-all ${fornecedorType === 'FUNCIONÁRIO' ? 'bg-blue-500 text-[#fff]' : 'text-white'}`}>
                                         Funcionário
                                     </button>
                                 </div>
@@ -4153,7 +4224,7 @@ export default function DashboardPage() {
                             </div>
                             <button
                                 onClick={() => { setGastoDesc(''); setGastoAmount(''); setGastoPayMethod('PIX'); setShowGastoModal(true); }}
-                                className="bg-red-500 text-white px-6 py-3 rounded-2xl font-black uppercase text-sm hover:scale-105 transition-all shadow-lg shadow-red-500/20 flex items-center gap-2"
+                                className="bg-red-500 text-[#fff] px-6 py-3 rounded-2xl font-black uppercase text-sm hover:scale-105 transition-all shadow-lg shadow-red-500/20 flex items-center gap-2"
                             >
                                 <DollarSign size={16} /> Gastos do Dia
                             </button>
@@ -4394,10 +4465,10 @@ export default function DashboardPage() {
                                                         <div className="flex-1 min-w-0">
                                                             <div className="flex flex-wrap items-center gap-2 mb-1">
                                                                 <span className="text-sm font-black text-white uppercase">{conta.description}</span>
-                                                                <span className="text-[13px] font-black uppercase px-2 py-0.5 rounded-full" style={{ backgroundColor: (grp?.color || '#6B7280') + '20', color: grp?.color || '#6B7280' }}>
+                                                                <span className="text-sm font-black uppercase px-2 py-0.5 rounded-full" style={{ backgroundColor: (grp?.color || '#6B7280') + '20', color: grp?.color || '#6B7280' }}>
                                                                     {conta.category}
                                                                 </span>
-                                                                <span className={`text-[13px] font-black uppercase px-2 py-0.5 rounded-full ${conta.recurrence === 'FIXA' ? 'bg-blue-500/10 text-blue-400' : conta.recurrence === 'VARIAVEL' ? 'bg-orange-500/10 text-orange-400' : 'bg-zinc-800 text-white/70'}`}>
+                                                                <span className={`text-sm font-black uppercase px-2 py-0.5 rounded-full ${conta.recurrence === 'FIXA' ? 'bg-blue-500/10 text-blue-400' : conta.recurrence === 'VARIAVEL' ? 'bg-orange-500/10 text-orange-400' : 'bg-zinc-800 text-white/70'}`}>
                                                                     {conta.recurrence === 'FIXA' ? '🔄 Fixa' : conta.recurrence === 'VARIAVEL' ? '📊 Variável' : '1️⃣ Única'}
                                                                 </span>
                                                             </div>
@@ -4419,12 +4490,12 @@ export default function DashboardPage() {
                                                         <div className="flex items-center gap-1">
                                                             {conta.status !== 'PAGO' ? (
                                                                 <button onClick={() => handleMarkContaPaid(conta.id)}
-                                                                    className="bg-[#39FF14] text-black px-3 py-2 rounded-xl text-[13px] font-black uppercase tracking-widest hover:scale-105 transition-all flex items-center gap-1">
+                                                                    className="bg-[#39FF14] text-black px-3 py-2 rounded-xl text-sm font-black uppercase tracking-widest hover:scale-105 transition-all flex items-center gap-1">
                                                                     <Check size={12} /> Pagar
                                                                 </button>
                                                             ) : (
                                                                 <button onClick={() => handleUndoContaPaid(conta.id)}
-                                                                    className="text-white/70 hover:text-orange-400 transition-colors px-2 py-2 rounded-xl text-[13px] font-black uppercase">
+                                                                    className="text-white/70 hover:text-orange-400 transition-colors px-2 py-2 rounded-xl text-sm font-black uppercase">
                                                                     Desfazer
                                                                 </button>
                                                             )}
@@ -4754,7 +4825,7 @@ export default function DashboardPage() {
                                 </button>
                                 <button
                                     type="submit"
-                                    className="flex-1 bg-red-500 text-white py-4 rounded-xl font-black uppercase text-xs hover:scale-105 transition-all shadow-lg shadow-red-500/10"
+                                    className="flex-1 bg-red-500 text-[#fff] py-4 rounded-xl font-black uppercase text-xs hover:scale-105 transition-all shadow-lg shadow-red-500/10"
                                 >
                                     Confirmar Pendência
                                 </button>
@@ -4816,7 +4887,7 @@ export default function DashboardPage() {
                                             <div className="relative w-16 h-16 rounded-xl overflow-hidden border border-zinc-800 shrink-0">
                                                 <img src={prodImage} alt="Preview" className="w-full h-full object-cover" />
                                                 <button type="button" onClick={() => setProdImage('')}
-                                                    className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-sm">
+                                                    className="absolute -top-1 -right-1 bg-red-500 text-[#fff] rounded-full w-5 h-5 flex items-center justify-center text-sm">
                                                     <X size={10} />
                                                 </button>
                                             </div>
@@ -4854,7 +4925,7 @@ export default function DashboardPage() {
                                             <div key={idx} className="relative w-14 h-14 rounded-xl overflow-hidden border border-zinc-800 shrink-0">
                                                 <img src={img} alt={`Extra ${idx + 1}`} className="w-full h-full object-cover" />
                                                 <button type="button" onClick={() => setProdImages(prodImages.filter((_, i) => i !== idx))}
-                                                    className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center">
+                                                    className="absolute -top-1 -right-1 bg-red-500 text-[#fff] rounded-full w-4 h-4 flex items-center justify-center">
                                                     <X size={8} />
                                                 </button>
                                             </div>
@@ -5084,7 +5155,7 @@ export default function DashboardPage() {
                                 Cancelar
                             </button>
                             <button onClick={handleDeleteConta}
-                                className="flex-1 py-3 rounded-2xl bg-red-500 text-white font-black uppercase text-sm tracking-widest hover:bg-red-600 transition-all">
+                                className="flex-1 py-3 rounded-2xl bg-red-500 text-[#fff] font-black uppercase text-sm tracking-widest hover:bg-red-600 transition-all">
                                 Sim, apagar!
                             </button>
                         </div>
@@ -5274,7 +5345,7 @@ export default function DashboardPage() {
                                                                 updated[i] = e.target.value;
                                                                 setFinInstallmentDates(updated);
                                                             }}
-                                                            className="bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-[13px] font-bold text-white outline-none focus:border-[#39FF14] [color-scheme:dark]"
+                                                            className="bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-sm font-bold text-white outline-none focus:border-[#39FF14] [color-scheme:dark]"
                                                         />
                                                         <span className="text-sm text-white/70 font-bold shrink-0">
                                                             R$ {(parseBRL(finAmount || '0') / finInstallments).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
@@ -5341,7 +5412,7 @@ export default function DashboardPage() {
                                                                 updated[i] = e.target.value;
                                                                 setFinInstallmentDates(updated);
                                                             }}
-                                                            className="bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-[13px] font-bold text-white outline-none focus:border-[#39FF14] [color-scheme:dark]"
+                                                            className="bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-sm font-bold text-white outline-none focus:border-[#39FF14] [color-scheme:dark]"
                                                         />
                                                         <span className="text-sm text-white/70 font-bold shrink-0">
                                                             R$ {(parseBRL(finAmount || '0') / finInstallments).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
