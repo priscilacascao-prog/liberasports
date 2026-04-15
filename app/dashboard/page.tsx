@@ -578,9 +578,55 @@ export default function DashboardPage() {
         setCart(cart.filter(item => item.id !== id));
     };
 
+    // Tabela de preço atacado para tocas/toucas
+    const toucaPricingTable = [
+        { min: 500, unitPrice: 15.00 },
+        { min: 400, unitPrice: 15.10 },
+        { min: 300, unitPrice: 15.20 },
+        { min: 200, unitPrice: 15.30 },
+        { min: 150, unitPrice: 15.40 },
+        { min: 100, unitPrice: 15.50 },
+        { min: 50, unitPrice: 15.80 },
+        { min: 40, unitPrice: 15.95 },
+        { min: 30, unitPrice: 16.20 },
+        { min: 20, unitPrice: 16.50 },
+        { min: 10, unitPrice: 17.00 },
+        { min: 5, unitPrice: 20.00 },
+    ];
+
+    const isTouca = (name: string) => /touc?a/i.test(name);
+
+    const getToucaWholesalePrice = (totalQty: number): number | null => {
+        for (const tier of toucaPricingTable) {
+            if (totalQty >= tier.min) return tier.unitPrice;
+        }
+        return null;
+    };
+
+    const [toucaDiscount, setToucaDiscount] = useState(0);
+    const [toucaTotalQty, setToucaTotalQty] = useState(0);
+    const [toucaWholesaleUnit, setToucaWholesaleUnit] = useState<number | null>(null);
+
     useEffect(() => {
-        const total = cart.reduce((acc, item) => acc + (item.sale_price * item.quantity), 0);
-        setCartTotal(total);
+        const totalBruto = cart.reduce((acc, item) => acc + (item.sale_price * item.quantity), 0);
+
+        // Calcular desconto de atacado para toucas
+        const toucaItems = cart.filter(item => isTouca(item.name));
+        const totalToucas = toucaItems.reduce((acc, item) => acc + item.quantity, 0);
+        const wholesalePrice = getToucaWholesalePrice(totalToucas);
+
+        let discount = 0;
+        if (wholesalePrice && totalToucas >= 5) {
+            const totalOriginal = toucaItems.reduce((acc, item) => acc + (item.sale_price * item.quantity), 0);
+            const totalAtacado = totalToucas * wholesalePrice;
+            discount = totalOriginal - totalAtacado;
+            if (discount < 0) discount = 0;
+        }
+
+        setToucaTotalQty(totalToucas);
+        setToucaWholesaleUnit(wholesalePrice);
+        setToucaDiscount(discount);
+        setCartTotal(totalBruto - discount);
     }, [cart]);
 
     const buildDeliveryAddress = () => {
@@ -3316,6 +3362,18 @@ export default function DashboardPage() {
                                 </div>
 
                                 <div className="pt-4">
+                                    {toucaDiscount > 0 && (
+                                        <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-3 mb-3">
+                                            <div className="flex justify-between items-center mb-1">
+                                                <span className="text-emerald-400 text-xs font-black uppercase tracking-widest">Atacado Toucas ({toucaTotalQty} un.)</span>
+                                                <span className="text-emerald-400 text-xs font-bold">R$ {toucaWholesaleUnit?.toFixed(2).replace('.', ',')} /un.</span>
+                                            </div>
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-white/50 text-xs line-through">R$ {(cartTotal + toucaDiscount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                                                <span className="text-emerald-400 text-sm font-black">- R$ {toucaDiscount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                                            </div>
+                                        </div>
+                                    )}
                                     <div className="flex justify-between items-end mb-4">
                                         <p className="text-white text-sm font-black uppercase tracking-widest">Total</p>
                                         <p className="text-2xl font-black text-[#39FF14]">R$ {(cart.length > 0 ? cartTotal : parseBRL(saleManualValue)).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
