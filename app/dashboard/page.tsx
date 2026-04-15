@@ -2393,15 +2393,6 @@ export default function DashboardPage() {
                                                                         <span className="text-white text-sm font-bold uppercase flex items-center gap-1">
                                                                             <Truck size={10} /> {order.delivery_method || '-'}
                                                                         </span>
-                                                                        {order.client_whatsapp && (
-                                                                            <a
-                                                                                href={`https://wa.me/${normalizePhone(order.client_whatsapp)}`}
-                                                                                target="_blank"
-                                                                                className="p-1 rounded bg-zinc-900 text-[#39FF14] hover:bg-[#39FF14] hover:text-black transition-all"
-                                                                            >
-                                                                                <MessageCircle size={12} />
-                                                                            </a>
-                                                                        )}
                                                                     </div>
                                                                 </div>
                                                             </div>
