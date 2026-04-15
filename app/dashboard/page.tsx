@@ -1562,8 +1562,8 @@ export default function DashboardPage() {
         let itemsHtml = '';
         if (order.items && order.items.length > 0) {
             itemsHtml = '<div style="background: #f0f0f0; padding: 10px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 6px;">' +
-                '<div style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #555; margin-bottom: 4px;">Produtos do Pedido</div>' +
-                order.items.map((i: any) => '<div style="font-size: 14px; padding: 3px 0; border-bottom: 1px solid #e5e5e5;"><span style="font-weight: 700;">' + i.quantity + 'x ' + i.name + '</span></div>').join('') +
+                '<div style="font-size: 13px; font-weight: 900; text-transform: uppercase; color: #555; margin-bottom: 6px;">Produtos do Pedido</div>' +
+                order.items.map((i: any) => '<div style="font-size: 18px; padding: 4px 0; border-bottom: 1px solid #e5e5e5;"><span style="font-weight: 900;">' + i.quantity + 'x ' + i.name + '</span></div>').join('') +
             '</div>';
         }
         let linkedHtml = '';
@@ -1574,8 +1574,8 @@ export default function DashboardPage() {
         }
         if (linkedSale?.items?.length) {
             linkedHtml = '<div style="background: #f0f0f0; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">' +
-                '<div style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #555; margin-bottom: 4px;">Itens da Venda Vinculada (' + linkedSale.sale_number + ')</div>' +
-                linkedSale.items.map((i: any) => '<div style="font-size: 14px; padding: 3px 0; border-bottom: 1px solid #e5e5e5;"><span style="font-weight: 700;">' + i.quantity + 'x ' + i.name + '</span></div>').join('') +
+                '<div style="font-size: 13px; font-weight: 900; text-transform: uppercase; color: #555; margin-bottom: 6px;">Itens da Venda Vinculada (' + linkedSale.sale_number + ')</div>' +
+                linkedSale.items.map((i: any) => '<div style="font-size: 18px; padding: 4px 0; border-bottom: 1px solid #e5e5e5;"><span style="font-weight: 900;">' + i.quantity + 'x ' + i.name + '</span></div>').join('') +
             '</div>';
         }
 
@@ -1606,7 +1606,7 @@ export default function DashboardPage() {
                 .info-block { margin-bottom: 8px; }
                 .info-label { font-size: 12px; font-weight: 700; color: #555; text-transform: uppercase; }
                 .info-value { font-size: 16px; font-weight: 700; margin-top: 1px; }
-                .description-box { background: #f9f9f9; padding: 12px; border-radius: 8px; white-space: pre-wrap; font-size: 14px; line-height: 1.5; border: 1px solid #eee; }
+                .description-box { background: #f9f9f9; padding: 12px; border-radius: 8px; white-space: pre-wrap; font-size: 18px; font-weight: 900; line-height: 1.4; border: 1px solid #eee; }
                 .footer { margin-top: 12px; padding-top: 8px; border-top: 1px solid #ddd; font-size: 11px; color: #555; text-align: center; }
                 .split-row { display: flex; gap: 12px; align-items: stretch; }
                 .split-left { flex: 2; min-width: 0; }
