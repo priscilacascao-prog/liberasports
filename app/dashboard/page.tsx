@@ -7,7 +7,7 @@ import {
     TrendingUp, Truck, User, History, MessageSquare, Info, Filter,
     Loader2, ChevronDown, ChevronUp, MessageCircle, Pencil, FileText, Trash2,
     Store, ShoppingCart, Wallet, BarChart3, Settings, Layers, Box, DollarSign,
-    ArrowUpCircle, ArrowDownCircle, ArrowUpRight, ArrowDownLeft, PlusCircle, Home, Copy, Sun, Moon, Eye, Paperclip, Mail
+    ArrowUpCircle, ArrowDownCircle, ArrowUpRight, ArrowDownLeft, PlusCircle, Home, Copy, Sun, Moon, Eye, Paperclip, Mail, RefreshCw
 } from 'lucide-react';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
@@ -2049,6 +2049,15 @@ export default function DashboardPage() {
                         title={isDark ? 'Modo claro' : 'Modo escuro'}
                     >
                         {isDark ? <Sun size={18} /> : <Moon size={18} />}
+                    </button>
+                    <button
+                        onClick={() => {
+                            window.location.reload();
+                        }}
+                        className={`p-2 rounded-xl transition-all hover:scale-110 ${isDark ? 'text-white/70 hover:text-[#39FF14]' : 'text-gray-500 hover:text-green-600'}`}
+                        title="Atualizar sistema"
+                    >
+                        <RefreshCw size={18} />
                     </button>
                     <button
                         onClick={async () => {
