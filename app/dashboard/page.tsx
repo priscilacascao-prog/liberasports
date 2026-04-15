@@ -1281,11 +1281,11 @@ export default function DashboardPage() {
 
     const normalizePhone = (raw: string): string => {
         let digits = raw.replace(/\D/g, '');
-        // Só o número sem DDD (8-9 dígitos) → adiciona DDD 62
-        if (digits.length <= 9) digits = '62' + digits;
-        // Sem código do país → adiciona 55
-        if (!digits.startsWith('55')) digits = '55' + digits;
-        return digits;
+        // Remove código do país se presente
+        if (digits.startsWith('55') && digits.length >= 12) digits = digits.slice(2);
+        // Extrai os últimos 9 dígitos (número celular) e adiciona DDD 62 + país 55
+        const mobile = digits.slice(-9);
+        return '5562' + mobile;
     };
 
     const parseBRL = (val: string): number => {
