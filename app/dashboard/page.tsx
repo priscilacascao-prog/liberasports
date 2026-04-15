@@ -2968,6 +2968,12 @@ export default function DashboardPage() {
                                 <h1 className="text-2xl md:text-4xl font-black italic uppercase tracking-tighter">CHECKOUT</h1>
                                 <p className="text-white text-sm mt-1">Registro rápido de vendas</p>
                             </div>
+                            <button
+                                onClick={() => { setCadastroFilter('CLIENTE'); setShowCadastros(true); }}
+                                className="bg-zinc-800 text-white px-4 md:px-5 py-2.5 md:py-3 rounded-2xl font-black uppercase text-sm tracking-widest hover:scale-105 transition-all flex items-center gap-1.5 shrink-0 border border-zinc-700"
+                            >
+                                <User size={14} /> Clientes
+                            </button>
                         </div>
 
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -3499,7 +3505,7 @@ export default function DashboardPage() {
                             </div>
                             <div className="flex items-center gap-2">
                                 <button
-                                    onClick={() => setShowCadastros(true)}
+                                    onClick={() => { setCadastroFilter('FORNECEDOR'); setShowCadastros(true); }}
                                     className="bg-zinc-800 text-white px-4 md:px-5 py-2.5 md:py-3 rounded-2xl font-black uppercase text-sm md:text-sm tracking-widest hover:scale-105 transition-all flex items-center gap-1.5 shrink-0 border border-zinc-700"
                                 >
                                     <User size={14} /> Cadastros
@@ -4010,45 +4016,54 @@ export default function DashboardPage() {
                 )}
 
                 {/* Modal Cadastros */}
-                {showCadastros && (
+                {showCadastros && (() => {
+                    const isClientMode = cadastroFilter === 'CLIENTE';
+                    const filterOptions = isClientMode
+                        ? (['CLIENTE'] as const)
+                        : (['TODOS', 'FORNECEDOR', 'FUNCIONÁRIO'] as const);
+                    return (
                     <div className="fixed inset-0 bg-black/95 z-[600] flex items-center justify-center p-4 backdrop-blur-xl">
                         <div className="bg-zinc-900 w-full max-w-2xl max-h-[90vh] rounded-[32px] border border-zinc-800 shadow-2xl relative text-white flex flex-col">
                             <div className="p-6 border-b border-zinc-800 flex justify-between items-center shrink-0">
-                                <h3 className="text-2xl font-black italic uppercase text-[#39FF14]">Cadastros</h3>
+                                <h3 className="text-2xl font-black italic uppercase text-[#39FF14]">{isClientMode ? 'Clientes' : 'Cadastros'}</h3>
                                 <button onClick={() => setShowCadastros(false)} className="text-white hover:text-white transition-colors"><X size={24} /></button>
                             </div>
                             <div className="p-4 md:p-6 border-b border-zinc-800 space-y-3 shrink-0">
                                 <div className="flex justify-between items-center gap-3">
                                     <input type="text" value={fornecedorSearch} onChange={e => setFornecedorSearch(e.target.value)} placeholder="Buscar por nome..."
                                         className="bg-zinc-950 text-sm px-4 py-2.5 rounded-xl border border-zinc-800 outline-none text-white focus:border-[#39FF14] transition-colors flex-1" />
-                                    <button onClick={() => { setEditingFornecedor(null); setFornecedorName(''); setFornecedorCpfCnpj(''); setFornecedorCpfCnpjError(''); setFornecedorWhatsapp(''); setFornecedorType('CLIENTE'); setFornecedorStartDate(''); setFornecedorModalOpen(true); }}
+                                    <button onClick={() => { setEditingFornecedor(null); setFornecedorName(''); setFornecedorCpfCnpj(''); setFornecedorCpfCnpjError(''); setFornecedorWhatsapp(''); setFornecedorType(isClientMode ? 'CLIENTE' : 'FORNECEDOR'); setFornecedorStartDate(''); setFornecedorModalOpen(true); }}
                                         className="bg-[#39FF14] text-black px-5 py-2.5 rounded-xl font-black uppercase text-xs tracking-widest hover:scale-105 transition-all flex items-center gap-1.5 shrink-0">
                                         <Plus size={14} /> Novo
                                     </button>
                                 </div>
+                                {!isClientMode && (
                                 <div className="flex gap-2">
-                                    {(['TODOS', 'CLIENTE', 'FORNECEDOR', 'FUNCIONÁRIO'] as const).map(tipo => (
+                                    {filterOptions.map(tipo => (
                                         <button key={tipo} onClick={() => setCadastroFilter(tipo)}
                                             className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${cadastroFilter === tipo
-                                                ? tipo === 'CLIENTE' ? 'bg-[#39FF14] text-black' : tipo === 'FORNECEDOR' ? 'bg-red-500 text-[#fff]' : tipo === 'FUNCIONÁRIO' ? 'bg-blue-500 text-[#fff]' : 'bg-white text-black'
+                                                ? tipo === 'FORNECEDOR' ? 'bg-red-500 text-[#fff]' : tipo === 'FUNCIONÁRIO' ? 'bg-blue-500 text-[#fff]' : 'bg-white text-black'
                                                 : 'bg-zinc-800 text-white/70 hover:text-white'}`}>
-                                            {tipo === 'TODOS' ? 'Todos' : tipo === 'CLIENTE' ? 'Clientes' : tipo === 'FORNECEDOR' ? 'Fornecedores' : 'Funcionários'}
+                                            {tipo === 'TODOS' ? 'Todos' : tipo === 'FORNECEDOR' ? 'Fornecedores' : 'Funcionários'}
                                         </button>
                                     ))}
                                 </div>
+                                )}
                             </div>
                             <div className="flex-1 overflow-y-auto divide-y divide-zinc-800">
                                 {fornecedores.filter(f => {
-                                    if (cadastroFilter !== 'TODOS' && (f.type || 'CLIENTE') !== cadastroFilter) return false;
-                                    if (fornecedorSearch && !f.name.toLowerCase().includes(fornecedorSearch.toLowerCase())) return false;
-                                    return true;
+                                    const fType = f.type || 'CLIENTE';
+                                    if (isClientMode) return fType === 'CLIENTE' && (!fornecedorSearch || f.name.toLowerCase().includes(fornecedorSearch.toLowerCase()));
+                                    if (cadastroFilter === 'TODOS') return fType !== 'CLIENTE' && (!fornecedorSearch || f.name.toLowerCase().includes(fornecedorSearch.toLowerCase()));
+                                    return fType === cadastroFilter && (!fornecedorSearch || f.name.toLowerCase().includes(fornecedorSearch.toLowerCase()));
                                 }).length === 0 ? (
                                     <div className="p-12 text-center text-white font-bold uppercase text-sm tracking-widest italic">Nenhum cadastro encontrado</div>
                                 ) : (
                                     fornecedores.filter(f => {
-                                        if (cadastroFilter !== 'TODOS' && (f.type || 'CLIENTE') !== cadastroFilter) return false;
-                                        if (fornecedorSearch && !f.name.toLowerCase().includes(fornecedorSearch.toLowerCase())) return false;
-                                        return true;
+                                        const fType = f.type || 'CLIENTE';
+                                        if (isClientMode) return fType === 'CLIENTE' && (!fornecedorSearch || f.name.toLowerCase().includes(fornecedorSearch.toLowerCase()));
+                                        if (cadastroFilter === 'TODOS') return fType !== 'CLIENTE' && (!fornecedorSearch || f.name.toLowerCase().includes(fornecedorSearch.toLowerCase()));
+                                        return fType === cadastroFilter && (!fornecedorSearch || f.name.toLowerCase().includes(fornecedorSearch.toLowerCase()));
                                     }).map(f => (
                                         <div key={f.id} className="p-4 flex items-center justify-between hover:bg-zinc-800/50 transition-colors">
                                             <div>
@@ -4074,7 +4089,8 @@ export default function DashboardPage() {
                             </div>
                         </div>
                     </div>
-                )}
+                    );
+                })()}
 
                 {/* Modal Gastos do Dia */}
                 {showGastoModal && (
