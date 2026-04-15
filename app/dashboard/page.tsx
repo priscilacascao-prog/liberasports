@@ -1143,14 +1143,25 @@ export default function DashboardPage() {
         }
     };
 
+    const getProductionImages = (order: any): string[] => {
+        if (order.production_images && Array.isArray(order.production_images)) return order.production_images;
+        if (order.production_image) return [order.production_image];
+        return [];
+    };
+
     const handleUploadProductionImage = async (orderId: string, file: File) => {
-        if (file.size > 500000) { toast.error('Imagem muito grande (máx 500KB)'); return; }
+        if (file.size > 300000) { toast.error('Imagem muito grande (máx 300KB)'); return; }
         const reader = new FileReader();
         reader.onload = async () => {
             try {
                 const orderRef = doc(db, salesCollectionPath, orderId);
-                await updateDoc(orderRef, { production_image: reader.result as string });
-                toast.success('Imagem da gráfica anexada!');
+                const orderSnap = await getDoc(orderRef);
+                const orderData = orderSnap.data();
+                const current = orderData?.production_images || (orderData?.production_image ? [orderData.production_image] : []);
+                if (current.length >= 5) { toast.error('Máximo de 5 imagens'); return; }
+                const updated = [...current, reader.result as string];
+                await updateDoc(orderRef, { production_images: updated, production_image: '' });
+                toast.success('Imagem anexada!');
             } catch (error) {
                 console.error('Error uploading production image:', error);
                 toast.error('Erro ao anexar imagem');
@@ -1159,11 +1170,15 @@ export default function DashboardPage() {
         reader.readAsDataURL(file);
     };
 
-    const handleRemoveProductionImage = async (orderId: string) => {
-        if (!confirm('Remover imagem da gráfica?')) return;
+    const handleRemoveProductionImage = async (orderId: string, index: number) => {
+        if (!confirm('Remover esta imagem?')) return;
         try {
             const orderRef = doc(db, salesCollectionPath, orderId);
-            await updateDoc(orderRef, { production_image: '' });
+            const orderSnap = await getDoc(orderRef);
+            const orderData = orderSnap.data();
+            const current = orderData?.production_images || (orderData?.production_image ? [orderData.production_image] : []);
+            const updated = current.filter((_: any, i: number) => i !== index);
+            await updateDoc(orderRef, { production_images: updated, production_image: '' });
             toast.success('Imagem removida!');
         } catch (error) {
             console.error('Error removing production image:', error);
@@ -1599,51 +1614,42 @@ export default function DashboardPage() {
                         </div>
                     </div>
 
-                    <div class="section">
-                        <div class="section-title">Produtos / Imagem da Gráfica</div>
-                        <div class="${order.production_image ? 'split-row' : ''}">
-                            <div class="${order.production_image ? 'split-left' : ''}">
-                                ${order.description ? `<div class="description-box" style="margin-bottom: 8px;">${order.description}</div>` : ''}
-                                ${(() => {
-                                    let itemsHtml = '';
-                                    if (order.items && order.items.length > 0) {
-                                        itemsHtml = `<div style="background: #f0f0f0; padding: 10px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 6px;">
-                                            <div style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #555; margin-bottom: 4px;">Produtos do Pedido</div>
-                                            ${order.items.map((i: any) => `<div style="font-size: 14px; padding: 3px 0; border-bottom: 1px solid #e5e5e5;">
-                                                <span style="font-weight: 700;">${i.quantity}x ${i.name}</span>
-                                            </div>`).join('')}
-                                        </div>`;
-                                    }
-                                    let linkedHtml = '';
-                                    let linkedSale = order.linked_sale_id ? sales.find((s: any) => s.id === order.linked_sale_id) : null;
-                                    if (!linkedSale && order.description) {
-                                        const saleMatch = order.description.match(/\\[Vinculado à (VENDA-\\d+)\\]/);
-                                        if (saleMatch) linkedSale = sales.find((s: any) => s.sale_number === saleMatch[1]);
-                                    }
-                                    if (linkedSale?.items?.length) {
-                                        linkedHtml = `<div style="background: #f0f0f0; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
-                                            <div style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #555; margin-bottom: 4px;">Itens da Venda Vinculada (${linkedSale.sale_number})</div>
-                                            ${linkedSale.items.map((i: any) => `<div style="font-size: 14px; padding: 3px 0; border-bottom: 1px solid #e5e5e5;">
-                                                <span style="font-weight: 700;">${i.quantity}x ${i.name}</span>
-                                            </div>`).join('')}
-                                        </div>`;
-                                    }
-                                    return itemsHtml + linkedHtml;
-                                })()}
-                                ${order.observations ? `<div style="margin-top: 6px; background: #fff8f8; padding: 10px; border-radius: 8px; border: 1px solid #ffeaea; font-size: 14px; white-space: pre-wrap; line-height: 1.4;">
-                                    <div style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #944; margin-bottom: 3px;">Observações</div>
-                                    ${order.observations}
-                                </div>` : ''}
-                            </div>
-                            ${order.production_image ? `
-                            <div class="split-right">
-                                <div style="background: #f9f9f9; border-radius: 8px; border: 1px solid #eee; padding: 6px; height: 100%; display: flex; align-items: center; justify-content: center;">
-                                    <img src="${order.production_image}" />
+                    ${(() => {
+                        const imgs = [...(order.production_images || []), ...(order.production_image && !order.production_images?.length ? [order.production_image] : [])];
+                        const hasImages = imgs.length > 0;
+                        return `<div class="section">
+                            <div class="section-title">Produtos / Imagens da Gráfica</div>
+                            <div class="${hasImages ? 'split-row' : ''}">
+                                <div class="${hasImages ? 'split-left' : ''}">
+                                    ${order.description ? '<div class="description-box" style="margin-bottom: 8px;">' + order.description + '</div>' : ''}
+                                    ${(() => {
+                                        let itemsHtml = '';
+                                        if (order.items && order.items.length > 0) {
+                                            itemsHtml = '<div style="background: #f0f0f0; padding: 10px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 6px;">' +
+                                                '<div style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #555; margin-bottom: 4px;">Produtos do Pedido</div>' +
+                                                order.items.map((i: any) => '<div style="font-size: 14px; padding: 3px 0; border-bottom: 1px solid #e5e5e5;"><span style="font-weight: 700;">' + i.quantity + 'x ' + i.name + '</span></div>').join('') +
+                                            '</div>';
+                                        }
+                                        let linkedHtml = '';
+                                        let linkedSale = order.linked_sale_id ? sales.find((s: any) => s.id === order.linked_sale_id) : null;
+                                        if (!linkedSale && order.description) {
+                                            const saleMatch = order.description.match(/\\[Vinculado à (VENDA-\\d+)\\]/);
+                                            if (saleMatch) linkedSale = sales.find((s: any) => s.sale_number === saleMatch[1]);
+                                        }
+                                        if (linkedSale?.items?.length) {
+                                            linkedHtml = '<div style="background: #f0f0f0; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">' +
+                                                '<div style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #555; margin-bottom: 4px;">Itens da Venda Vinculada (' + linkedSale.sale_number + ')</div>' +
+                                                linkedSale.items.map((i: any) => '<div style="font-size: 14px; padding: 3px 0; border-bottom: 1px solid #e5e5e5;"><span style="font-weight: 700;">' + i.quantity + 'x ' + i.name + '</span></div>').join('') +
+                                            '</div>';
+                                        }
+                                        return itemsHtml + linkedHtml;
+                                    })()}
+                                    ${order.observations ? '<div style="margin-top: 6px; background: #fff8f8; padding: 10px; border-radius: 8px; border: 1px solid #ffeaea; font-size: 14px; white-space: pre-wrap; line-height: 1.4;"><div style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #944; margin-bottom: 3px;">Observações</div>' + order.observations + '</div>' : ''}
                                 </div>
+                                ${hasImages ? '<div class="split-right"><div style="display: flex; flex-wrap: wrap; gap: 4px; height: 100%;">' + imgs.map((img: string) => '<img src="' + img + '" style="flex: 1; min-width: 45%; max-height: ' + (imgs.length === 1 ? '280px' : '135px') + '; object-fit: contain; border-radius: 6px; background: #f9f9f9; border: 1px solid #eee; padding: 4px;" />').join('') + '</div></div>' : ''}
                             </div>
-                            ` : ''}
-                        </div>
-                    </div>
+                        </div>`;
+                    })()}
 
                     <div class="section">
                         <div class="section-title">Evolução do Pedido — marque com X as etapas concluídas</div>
@@ -2570,43 +2576,39 @@ export default function DashboardPage() {
                                                         )}
                                                     </div>
 
-                                                    {/* Imagem da Gráfica */}
+                                                    {/* Imagens da Gráfica */}
                                                     <div className="mt-4 border-t border-zinc-900 pt-4">
                                                         <div className="flex items-center justify-between mb-3">
                                                             <span className="text-sm font-black uppercase tracking-widest text-white flex items-center gap-2">
-                                                                <Paperclip size={12} className="text-[#39FF14]" /> Imagem da Gráfica
+                                                                <Paperclip size={12} className="text-[#39FF14]" /> Imagens da Gráfica ({getProductionImages(order).length}/5)
                                                             </span>
-                                                            {order.production_image && (
-                                                                <button
-                                                                    onClick={() => handleRemoveProductionImage(order.id)}
-                                                                    className="text-sm font-black uppercase text-white/40 hover:text-red-500 transition-colors"
-                                                                >
-                                                                    Remover
-                                                                </button>
-                                                            )}
                                                         </div>
-                                                        {order.production_image ? (
-                                                            <div className="relative group/img">
-                                                                <img
-                                                                    src={order.production_image}
-                                                                    alt="Imagem da gráfica"
-                                                                    className="w-full max-h-[300px] object-contain rounded-xl border border-zinc-800 bg-zinc-950 cursor-pointer"
-                                                                    onClick={() => window.open(order.production_image, '_blank')}
-                                                                />
-                                                                <label className="absolute bottom-2 right-2 bg-zinc-900/90 border border-zinc-700 text-white text-xs font-black uppercase px-3 py-1.5 rounded-lg cursor-pointer hover:bg-[#39FF14] hover:text-black transition-all">
-                                                                    Trocar
-                                                                    <input type="file" accept="image/*" className="hidden" onChange={e => {
-                                                                        const file = e.target.files?.[0];
-                                                                        if (file) handleUploadProductionImage(order.id, file);
-                                                                    }} />
-                                                                </label>
+                                                        {getProductionImages(order).length > 0 && (
+                                                            <div className="grid grid-cols-2 gap-2 mb-3">
+                                                                {getProductionImages(order).map((img: string, idx: number) => (
+                                                                    <div key={idx} className="relative group/img">
+                                                                        <img
+                                                                            src={img}
+                                                                            alt={`Imagem ${idx + 1}`}
+                                                                            className="w-full h-[140px] object-contain rounded-xl border border-zinc-800 bg-zinc-950 cursor-pointer"
+                                                                            onClick={() => window.open(img, '_blank')}
+                                                                        />
+                                                                        <button
+                                                                            onClick={() => handleRemoveProductionImage(order.id, idx)}
+                                                                            className="absolute top-1 right-1 bg-red-500/80 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-black opacity-0 group-hover/img:opacity-100 transition-opacity"
+                                                                        >
+                                                                            ✕
+                                                                        </button>
+                                                                    </div>
+                                                                ))}
                                                             </div>
-                                                        ) : (
+                                                        )}
+                                                        {getProductionImages(order).length < 5 && (
                                                             <label className="block cursor-pointer">
-                                                                <div className="bg-zinc-950 border border-dashed border-zinc-700 rounded-xl p-6 text-center hover:border-[#39FF14]/50 transition-all">
-                                                                    <Paperclip size={24} className="mx-auto mb-2 text-white/30" />
-                                                                    <p className="text-sm font-black uppercase text-white/50">Anexar imagem do pedido</p>
-                                                                    <p className="text-xs text-white/30 mt-1">Máx 500KB • Clique para selecionar</p>
+                                                                <div className="bg-zinc-950 border border-dashed border-zinc-700 rounded-xl p-4 text-center hover:border-[#39FF14]/50 transition-all">
+                                                                    <Paperclip size={20} className="mx-auto mb-1 text-white/30" />
+                                                                    <p className="text-sm font-black uppercase text-white/50">Anexar imagem</p>
+                                                                    <p className="text-xs text-white/30 mt-1">Máx 300KB • Até 5 imagens</p>
                                                                 </div>
                                                                 <input type="file" accept="image/*" className="hidden" onChange={e => {
                                                                     const file = e.target.files?.[0];
