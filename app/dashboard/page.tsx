@@ -1608,9 +1608,8 @@ export default function DashboardPage() {
                             if (!linkedSale?.items?.length) return '';
                             return `<div style="margin-top: 8px; background: #f0f0f0; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
                                 <div style="font-size: 8px; font-weight: 800; text-transform: uppercase; color: #888; margin-bottom: 6px;">Itens da Venda Vinculada (${linkedSale.sale_number})</div>
-                                ${linkedSale.items.map((i: any) => `<div style="display: flex; justify-content: space-between; font-size: 11px; padding: 3px 0; border-bottom: 1px solid #e5e5e5;">
+                                ${linkedSale.items.map((i: any) => `<div style="font-size: 11px; padding: 3px 0; border-bottom: 1px solid #e5e5e5;">
                                     <span style="font-weight: 700;">${i.quantity}x ${i.name}</span>
-                                    <span style="color: #666;">R$ ${((i.sale_price || i.price || 0) * i.quantity).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                                 </div>`).join('')}
                             </div>`;
                         })()}
@@ -1642,14 +1641,10 @@ export default function DashboardPage() {
                         </div>
                     </div>
 
-                    <div class="grid" style="margin-top: 12px; border-top: 2px solid #eee; padding-top: 12px;">
+                    <div style="margin-top: 12px; border-top: 2px solid #eee; padding-top: 12px;">
                         <div class="info-block">
                             <div class="info-label">Status Atual</div>
                             <div class="info-value" style="font-weight: 900;">${order.status}</div>
-                        </div>
-                        <div class="info-block">
-                            <div class="info-label">Valor Total</div>
-                            <div class="info-value" style="font-weight: 900;">R$ ${parseFloat(order.value || order.total || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
                         </div>
                     </div>
 
