@@ -1542,17 +1542,17 @@ export default function DashboardPage() {
                         .split-left { flex: 2; min-width: 0; }
                         .split-right { flex: 3; min-width: 0; }
                         .split-right img { width: 100%; height: 100%; max-height: 280px; object-fit: contain; border-radius: 6px; }
-                        .stepper { display: flex; align-items: center; margin: 10px 0; }
-                        .step { display: flex; flex-direction: column; align-items: center; flex: 1; position: relative; }
-                        .step-dot { width: 12px; height: 12px; border-radius: 50%; border: 2px solid #ddd; background: #fff; z-index: 1; }
-                        .step-dot.completed { background: #111; border-color: #111; }
-                        .step-dot.current { background: #f97316; border-color: #f97316; box-shadow: 0 0 0 3px #fed7aa; }
-                        .step-label { font-size: 6px; font-weight: 800; text-transform: uppercase; color: #ccc; margin-top: 4px; text-align: center; }
-                        .step-label.completed { color: #111; }
-                        .step-label.current { color: #f97316; font-weight: 900; }
-                        .step-line { flex: 1; height: 2px; background: #ddd; margin-top: -6px; z-index: 0; }
-                        .step-line.completed { background: #111; }
-                        @media print { body { padding: 10px; } button { display: none; } @page { margin: 8mm; size: A4; } }
+                        .stepper { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+                        .step-box { display: flex; align-items: center; gap: 6px; border: 2px solid #ccc; border-radius: 6px; padding: 6px 10px; flex: 1; min-width: calc(50% - 6px); }
+                        .step-box.completed { border-color: #111; background: #f5f5f5; }
+                        .step-box.current { border-color: #f97316; background: #fff7ed; }
+                        .step-check { width: 22px; height: 22px; border: 2.5px solid #bbb; border-radius: 4px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 900; }
+                        .step-check.completed { border-color: #111; background: #111; color: #fff; }
+                        .step-check.current { border-color: #f97316; }
+                        .step-name { font-size: 12px; font-weight: 800; text-transform: uppercase; color: #999; }
+                        .step-name.completed { color: #111; }
+                        .step-name.current { color: #f97316; }
+                        @media print { body { padding: 10px; } button { display: none; } @page { margin: 8mm; size: A4 portrait; } }
                     </style>
                 </head>
                 <body>
@@ -1647,7 +1647,7 @@ export default function DashboardPage() {
                     </div>
 
                     <div class="section">
-                        <div class="section-title">Evolução do Pedido</div>
+                        <div class="section-title">Evolução do Pedido — marque com X as etapas concluídas</div>
                         <div class="stepper">
                             ${(() => {
                                 const steps = ['AGUARDANDO APROVAÇÃO', 'GRÁFICA', 'CORTE', 'COSTURA', 'REVISÃO', 'EM FASE DE ENTREGA', 'PEDIDO ENTREGUE'];
@@ -1656,10 +1656,13 @@ export default function DashboardPage() {
                                 return steps.map((step, idx) => {
                                     const isCompleted = idx < currentStepIdx;
                                     const isCurrent = idx === currentStepIdx;
-                                    const dotClass = isCompleted ? 'completed' : isCurrent ? 'current' : '';
-                                    const labelClass = isCompleted ? 'completed' : isCurrent ? 'current' : '';
-                                    const line = idx < steps.length - 1 ? `<div class="step-line ${idx < currentStepIdx ? 'completed' : ''}"></div>` : '';
-                                    return `<div class="step"><div class="step-dot ${dotClass}"></div><span class="step-label ${labelClass}">${labels[step]}</span></div>${line}`;
+                                    const boxClass = isCompleted ? 'completed' : isCurrent ? 'current' : '';
+                                    const checkClass = isCompleted ? 'completed' : isCurrent ? 'current' : '';
+                                    const nameClass = isCompleted ? 'completed' : isCurrent ? 'current' : '';
+                                    return `<div class="step-box ${boxClass}">
+                                        <div class="step-check ${checkClass}">${isCompleted ? '✓' : ''}</div>
+                                        <span class="step-name ${nameClass}">${labels[step]}</span>
+                                    </div>`;
                                 }).join('');
                             })()}
                         </div>
