@@ -4136,15 +4136,46 @@ export default function DashboardPage() {
                                 <p className="text-xs text-white/50 font-bold uppercase mb-2">Motivo da Pendência</p>
                                 <p className="text-base text-white font-medium leading-relaxed">{pendingViewOrder.pending_reason || 'Sem descrição informada'}</p>
                             </div>
-                            <button
-                                onClick={() => {
-                                    advanceStep(pendingViewOrder.id, pendingViewOrder.status);
-                                    setPendingViewOrder(null);
-                                }}
-                                className="w-full bg-[#39FF14] text-black py-4 rounded-2xl font-black uppercase text-sm tracking-widest hover:scale-[1.02] transition-all"
-                            >
-                                Resolver Pendência
-                            </button>
+                            <p className="text-xs text-white/50 font-bold uppercase mb-3 text-center">Enviar pedido para qual etapa?</p>
+                            <div className="grid grid-cols-2 gap-2">
+                                {workflow.map((step) => (
+                                    <button
+                                        key={step}
+                                        onClick={async () => {
+                                            setLoading(true);
+                                            try {
+                                                const orderRef = doc(db, salesCollectionPath, pendingViewOrder.id);
+                                                const orderSnap = await getDoc(orderRef);
+                                                const orderData = orderSnap.data();
+                                                const newLog = {
+                                                    id: crypto.randomUUID(),
+                                                    old_status: 'PENDÊNCIA',
+                                                    new_status: step,
+                                                    operator_name: operatorName,
+                                                    created_at: new Date().toISOString(),
+                                                    note: `Pendência resolvida → ${step}`
+                                                };
+                                                await updateDoc(orderRef, {
+                                                    status: step,
+                                                    pending_reason: '',
+                                                    order_logs: [...(orderData?.order_logs || []), newLog]
+                                                });
+                                                toast.success(`Pedido enviado para ${step}`);
+                                                setPendingViewOrder(null);
+                                            } catch (error) {
+                                                console.error('Error resolving pending:', error);
+                                                toast.error('Erro ao resolver pendência');
+                                            } finally {
+                                                setLoading(false);
+                                            }
+                                        }}
+                                        disabled={loading}
+                                        className="bg-zinc-800 hover:bg-[#39FF14] hover:text-black text-white py-3 px-3 rounded-xl font-black uppercase text-xs tracking-widest transition-all disabled:opacity-50"
+                                    >
+                                        {step === 'AGUARDANDO APROVAÇÃO' ? 'APROVAÇÃO' : step === 'EM FASE DE ENTREGA' ? 'ENVIO' : step === 'PEDIDO ENTREGUE' ? 'ENTREGUE' : step}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
                     </div>
                 )}
