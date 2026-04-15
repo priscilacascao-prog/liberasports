@@ -1577,9 +1577,6 @@ export default function DashboardPage() {
                                 <div class="info-label">WhatsApp</div>
                                 <div class="info-value">${order.client_whatsapp || 'Não informado'}</div>
                             </div>
-                            <div class="info-block">
-                                <div class="info-label">CPF/CNPJ</div>
-                                <div class="info-value">${order.cpf_cnpj ? (order.cpf_cnpj.length === 11 ? order.cpf_cnpj.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4') : order.cpf_cnpj.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5')) : 'Não informado'}</div>
                             </div>
                         </div>
                     </div>
