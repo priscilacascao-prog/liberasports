@@ -7,7 +7,7 @@ import {
     TrendingUp, Truck, User, History, MessageSquare, Info, Filter,
     Loader2, ChevronDown, ChevronUp, MessageCircle, Pencil, FileText, Trash2,
     Store, ShoppingCart, Wallet, BarChart3, Settings, Layers, Box, DollarSign,
-    ArrowUpCircle, ArrowDownCircle, ArrowUpRight, ArrowDownLeft, PlusCircle, Home, Copy, Sun, Moon, Eye, Paperclip, Mail
+    ArrowUpCircle, ArrowDownCircle, ArrowUpRight, ArrowDownLeft, PlusCircle, Home, Copy, Sun, Moon, Eye, Paperclip
 } from 'lucide-react';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
@@ -78,7 +78,7 @@ export default function DashboardPage() {
         textSub: isDark ? 'text-zinc-400' : 'text-gray-400',
         accent: isDark ? 'text-[#39FF14]' : 'text-green-600',
         accentBg: isDark ? 'bg-[#39FF14]' : 'bg-green-600',
-        accentText: isDark ? 'text-black' : 'text-[#fff]',
+        accentText: isDark ? 'text-black' : 'text-white',
         card: isDark ? 'bg-zinc-800 border-zinc-700' : 'bg-white border-gray-200',
         cardHover: isDark ? 'hover:border-zinc-600' : 'hover:border-gray-300',
         input: isDark ? 'bg-zinc-700 border-zinc-600 text-white placeholder:text-zinc-400' : 'bg-gray-100 border-gray-200 text-gray-900 placeholder:text-gray-400',
@@ -114,7 +114,6 @@ export default function DashboardPage() {
     const [deadline, setDeadline] = useState<string>(addBusinessDays(new Date(), 20));
     const [deliveryMethod, setDeliveryMethod] = useState<'MOTOBOY' | 'TRANSPORTADORA' | 'RETIRADA'>('MOTOBOY');
     const [paymentMethod, setPaymentMethod] = useState<'PIX' | 'BOLETO' | 'CARTÃO CRÉDITO' | 'CARTÃO DÉBITO' | 'OUTROS'>('PIX');
-    const [pixSplit, setPixSplit] = useState(false);
     const [description, setDescription] = useState('');
     const [linkSale, setLinkSale] = useState(false);
     const [linkedSaleId, setLinkedSaleId] = useState('');
@@ -125,7 +124,6 @@ export default function DashboardPage() {
     const salesCollectionPath = `artifacts/${appId}/public/data/vendas`;
     const financeCollectionPath = `artifacts/${appId}/public/data/financeiro`;
     const fornecedoresCollectionPath = `artifacts/${appId}/public/data/fornecedores`;
-    const settingsDocPath = `artifacts/${appId}/public/data/settings/general`;
 
     // Fornecedores state
     const [fornecedores, setFornecedores] = useState<any[]>([]);
@@ -159,7 +157,6 @@ export default function DashboardPage() {
     const [expandedObs, setExpandedObs] = useState<Record<string, boolean>>({});
     const [expandedOrderIds, setExpandedOrderIds] = useState<Record<string, boolean>>({});
     const [expandedHistoryIds, setExpandedHistoryIds] = useState<Record<string, boolean>>({});
-    const [reportEmail, setReportEmail] = useState('');
     const [nextOrderNumber, setNextOrderNumber] = useState('');
     const [transactionDate, setTransactionDate] = useState(new Date().toISOString().split('T')[0]);
     const [installments, setInstallments] = useState(1);
@@ -333,20 +330,6 @@ export default function DashboardPage() {
         });
 
         return () => unsubscribe();
-    }, [authChecking]);
-
-    // Carregar email do relatório das settings
-    useEffect(() => {
-        if (authChecking) return;
-        const loadSettings = async () => {
-            try {
-                const settingsSnap = await getDoc(doc(db, settingsDocPath));
-                if (settingsSnap.exists()) {
-                    setReportEmail(settingsSnap.data().report_email || '');
-                }
-            } catch (e) { console.error('Error loading settings:', e); }
-        };
-        loadSettings();
     }, [authChecking]);
 
     // Products - carrega sob demanda (VENDAS ou ESTOQUE)
@@ -634,19 +617,11 @@ export default function DashboardPage() {
             );
             const newOrderNumber = `LIBERA-${String(maxNum + 1).padStart(4, '0')}`;
 
-            // 1. Criar Venda (remover imagens base64 dos itens para não estourar limite do Firestore)
-            const cleanCartItems = cart.map(({ image, images, ...item }) => ({
-                id: item.id,
-                name: item.name,
-                quantity: item.quantity,
-                sale_price: item.sale_price,
-                cost_price: item.cost_price,
-                stock: item.stock,
-            }));
+            // 1. Criar Venda
             const saleData: any = {
                 order_number: newOrderNumber,
                 sale_number: newOrderNumber,
-                items: cart.length > 0 ? cleanCartItems : [],
+                items: cart.length > 0 ? cart : [],
                 total: finalTotal,
                 value: finalTotal,
                 client: saleClient.trim().toUpperCase() || '',
@@ -656,8 +631,7 @@ export default function DashboardPage() {
                 delivery_method: saleDeliveryMethod,
                 delivery_address: buildDeliveryAddress(),
                 description: saleDescription.trim(),
-                payment_method: pixSplit && paymentMethod === 'PIX' ? 'PIX 50/50' : paymentMethod,
-                pix_split: paymentMethod === 'PIX' && pixSplit,
+                payment_method: paymentMethod,
                 has_production: saleEntersProduction,
                 created_at: new Date().toISOString(),
                 user_id: userId,
@@ -682,36 +656,7 @@ export default function DashboardPage() {
             const finDesc = cart.length > 0
                 ? `[${newOrderNumber}] ${cart.map((i: any) => `${i.quantity}x ${i.name}`).join(', ')}`
                 : `[${newOrderNumber}] ${saleDescription || saleClient}`;
-            if (paymentMethod === 'PIX' && pixSplit) {
-                // PIX 50/50: 50% recebido agora, 50% a receber na entrega
-                const halfValue = Math.round((finalTotal / 2) * 100) / 100;
-                await addDoc(collection(db, financeCollectionPath), {
-                    type: 'INFLOW',
-                    amount: halfValue,
-                    description: `${finDesc} (PIX 1/2 - No Pedido)`,
-                    status: 'RECEBIDO',
-                    payment_method: 'PIX 50/50',
-                    created_at: new Date().toISOString(),
-                    transaction_date: transactionDate,
-                    due_date: transactionDate,
-                    order_id: docRef.id,
-                    user_id: userId,
-                    operator_name: operatorName,
-                });
-                await addDoc(collection(db, financeCollectionPath), {
-                    type: 'INFLOW',
-                    amount: finalTotal - halfValue,
-                    description: `${finDesc} (PIX 2/2 - Na Entrega)`,
-                    status: 'A RECEBER',
-                    payment_method: 'PIX 50/50',
-                    created_at: new Date().toISOString(),
-                    transaction_date: transactionDate,
-                    due_date: saleDeadline ? new Date(saleDeadline + 'T12:00:00').toISOString() : transactionDate,
-                    order_id: docRef.id,
-                    user_id: userId,
-                    operator_name: operatorName,
-                });
-            } else if (paymentMethod === 'BOLETO' && saleBoletoQty > 1) {
+            if (paymentMethod === 'BOLETO' && saleBoletoQty > 1) {
                 // Gerar múltiplos boletos
                 const boletoValue = finalTotal / saleBoletoQty;
                 const firstDate = saleBoletoFirstDate ? new Date(saleBoletoFirstDate + 'T12:00:00') : new Date();
@@ -756,7 +701,7 @@ export default function DashboardPage() {
             // 4. Enviar WhatsApp (se entra em produção e tem WhatsApp)
             if (saleEntersProduction && saleWhatsapp.trim()) {
                 const trackingUrl = `${window.location.origin}/rastreio?id=${docRef.id}`;
-                const whatsappPhone = normalizePhone(saleWhatsapp);
+                const whatsappPhone = saleWhatsapp.replace(/\D/g, '');
                 const deliveryDate = saleDeadline ? saleDeadline.split('-').reverse().join('/') : '';
                 const clientName = saleClient.trim();
                 const formattedValue = finalTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
@@ -811,12 +756,11 @@ export default function DashboardPage() {
             setSaleEntersProduction(true);
             setSaleManualValue('');
             setPaymentMethod('PIX');
-            setPixSplit(false);
             setTransactionDate(new Date().toISOString().split('T')[0]);
             setInstallments(1);
-        } catch (err: any) {
-            console.error('Erro detalhado ao processar venda:', err);
-            toast.error(`Erro ao processar venda: ${err?.message || err}`);
+        } catch (err) {
+            console.error(err);
+            toast.error('Erro ao processar venda');
         } finally {
             setLoading(false);
         }
@@ -1159,49 +1103,6 @@ export default function DashboardPage() {
         }
     };
 
-    const getProductionImages = (order: any): string[] => {
-        if (order.production_images && Array.isArray(order.production_images)) return order.production_images;
-        if (order.production_image) return [order.production_image];
-        return [];
-    };
-
-    const handleUploadProductionImage = async (orderId: string, file: File) => {
-        if (file.size > 300000) { toast.error('Imagem muito grande (máx 300KB)'); return; }
-        const reader = new FileReader();
-        reader.onload = async () => {
-            try {
-                const orderRef = doc(db, salesCollectionPath, orderId);
-                const orderSnap = await getDoc(orderRef);
-                const orderData = orderSnap.data();
-                const current = orderData?.production_images || (orderData?.production_image ? [orderData.production_image] : []);
-                if (current.length >= 5) { toast.error('Máximo de 5 imagens'); return; }
-                const updated = [...current, reader.result as string];
-                await updateDoc(orderRef, { production_images: updated, production_image: '' });
-                toast.success('Imagem anexada!');
-            } catch (error) {
-                console.error('Error uploading production image:', error);
-                toast.error('Erro ao anexar imagem');
-            }
-        };
-        reader.readAsDataURL(file);
-    };
-
-    const handleRemoveProductionImage = async (orderId: string, index: number) => {
-        if (!confirm('Remover esta imagem?')) return;
-        try {
-            const orderRef = doc(db, salesCollectionPath, orderId);
-            const orderSnap = await getDoc(orderRef);
-            const orderData = orderSnap.data();
-            const current = orderData?.production_images || (orderData?.production_image ? [orderData.production_image] : []);
-            const updated = current.filter((_: any, i: number) => i !== index);
-            await updateDoc(orderRef, { production_images: updated, production_image: '' });
-            toast.success('Imagem removida!');
-        } catch (error) {
-            console.error('Error removing production image:', error);
-            toast.error('Erro ao remover imagem');
-        }
-    };
-
     const generateOrderNumber = async () => {
         const year = new Date().getFullYear().toString().slice(-2);
         // Fetch orders from this year to count
@@ -1246,7 +1147,7 @@ export default function DashboardPage() {
             // Se aprovou pedido (primeiro passo), enviar WhatsApp com rastreio
             if ((currentStatus === 'AGUARDANDO APROVAÇÃO' || currentStatus === 'PEDIDO FEITO') && orderData?.client_whatsapp) {
                 const trackingUrl = `${window.location.origin}/rastreio?id=${orderId}`;
-                const whatsappPhone = normalizePhone(orderData.client_whatsapp);
+                const whatsappPhone = orderData.client_whatsapp.replace(/\D/g, '');
                 const clientName = (orderData.client || '').trim();
                 const orderNumber = orderData.order_number || '';
                 const formattedValue = (orderData.total || orderData.value || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
@@ -1268,12 +1169,6 @@ export default function DashboardPage() {
                     const opened = window.open(whatsappLink, '_blank');
                     if (!opened) window.location.href = whatsappLink;
                 }, 500);
-            }
-
-            // Se aprovou pedido e tem email configurado, envia relatório por e-mail
-            if ((currentStatus === 'AGUARDANDO APROVAÇÃO' || currentStatus === 'PEDIDO FEITO') && reportEmail) {
-                const orderForReport = { ...orderData, id: orderId, status: nextStatus };
-                sendReportByEmail(orderForReport);
             }
         } catch (error) {
             console.error('Error advancing step:', error);
@@ -1314,17 +1209,6 @@ export default function DashboardPage() {
         } finally {
             setLoading(false);
         }
-    };
-
-    const normalizePhone = (raw: string): string => {
-        let digits = raw.replace(/\D/g, '');
-        // Só celular sem DDD (até 9 dígitos) → adiciona DDD 62 (Goiânia)
-        if (digits.length <= 9) digits = '62' + digits;
-        // Sem código do país → adiciona 55
-        if (!digits.startsWith('55')) digits = '55' + digits;
-        // Se ficou com 55 duplicado (ex: 555562...) → remove o extra
-        if (digits.length > 13 && digits.startsWith('5555')) digits = digits.slice(2);
-        return digits;
     };
 
     const parseBRL = (val: string): number => {
@@ -1502,7 +1386,7 @@ export default function DashboardPage() {
 
             // Gerar link de rastreio e enviar WhatsApp
             const trackingUrl = `${window.location.origin}/rastreio?id=${docRef.id}`;
-            const whatsappPhone = normalizePhone(clientWhatsapp);
+            const whatsappPhone = clientWhatsapp.replace(/\D/g, '');
             const deliveryDate = deadline.split('-').reverse().join('/');
             const clientName = client.trim();
             const formattedValue = parseFloat(normalizedValue).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
@@ -1551,152 +1435,161 @@ export default function DashboardPage() {
         }
     };
 
-    const generateReportHtml = (order: any, forEmail = false) => {
-        const imgs = [...(order.production_images || []), ...(order.production_image && !order.production_images?.length ? [order.production_image] : [])];
-        const hasImages = imgs.length > 0;
-
-        // Para email, não incluímos imagens base64 (muito grandes para e-mail)
-        const imgsForReport = forEmail ? [] : imgs;
-        const hasImagesForReport = forEmail ? false : hasImages;
-
-        let itemsHtml = '';
-        if (order.items && order.items.length > 0) {
-            itemsHtml = '<div style="background: #f0f0f0; padding: 10px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 6px;">' +
-                '<div style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #555; margin-bottom: 4px;">Produtos do Pedido</div>' +
-                order.items.map((i: any) => '<div style="font-size: 14px; padding: 3px 0; border-bottom: 1px solid #e5e5e5;"><span style="font-weight: 700;">' + i.quantity + 'x ' + i.name + '</span></div>').join('') +
-            '</div>';
-        }
-        let linkedHtml = '';
-        let linkedSale = order.linked_sale_id ? sales.find((s: any) => s.id === order.linked_sale_id) : null;
-        if (!linkedSale && order.description) {
-            const saleMatch = order.description.match(/\[Vinculado à (VENDA-\d+)\]/);
-            if (saleMatch) linkedSale = sales.find((s: any) => s.sale_number === saleMatch[1]);
-        }
-        if (linkedSale?.items?.length) {
-            linkedHtml = '<div style="background: #f0f0f0; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">' +
-                '<div style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #555; margin-bottom: 4px;">Itens da Venda Vinculada (' + linkedSale.sale_number + ')</div>' +
-                linkedSale.items.map((i: any) => '<div style="font-size: 14px; padding: 3px 0; border-bottom: 1px solid #e5e5e5;"><span style="font-weight: 700;">' + i.quantity + 'x ' + i.name + '</span></div>').join('') +
-            '</div>';
-        }
-
-        const steps = ['AGUARDANDO APROVAÇÃO', 'GRÁFICA', 'CORTE', 'COSTURA', 'REVISÃO', 'EM FASE DE ENTREGA', 'PEDIDO ENTREGUE'];
-        const labels: Record<string, string> = { 'AGUARDANDO APROVAÇÃO': 'APROVAÇÃO', 'GRÁFICA': 'GRÁFICA', 'CORTE': 'CORTE', 'COSTURA': 'COSTURA', 'REVISÃO': 'REVISÃO', 'EM FASE DE ENTREGA': 'ENVIO', 'PEDIDO ENTREGUE': 'ENTREGUE' };
-        const currentStepIdx = steps.indexOf(order.status);
-        const stepsHtml = steps.map((step, idx) => {
-            const isCompleted = idx < currentStepIdx;
-            const isCurrent = idx === currentStepIdx;
-            const boxClass = isCompleted ? 'completed' : isCurrent ? 'current' : '';
-            return `<div class="step-box ${boxClass}"><div class="step-check ${boxClass}">${isCompleted ? '✓' : ''}</div><span class="step-name ${boxClass}">${labels[step]}</span></div>`;
-        }).join('');
-
-        return `<html><head>
-            <style>
-                @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
-                * { margin: 0; padding: 0; box-sizing: border-box; }
-                body { font-family: 'Inter', Arial, sans-serif; padding: 16px; color: #111; background: white; }
-                .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #111; padding-bottom: 8px; margin-bottom: 12px; }
-                .logo { font-size: 28px; font-weight: 900; font-style: italic; }
-                .os-title { text-align: right; }
-                .os-title h1 { font-size: 22px; font-weight: 900; }
-                .os-title p { font-size: 14px; color: #444; font-weight: 700; margin-top: 2px; }
-                .section { margin-bottom: 10px; }
-                .section-title { font-size: 13px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.1em; color: #444; margin-bottom: 4px; border-bottom: 1px solid #ddd; padding-bottom: 2px; }
-                .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-                .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
-                .info-block { margin-bottom: 8px; }
-                .info-label { font-size: 12px; font-weight: 700; color: #555; text-transform: uppercase; }
-                .info-value { font-size: 16px; font-weight: 700; margin-top: 1px; }
-                .description-box { background: #f9f9f9; padding: 12px; border-radius: 8px; white-space: pre-wrap; font-size: 14px; line-height: 1.5; border: 1px solid #eee; }
-                .footer { margin-top: 12px; padding-top: 8px; border-top: 1px solid #ddd; font-size: 11px; color: #555; text-align: center; }
-                .split-row { display: flex; gap: 12px; align-items: stretch; }
-                .split-left { flex: 2; min-width: 0; }
-                .split-right { flex: 3; min-width: 0; }
-                .split-right img { width: 100%; height: 100%; max-height: 280px; object-fit: contain; border-radius: 6px; }
-                .stepper { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
-                .step-box { display: flex; align-items: center; gap: 6px; border: 2px solid #888; border-radius: 6px; padding: 6px 10px; flex: 1; min-width: calc(50% - 6px); }
-                .step-box.completed { border-color: #111; background: #f5f5f5; }
-                .step-box.current { border-color: #f97316; background: #fff7ed; }
-                .step-check { width: 26px; height: 26px; border: 2.5px solid #666; border-radius: 4px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 900; }
-                .step-check.completed { border-color: #111; background: #111; color: #fff; }
-                .step-check.current { border-color: #f97316; }
-                .step-name { font-size: 14px; font-weight: 800; text-transform: uppercase; color: #555; }
-                .step-name.completed { color: #111; }
-                .step-name.current { color: #f97316; }
-                @media print { body { padding: 10px; } button { display: none; } @page { margin: 8mm; size: A4 portrait; } }
-            </style></head><body>
-            <div class="header">
-                <div class="logo">LIBERA SPORTS</div>
-                <div class="os-title"><h1>ORDEM DE SERVIÇO</h1><p>${order.order_number}</p></div>
-            </div>
-            <div class="section">
-                <div class="section-title">Informações do Cliente</div>
-                <div class="grid">
-                    <div class="info-block"><div class="info-label">Cliente</div><div class="info-value">${order.client || 'Sem cliente'}</div></div>
-                    <div class="info-block"><div class="info-label">WhatsApp</div><div class="info-value">${order.client_whatsapp || 'Não informado'}</div></div>
-                </div>
-            </div>
-            <div class="section">
-                <div class="section-title">Detalhes do Pedido</div>
-                <div class="grid-3">
-                    <div class="info-block"><div class="info-label">Data de Entrega</div><div class="info-value">${order.deadline ? new Date(order.deadline).toLocaleDateString('pt-BR') : '-'}</div></div>
-                    <div class="info-block"><div class="info-label">Método de Entrega</div><div class="info-value">${order.delivery_method || 'Não informado'}</div></div>
-                    <div class="info-block"><div class="info-label">Pagamento</div><div class="info-value">${order.payment_method || 'PIX'}</div></div>
-                </div>
-            </div>
-            <div class="section">
-                <div class="section-title">Produtos${hasImagesForReport ? ' / Imagens da Gráfica' : ''}</div>
-                <div class="${hasImagesForReport ? 'split-row' : ''}">
-                    <div class="${hasImagesForReport ? 'split-left' : ''}">
-                        ${order.description ? '<div class="description-box" style="margin-bottom: 8px;">' + order.description + '</div>' : ''}
-                        ${itemsHtml}${linkedHtml}
-                        ${order.observations ? '<div style="margin-top: 6px; background: #fff8f8; padding: 10px; border-radius: 8px; border: 1px solid #ffeaea; font-size: 14px; white-space: pre-wrap; line-height: 1.4;"><div style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #944; margin-bottom: 3px;">Observações</div>' + order.observations + '</div>' : ''}
-                    </div>
-                    ${hasImagesForReport ? '<div class="split-right"><div style="display: flex; flex-wrap: wrap; gap: 4px; height: 100%;">' + imgsForReport.map((img: string) => '<img src="' + img + '" style="flex: 1; min-width: 45%; max-height: ' + (imgsForReport.length === 1 ? '280px' : '135px') + '; object-fit: contain; border-radius: 6px; background: #f9f9f9; border: 1px solid #eee; padding: 4px;" />').join('') + '</div></div>' : ''}
-                </div>
-            </div>
-            <div class="section">
-                <div class="section-title">Evolução do Pedido — marque com X as etapas concluídas</div>
-                <div class="stepper">${stepsHtml}</div>
-            </div>
-            <div style="margin-top: 12px; border-top: 2px solid #eee; padding-top: 12px;">
-                <div class="info-block"><div class="info-label">Status Atual</div><div class="info-value" style="font-weight: 900; font-size: 18px;">${order.status}</div></div>
-            </div>
-            <div class="footer">Gerado em ${new Date().toLocaleString('pt-BR')} • Libera Sports</div>
-            ${!forEmail ? '<script>window.onload = () => { window.print(); };</script>' : ''}
-        </body></html>`;
-    };
-
-    const sendReportByEmail = async (order: any) => {
-        if (!reportEmail) return;
-        try {
-            const html = generateReportHtml(order, true);
-            const res = await fetch('/api/send-report', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    html,
-                    to: reportEmail,
-                    subject: `Ordem de Serviço - ${order.order_number} - ${order.client || 'Sem cliente'}`
-                })
-            });
-            if (res.ok) {
-                toast.success('Relatório enviado por e-mail!');
-            } else {
-                const err = await res.json();
-                console.error('Email error:', err);
-                toast.error('Erro ao enviar e-mail: ' + (err.error || 'Erro desconhecido'));
-            }
-        } catch (error) {
-            console.error('Send email error:', error);
-            toast.error('Erro ao enviar relatório por e-mail');
-        }
-    };
-
     const handlePrintOrder = (order: any) => {
         const printWindow = window.open('', '_blank');
         if (!printWindow) return;
 
-        const html = generateReportHtml(order);
+        const html = `
+            <html>
+                <head>
+                    <title>Pedido ${order.order_number} - Libera Sports</title>
+                    <style>
+                        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+                        * { margin: 0; padding: 0; box-sizing: border-box; }
+                        body { font-family: 'Inter', sans-serif; padding: 24px; color: #111; background: white; }
+                        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #111; padding-bottom: 12px; margin-bottom: 20px; }
+                        .logo { font-size: 22px; font-weight: 900; font-style: italic; }
+                        .os-title { text-align: right; }
+                        .os-title h1 { font-size: 16px; font-weight: 900; }
+                        .os-title p { font-size: 10px; color: #666; font-weight: 700; margin-top: 2px; }
+                        .section { margin-bottom: 16px; }
+                        .section-title { font-size: 9px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.1em; color: #666; margin-bottom: 6px; border-bottom: 1px solid #eee; padding-bottom: 3px; }
+                        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+                        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+                        .info-block { margin-bottom: 8px; }
+                        .info-label { font-size: 8px; font-weight: 700; color: #999; text-transform: uppercase; }
+                        .info-value { font-size: 13px; font-weight: 700; margin-top: 1px; }
+                        .description-box { background: #f9f9f9; padding: 12px; border-radius: 8px; white-space: pre-wrap; font-size: 11px; line-height: 1.5; border: 1px solid #eee; }
+                        .footer { margin-top: 20px; padding-top: 10px; border-top: 1px solid #eee; font-size: 8px; color: #999; text-align: center; }
+                        .stepper { display: flex; align-items: center; margin: 16px 0; }
+                        .step { display: flex; flex-direction: column; align-items: center; flex: 1; position: relative; }
+                        .step-dot { width: 12px; height: 12px; border-radius: 50%; border: 2px solid #ddd; background: #fff; z-index: 1; }
+                        .step-dot.completed { background: #111; border-color: #111; }
+                        .step-dot.current { background: #f97316; border-color: #f97316; box-shadow: 0 0 0 3px #fed7aa; }
+                        .step-label { font-size: 6px; font-weight: 800; text-transform: uppercase; color: #ccc; margin-top: 4px; text-align: center; }
+                        .step-label.completed { color: #111; }
+                        .step-label.current { color: #f97316; font-weight: 900; }
+                        .step-line { flex: 1; height: 2px; background: #ddd; margin-top: -6px; z-index: 0; }
+                        .step-line.completed { background: #111; }
+                        @media print { body { padding: 16px; } button { display: none; } @page { margin: 10mm; } }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <div class="logo">LIBERA SPORTS</div>
+                        <div class="os-title">
+                            <h1>ORDEM DE SERVIÇO</h1>
+                            <p>${order.order_number}</p>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-title">Informações do Cliente</div>
+                        <div class="grid">
+                            <div class="info-block">
+                                <div class="info-label">Cliente</div>
+                                <div class="info-value">${order.client || 'Sem cliente'}</div>
+                            </div>
+                            <div class="info-block">
+                                <div class="info-label">WhatsApp</div>
+                                <div class="info-value">${order.client_whatsapp || 'Não informado'}</div>
+                            </div>
+                            <div class="info-block">
+                                <div class="info-label">CPF/CNPJ</div>
+                                <div class="info-value">${order.cpf_cnpj ? (order.cpf_cnpj.length === 11 ? order.cpf_cnpj.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4') : order.cpf_cnpj.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5')) : 'Não informado'}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-title">Detalhes do Pedido</div>
+                        <div class="grid-3">
+                            <div class="info-block">
+                                <div class="info-label">Data de Entrega</div>
+                                <div class="info-value">${order.deadline ? new Date(order.deadline).toLocaleDateString('pt-BR') : '-'}</div>
+                            </div>
+                            <div class="info-block">
+                                <div class="info-label">Método de Entrega</div>
+                                <div class="info-value">${order.delivery_method || 'Não informado'}</div>
+                            </div>
+                            <div class="info-block">
+                                <div class="info-label">Pagamento</div>
+                                <div class="info-value">${order.payment_method || 'PIX'}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-title">Grade / Descrição</div>
+                        <div class="description-box">${order.description}</div>
+                        ${(() => {
+                            let linkedSale = order.linked_sale_id ? sales.find((s: any) => s.id === order.linked_sale_id) : null;
+                            if (!linkedSale && order.description) {
+                                const saleMatch = order.description.match(/\[Vinculado à (VENDA-\d+)\]/);
+                                if (saleMatch) linkedSale = sales.find((s: any) => s.sale_number === saleMatch[1]);
+                            }
+                            if (!linkedSale?.items?.length) return '';
+                            return `<div style="margin-top: 8px; background: #f0f0f0; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
+                                <div style="font-size: 8px; font-weight: 800; text-transform: uppercase; color: #888; margin-bottom: 6px;">Itens da Venda Vinculada (${linkedSale.sale_number})</div>
+                                ${linkedSale.items.map((i: any) => `<div style="display: flex; justify-content: space-between; font-size: 11px; padding: 3px 0; border-bottom: 1px solid #e5e5e5;">
+                                    <span style="font-weight: 700;">${i.quantity}x ${i.name}</span>
+                                    <span style="color: #666;">R$ ${((i.sale_price || i.price || 0) * i.quantity).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                                </div>`).join('')}
+                            </div>`;
+                        })()}
+                    </div>
+
+                    ${order.observations ? `
+                    <div class="section">
+                        <div class="section-title">Observações</div>
+                        <div class="description-box" style="background: #fff8f8; border-color: #ffeaea;">${order.observations}</div>
+                    </div>
+                    ` : ''}
+
+                    <div class="section">
+                        <div class="section-title">Evolução do Pedido</div>
+                        <div class="stepper">
+                            ${(() => {
+                                const steps = ['AGUARDANDO APROVAÇÃO', 'GRÁFICA', 'CORTE', 'COSTURA', 'REVISÃO', 'EM FASE DE ENTREGA', 'PEDIDO ENTREGUE'];
+                                const labels: Record<string, string> = { 'AGUARDANDO APROVAÇÃO': 'APROVAÇÃO', 'GRÁFICA': 'GRÁFICA', 'CORTE': 'CORTE', 'COSTURA': 'COSTURA', 'REVISÃO': 'REVISÃO', 'EM FASE DE ENTREGA': 'ENVIO', 'PEDIDO ENTREGUE': 'ENTREGUE' };
+                                const currentStepIdx = steps.indexOf(order.status);
+                                return steps.map((step, idx) => {
+                                    const isCompleted = idx < currentStepIdx;
+                                    const isCurrent = idx === currentStepIdx;
+                                    const dotClass = isCompleted ? 'completed' : isCurrent ? 'current' : '';
+                                    const labelClass = isCompleted ? 'completed' : isCurrent ? 'current' : '';
+                                    const line = idx < steps.length - 1 ? `<div class="step-line ${idx < currentStepIdx ? 'completed' : ''}"></div>` : '';
+                                    return `<div class="step"><div class="step-dot ${dotClass}"></div><span class="step-label ${labelClass}">${labels[step]}</span></div>${line}`;
+                                }).join('');
+                            })()}
+                        </div>
+                    </div>
+
+                    <div class="grid" style="margin-top: 12px; border-top: 2px solid #eee; padding-top: 12px;">
+                        <div class="info-block">
+                            <div class="info-label">Status Atual</div>
+                            <div class="info-value" style="font-weight: 900;">${order.status}</div>
+                        </div>
+                        <div class="info-block">
+                            <div class="info-label">Valor Total</div>
+                            <div class="info-value" style="font-weight: 900;">R$ ${parseFloat(order.value || order.total || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+                        </div>
+                    </div>
+
+                    <div class="footer">
+                        Gerado em ${new Date().toLocaleString('pt-BR')} • Libera Sports
+                    </div>
+
+                    <script>
+                        window.onload = () => {
+                            window.print();
+                            // window.close(); // Opcional: fecha a janela após imprimir
+                        };
+                    </script>
+                </body>
+            </html>
+        `;
+
         printWindow.document.write(html);
         printWindow.document.close();
     };
@@ -1954,77 +1847,7 @@ export default function DashboardPage() {
     });
 
     return (
-        <div className={`min-h-screen ${t.bg} ${t.text} selection:bg-[#39FF14] selection:text-black font-sans pb-20 transition-colors duration-300 ${!isDark ? 'dashboard-light' : ''}`}>
-            {/* Light mode CSS overrides - remaps hardcoded dark-mode classes */}
-            {!isDark && (
-                <style>{`
-                    /* Text: white → dark */
-                    .dashboard-light .text-white { color: #111827 !important; }
-                    .dashboard-light .text-white\\/70 { color: #374151 !important; }
-                    .dashboard-light .text-white\\/60 { color: #4b5563 !important; }
-                    .dashboard-light .text-white\\/50 { color: #6b7280 !important; }
-                    .dashboard-light .text-white\\/40 { color: #9ca3af !important; }
-                    .dashboard-light .text-white\\/30 { color: #9ca3af !important; }
-
-                    /* Text: zinc → readable on light bg */
-                    .dashboard-light .text-zinc-300 { color: #374151 !important; }
-                    .dashboard-light .text-zinc-400 { color: #6b7280 !important; }
-                    .dashboard-light .text-zinc-500 { color: #6b7280 !important; }
-                    .dashboard-light .text-zinc-600 { color: #4b5563 !important; }
-                    .dashboard-light .text-zinc-800 { color: #1f2937 !important; }
-
-                    /* Background: dark → light */
-                    .dashboard-light .bg-black { background-color: #e5e7eb !important; }
-                    .dashboard-light .bg-zinc-950 { background-color: #f3f4f6 !important; }
-                    .dashboard-light .bg-zinc-900 { background-color: #f9fafb !important; }
-                    .dashboard-light .bg-zinc-800 { background-color: #ffffff !important; }
-                    .dashboard-light .bg-zinc-700 { background-color: #f3f4f6 !important; }
-
-                    /* Background with opacity */
-                    .dashboard-light .bg-zinc-950\\/50 { background-color: rgba(229,231,235,0.5) !important; }
-                    .dashboard-light .bg-zinc-950\\/20 { background-color: rgba(229,231,235,0.2) !important; }
-                    .dashboard-light .bg-zinc-900\\/50 { background-color: rgba(243,244,246,0.5) !important; }
-                    .dashboard-light .bg-zinc-900\\/40 { background-color: rgba(243,244,246,0.4) !important; }
-                    .dashboard-light .bg-zinc-900\\/30 { background-color: rgba(243,244,246,0.3) !important; }
-                    .dashboard-light .bg-zinc-800\\/50 { background-color: rgba(229,231,235,0.5) !important; }
-                    .dashboard-light .bg-zinc-800\\/30 { background-color: rgba(229,231,235,0.3) !important; }
-
-                    /* Borders */
-                    .dashboard-light .border-zinc-600 { border-color: #d1d5db !important; }
-                    .dashboard-light .border-zinc-700 { border-color: #e5e7eb !important; }
-                    .dashboard-light .border-zinc-800 { border-color: #e5e7eb !important; }
-                    .dashboard-light .border-zinc-900 { border-color: #d1d5db !important; }
-                    .dashboard-light .border-zinc-950 { border-color: #d1d5db !important; }
-                    .dashboard-light .border-zinc-900\\/50 { border-color: rgba(209,213,219,0.5) !important; }
-
-                    /* Dividers */
-                    .dashboard-light .divide-zinc-700 > * + * { border-color: #e5e7eb !important; }
-                    .dashboard-light .divide-zinc-800 > * + * { border-color: #e5e7eb !important; }
-                    .dashboard-light .divide-zinc-900 > * + * { border-color: #d1d5db !important; }
-
-                    /* Hover states */
-                    .dashboard-light .hover\\:text-white:hover { color: #111827 !important; }
-                    .dashboard-light .hover\\:text-white\\/60:hover { color: #4b5563 !important; }
-                    .dashboard-light .hover\\:bg-zinc-700:hover { background-color: #e5e7eb !important; }
-                    .dashboard-light .hover\\:bg-zinc-800:hover { background-color: #f3f4f6 !important; }
-                    .dashboard-light .hover\\:bg-zinc-900:hover { background-color: #f3f4f6 !important; }
-                    .dashboard-light .hover\\:bg-white\\/10:hover { background-color: rgba(0,0,0,0.05) !important; }
-                    .dashboard-light .hover\\:border-zinc-600:hover { border-color: #d1d5db !important; }
-                    .dashboard-light .hover\\:border-zinc-700:hover { border-color: #d1d5db !important; }
-
-                    /* Group hover */
-                    .dashboard-light .group:hover .group-hover\\:text-white { color: #111827 !important; }
-
-                    /* Placeholder */
-                    .dashboard-light .placeholder\\:text-zinc-400::placeholder { color: #9ca3af !important; }
-                    .dashboard-light .placeholder\\:text-zinc-600::placeholder { color: #6b7280 !important; }
-
-                    /* Ring & Shadow */
-                    .dashboard-light .ring-zinc-500 { --tw-ring-color: #d1d5db !important; }
-                    .dashboard-light .focus\\:ring-zinc-500:focus { --tw-ring-color: #d1d5db !important; }
-                    .dashboard-light .shadow-white { --tw-shadow-color: rgba(0,0,0,0.1) !important; }
-                `}</style>
-            )}
+        <div className={`min-h-screen ${t.bg} ${t.text} selection:bg-[#39FF14] selection:text-black font-sans pb-20 transition-colors duration-300`}>
             {/* Navbar */}
             <nav className={`px-6 py-4 border-b ${t.border} ${t.nav} sticky top-0 z-50 flex justify-between items-center transition-colors duration-300`}>
                 <button
@@ -2049,23 +1872,6 @@ export default function DashboardPage() {
                         title={isDark ? 'Modo claro' : 'Modo escuro'}
                     >
                         {isDark ? <Sun size={18} /> : <Moon size={18} />}
-                    </button>
-                    <button
-                        onClick={async () => {
-                            const email = prompt('E-mail para receber relatórios automaticamente ao aprovar pedidos:\n\n(Deixe vazio para desativar)', reportEmail);
-                            if (email !== null) {
-                                const trimmed = email.trim();
-                                setReportEmail(trimmed);
-                                try {
-                                    await setDoc(doc(db, settingsDocPath), { report_email: trimmed }, { merge: true });
-                                    toast.success(trimmed ? `Relatórios serão enviados para ${trimmed}` : 'Envio automático de relatório desativado');
-                                } catch (e) { toast.error('Erro ao salvar configuração'); }
-                            }
-                        }}
-                        className={`p-2 rounded-xl transition-all hover:scale-110 ${reportEmail ? (isDark ? 'text-[#39FF14]' : 'text-green-600') : (isDark ? 'text-white/40' : 'text-gray-400')}`}
-                        title={reportEmail ? `Relatórios → ${reportEmail}` : 'Configurar e-mail do relatório'}
-                    >
-                        <Mail size={18} />
                     </button>
                     <button
                         onClick={() => {
@@ -2364,6 +2170,12 @@ export default function DashboardPage() {
                                                     </div>
                                                 </div>
                                                 <div className="flex items-center gap-6 shrink-0">
+                                                    <div className="text-right">
+                                                        <span className="block text-sm text-white/70 font-bold uppercase tracking-widest">Valor</span>
+                                                        <span className="text-xs font-black text-[#39FF14]">
+                                                            R$ {Number(order.value || order.total || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                                        </span>
+                                                    </div>
                                                     <div className="p-2 rounded-lg bg-zinc-950 border border-zinc-900 text-white group-hover:text-white transition-all">
                                                         <ChevronDown size={14} />
                                                     </div>
@@ -2418,6 +2230,15 @@ export default function DashboardPage() {
                                                                         <span className="text-white text-sm font-bold uppercase flex items-center gap-1">
                                                                             <Truck size={10} /> {order.delivery_method || '-'}
                                                                         </span>
+                                                                        {order.client_whatsapp && (
+                                                                            <a
+                                                                                href={`https://wa.me/${order.client_whatsapp.replace(/\D/g, '')}`}
+                                                                                target="_blank"
+                                                                                className="p-1 rounded bg-zinc-900 text-[#39FF14] hover:bg-[#39FF14] hover:text-black transition-all"
+                                                                            >
+                                                                                <MessageCircle size={12} />
+                                                                            </a>
+                                                                        )}
                                                                     </div>
                                                                 </div>
                                                             </div>
@@ -2433,8 +2254,14 @@ export default function DashboardPage() {
                                                         )}
                                                     </div>
 
-                                                    {/* Ações */}
-                                                    <div className="flex items-center justify-end mt-1 mb-2">
+                                                    {/* Valor */}
+                                                    <div className="flex items-center justify-between mt-1 mb-2">
+                                                        <div>
+                                                            <span className="block text-sm text-white/70 font-bold uppercase tracking-widest">Valor Total</span>
+                                                            <span className="text-lg font-black text-[#39FF14]">
+                                                                R$ {Number(order.value || order.total || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                                            </span>
+                                                        </div>
                                                         <div className="flex items-center gap-2">
                                                             <button onClick={() => {
                                                                 const items = order.items && order.items.length > 0
@@ -2543,7 +2370,7 @@ export default function DashboardPage() {
                                                             className="flex items-center gap-2 text-sm font-black uppercase tracking-widest text-white hover:text-[#39FF14] transition-colors"
                                                         >
                                                             {expandedObs[order.id] ? <X size={12} /> : <Plus size={12} />}
-                                                            {expandedObs[order.id] ? 'Fechar Observações' : order.observations ? 'Ver Observações Internas' : 'Deseja adicionar alguma observação?'}
+                                                            {expandedObs[order.id] ? 'Fechar Observações' : 'Ver Observações Internas'}
                                                             {order.observations && !expandedObs[order.id] && (
                                                                 <span className="w-1.5 h-1.5 rounded-full bg-[#39FF14] ml-1 animate-pulse" />
                                                             )}
@@ -2593,48 +2420,6 @@ export default function DashboardPage() {
                                                                     </p>
                                                                 )}
                                                             </div>
-                                                        )}
-                                                    </div>
-
-                                                    {/* Imagens da Gráfica */}
-                                                    <div className="mt-4 border-t border-zinc-900 pt-4">
-                                                        <div className="flex items-center justify-between mb-3">
-                                                            <span className="text-sm font-black uppercase tracking-widest text-white flex items-center gap-2">
-                                                                <Paperclip size={12} className="text-[#39FF14]" /> Imagens da Gráfica ({getProductionImages(order).length}/5)
-                                                            </span>
-                                                        </div>
-                                                        {getProductionImages(order).length > 0 && (
-                                                            <div className="grid grid-cols-2 gap-2 mb-3">
-                                                                {getProductionImages(order).map((img: string, idx: number) => (
-                                                                    <div key={idx} className="relative group/img">
-                                                                        <img
-                                                                            src={img}
-                                                                            alt={`Imagem ${idx + 1}`}
-                                                                            className="w-full h-[140px] object-contain rounded-xl border border-zinc-800 bg-zinc-950 cursor-pointer"
-                                                                            onClick={() => window.open(img, '_blank')}
-                                                                        />
-                                                                        <button
-                                                                            onClick={() => handleRemoveProductionImage(order.id, idx)}
-                                                                            className="absolute top-1 right-1 bg-red-500/80 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-black opacity-0 group-hover/img:opacity-100 transition-opacity"
-                                                                        >
-                                                                            ✕
-                                                                        </button>
-                                                                    </div>
-                                                                ))}
-                                                            </div>
-                                                        )}
-                                                        {getProductionImages(order).length < 5 && (
-                                                            <label className="block cursor-pointer">
-                                                                <div className="bg-zinc-950 border border-dashed border-zinc-700 rounded-xl p-4 text-center hover:border-[#39FF14]/50 transition-all">
-                                                                    <Paperclip size={20} className="mx-auto mb-1 text-white/30" />
-                                                                    <p className="text-sm font-black uppercase text-white/50">Anexar imagem</p>
-                                                                    <p className="text-xs text-white/30 mt-1">Máx 300KB • Até 5 imagens</p>
-                                                                </div>
-                                                                <input type="file" accept="image/*" className="hidden" onChange={e => {
-                                                                    const file = e.target.files?.[0];
-                                                                    if (file) handleUploadProductionImage(order.id, file);
-                                                                }} />
-                                                            </label>
                                                         )}
                                                     </div>
 
@@ -2760,7 +2545,7 @@ export default function DashboardPage() {
                                                                     <div className="relative w-12 h-12 rounded-lg overflow-hidden border border-zinc-700 shrink-0">
                                                                         <img src={editProductImage} alt="Preview" className="w-full h-full object-cover" />
                                                                         <button type="button" onClick={() => setEditProductImage('')}
-                                                                            className="absolute -top-1 -right-1 bg-red-500 text-[#fff] rounded-full w-4 h-4 flex items-center justify-center">
+                                                                            className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center">
                                                                             <X size={8} />
                                                                         </button>
                                                                     </div>
@@ -2792,7 +2577,7 @@ export default function DashboardPage() {
                                                                     <div key={idx} className="relative w-12 h-12 rounded-lg overflow-hidden border border-zinc-700 shrink-0">
                                                                         <img src={img} alt={`Extra ${idx + 1}`} className="w-full h-full object-cover" />
                                                                         <button type="button" onClick={() => setEditProductImages(editProductImages.filter((_, i) => i !== idx))}
-                                                                            className="absolute -top-1 -right-1 bg-red-500 text-[#fff] rounded-full w-4 h-4 flex items-center justify-center">
+                                                                            className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center">
                                                                             <X size={8} />
                                                                         </button>
                                                                     </div>
@@ -3234,7 +3019,6 @@ export default function DashboardPage() {
                                                 onClick={() => {
                                                     setPaymentMethod(m as any);
                                                     if (m !== 'CARTÃO CRÉDITO') setInstallments(1);
-                                                    if (m !== 'PIX') setPixSplit(false);
                                                 }}
                                                 className={`p-2 rounded-xl border text-sm font-black uppercase tracking-widest transition-all ${paymentMethod === m
                                                     ? 'border-[#39FF14] bg-[#39FF14]/10 text-[#39FF14]'
@@ -3245,16 +3029,6 @@ export default function DashboardPage() {
                                             </button>
                                         ))}
                                     </div>
-                                    {paymentMethod === 'PIX' && (
-                                        <label className="flex items-center gap-3 cursor-pointer bg-zinc-900/50 rounded-xl p-3 border border-zinc-800 hover:border-[#39FF14]/30 transition-all mt-1">
-                                            <input type="checkbox" checked={pixSplit} onChange={e => setPixSplit(e.target.checked)}
-                                                className="w-4 h-4 accent-[#39FF14] rounded" />
-                                            <div>
-                                                <span className="text-sm font-black uppercase text-white">PIX 50% + 50%</span>
-                                                <p className="text-xs text-white/50">50% no ato do pedido • 50% na entrega</p>
-                                            </div>
-                                        </label>
-                                    )}
                                     <div className="grid grid-cols-2 gap-2">
                                         <div>
                                             <label className="block text-xs font-black uppercase tracking-widest mb-1 text-white">Data</label>
@@ -3441,37 +3215,10 @@ export default function DashboardPage() {
                                                             <p className="text-base md:text-xl font-black text-white tabular-nums">
                                                                 R$ {sale.total?.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                                             </p>
-                                                            {sale.client_whatsapp && (
-                                                                <button
-                                                                    onClick={() => {
-                                                                        const phone = normalizePhone(sale.client_whatsapp);
-                                                                        const trackUrl = `${window.location.origin}/rastreio?id=${sale.id}`;
-                                                                        const deliveryDate = sale.deadline ? sale.deadline.split('-').reverse().join('/') : '';
-                                                                        const msg = [
-                                                                            `Olá *${sale.client || ''}*! Seu pedido na *Libera Sports* foi cadastrado com sucesso!`,
-                                                                            '',
-                                                                            `*Pedido:* ${sale.order_number || sale.sale_number}`,
-                                                                            `*Valor:* R$ ${Number(sale.total || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
-                                                                            ...(deliveryDate ? [`*Entrega prevista:* ${deliveryDate}`] : []),
-                                                                            `*Pagamento:* ${sale.payment_method || 'PIX'}`,
-                                                                            '',
-                                                                            'Acompanhe seu pedido em tempo real:',
-                                                                            trackUrl,
-                                                                            '',
-                                                                            '_Libera Sports - Vista Libera e viva a liberdade_'
-                                                                        ].map(l => encodeURIComponent(l)).join('%0a');
-                                                                        window.open(`https://wa.me/${phone}?text=${msg}`, '_blank');
-                                                                    }}
-                                                                    className="bg-green-500/10 text-green-500 p-2.5 rounded-xl hover:bg-green-500 hover:text-[#fff] transition-all"
-                                                                    title="Enviar WhatsApp"
-                                                                >
-                                                                    <MessageCircle size={14} />
-                                                                </button>
-                                                            )}
                                                             <button
                                                                 onClick={() => handleDeleteSale(sale.id)}
                                                                 disabled={loading}
-                                                                className="bg-red-500/10 text-red-500 p-2.5 rounded-xl hover:bg-red-500 hover:text-[#fff] transition-all disabled:opacity-50"
+                                                                className="bg-red-500/10 text-red-500 p-2.5 rounded-xl hover:bg-red-500 hover:text-white transition-all disabled:opacity-50"
                                                                 title="Excluir Venda"
                                                             >
                                                                 <Trash2 size={14} />
@@ -3519,13 +3266,13 @@ export default function DashboardPage() {
                         <div className="flex gap-1 p-1 bg-zinc-950 rounded-2xl overflow-x-auto">
                             <button
                                 onClick={() => { setFinanceView('A PAGAR'); setFinanceStatusFilter(''); }}
-                                className={`flex-1 py-3 rounded-xl font-black uppercase text-xs tracking-widest transition-all flex items-center justify-center gap-1.5 shrink-0 ${financeView === 'A PAGAR' ? 'bg-red-500 text-[#fff] shadow-lg shadow-red-500/20' : 'text-white hover:text-white'}`}
+                                className={`flex-1 py-3 rounded-xl font-black uppercase text-xs tracking-widest transition-all flex items-center justify-center gap-1.5 shrink-0 ${financeView === 'A PAGAR' ? 'bg-red-500 text-white shadow-lg shadow-red-500/20' : 'text-white hover:text-white'}`}
                             >
                                 <ArrowDownLeft size={12} /> A Pagar
                             </button>
                             <button
                                 onClick={() => { setFinanceView('PAGAS'); setFinanceStatusFilter(''); }}
-                                className={`flex-1 py-3 rounded-xl font-black uppercase text-xs tracking-widest transition-all flex items-center justify-center gap-1.5 shrink-0 ${financeView === 'PAGAS' ? 'bg-blue-500 text-[#fff] shadow-lg shadow-blue-500/20' : 'text-white hover:text-white'}`}
+                                className={`flex-1 py-3 rounded-xl font-black uppercase text-xs tracking-widest transition-all flex items-center justify-center gap-1.5 shrink-0 ${financeView === 'PAGAS' ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20' : 'text-white hover:text-white'}`}
                             >
                                 <Check size={12} /> Pagas
                             </button>
@@ -3537,7 +3284,7 @@ export default function DashboardPage() {
                             </button>
                             <button
                                 onClick={() => { setFinanceView('RECEBIDAS'); setFinanceStatusFilter(''); }}
-                                className={`flex-1 py-3 rounded-xl font-black uppercase text-xs tracking-widest transition-all flex items-center justify-center gap-1.5 shrink-0 ${financeView === 'RECEBIDAS' ? 'bg-emerald-500 text-[#fff] shadow-lg shadow-emerald-500/20' : 'text-white hover:text-white'}`}
+                                className={`flex-1 py-3 rounded-xl font-black uppercase text-xs tracking-widest transition-all flex items-center justify-center gap-1.5 shrink-0 ${financeView === 'RECEBIDAS' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : 'text-white hover:text-white'}`}
                             >
                                 <Check size={12} /> Recebidas
                             </button>
@@ -4030,7 +3777,7 @@ export default function DashboardPage() {
                                     {(['TODOS', 'CLIENTE', 'FORNECEDOR', 'FUNCIONÁRIO'] as const).map(tipo => (
                                         <button key={tipo} onClick={() => setCadastroFilter(tipo)}
                                             className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${cadastroFilter === tipo
-                                                ? tipo === 'CLIENTE' ? 'bg-[#39FF14] text-black' : tipo === 'FORNECEDOR' ? 'bg-red-500 text-[#fff]' : tipo === 'FUNCIONÁRIO' ? 'bg-blue-500 text-[#fff]' : 'bg-white text-black'
+                                                ? tipo === 'CLIENTE' ? 'bg-[#39FF14] text-black' : tipo === 'FORNECEDOR' ? 'bg-red-500 text-white' : tipo === 'FUNCIONÁRIO' ? 'bg-blue-500 text-white' : 'bg-white text-black'
                                                 : 'bg-zinc-800 text-white/70 hover:text-white'}`}>
                                             {tipo === 'TODOS' ? 'Todos' : tipo === 'CLIENTE' ? 'Clientes' : tipo === 'FORNECEDOR' ? 'Fornecedores' : 'Funcionários'}
                                         </button>
@@ -4099,7 +3846,7 @@ export default function DashboardPage() {
                                     <div className="grid grid-cols-3 gap-2">
                                         {['PIX', 'DINHEIRO', 'CARTÃO'].map(m => (
                                             <button key={m} type="button" onClick={() => setGastoPayMethod(m)}
-                                                className={`py-3 rounded-xl font-black uppercase text-xs tracking-widest transition-all ${gastoPayMethod === m ? 'bg-red-500 text-[#fff]' : 'bg-zinc-950 text-white border border-zinc-800 hover:border-zinc-700'}`}>
+                                                className={`py-3 rounded-xl font-black uppercase text-xs tracking-widest transition-all ${gastoPayMethod === m ? 'bg-red-500 text-white' : 'bg-zinc-950 text-white border border-zinc-800 hover:border-zinc-700'}`}>
                                                 {m}
                                             </button>
                                         ))}
@@ -4132,7 +3879,7 @@ export default function DashboardPage() {
                                             setGastoDesc(''); setGastoAmount(''); setGastoPayMethod('PIX');
                                         } catch (err) { console.error(err); toast.error('Erro ao registrar gasto'); }
                                     }}
-                                    className="w-full bg-red-500 text-[#fff] py-4 rounded-2xl font-black uppercase text-sm tracking-widest hover:scale-[1.02] transition-all"
+                                    className="w-full bg-red-500 text-white py-4 rounded-2xl font-black uppercase text-sm tracking-widest hover:scale-[1.02] transition-all"
                                 >
                                     Registrar Gasto
                                 </button>
@@ -4155,46 +3902,15 @@ export default function DashboardPage() {
                                 <p className="text-xs text-white/50 font-bold uppercase mb-2">Motivo da Pendência</p>
                                 <p className="text-base text-white font-medium leading-relaxed">{pendingViewOrder.pending_reason || 'Sem descrição informada'}</p>
                             </div>
-                            <p className="text-xs text-white/50 font-bold uppercase mb-3 text-center">Enviar pedido para qual etapa?</p>
-                            <div className="grid grid-cols-2 gap-2">
-                                {workflow.map((step) => (
-                                    <button
-                                        key={step}
-                                        onClick={async () => {
-                                            setLoading(true);
-                                            try {
-                                                const orderRef = doc(db, salesCollectionPath, pendingViewOrder.id);
-                                                const orderSnap = await getDoc(orderRef);
-                                                const orderData = orderSnap.data();
-                                                const newLog = {
-                                                    id: crypto.randomUUID(),
-                                                    old_status: 'PENDÊNCIA',
-                                                    new_status: step,
-                                                    operator_name: operatorName,
-                                                    created_at: new Date().toISOString(),
-                                                    note: `Pendência resolvida → ${step}`
-                                                };
-                                                await updateDoc(orderRef, {
-                                                    status: step,
-                                                    pending_reason: '',
-                                                    order_logs: [...(orderData?.order_logs || []), newLog]
-                                                });
-                                                toast.success(`Pedido enviado para ${step}`);
-                                                setPendingViewOrder(null);
-                                            } catch (error) {
-                                                console.error('Error resolving pending:', error);
-                                                toast.error('Erro ao resolver pendência');
-                                            } finally {
-                                                setLoading(false);
-                                            }
-                                        }}
-                                        disabled={loading}
-                                        className="bg-zinc-800 hover:bg-[#39FF14] hover:text-black text-white py-3 px-3 rounded-xl font-black uppercase text-xs tracking-widest transition-all disabled:opacity-50"
-                                    >
-                                        {step === 'AGUARDANDO APROVAÇÃO' ? 'APROVAÇÃO' : step === 'EM FASE DE ENTREGA' ? 'ENVIO' : step === 'PEDIDO ENTREGUE' ? 'ENTREGUE' : step}
-                                    </button>
-                                ))}
-                            </div>
+                            <button
+                                onClick={() => {
+                                    advanceStep(pendingViewOrder.id, pendingViewOrder.status);
+                                    setPendingViewOrder(null);
+                                }}
+                                className="w-full bg-[#39FF14] text-black py-4 rounded-2xl font-black uppercase text-sm tracking-widest hover:scale-[1.02] transition-all"
+                            >
+                                Resolver Pendência
+                            </button>
                         </div>
                     </div>
                 )}
@@ -4252,11 +3968,11 @@ export default function DashboardPage() {
                                         Cliente
                                     </button>
                                     <button type="button" onClick={() => setFornecedorType('FORNECEDOR')}
-                                        className={`flex-1 py-2.5 rounded-lg font-black uppercase text-xs tracking-widest transition-all ${fornecedorType === 'FORNECEDOR' ? 'bg-red-500 text-[#fff]' : 'text-white'}`}>
+                                        className={`flex-1 py-2.5 rounded-lg font-black uppercase text-xs tracking-widest transition-all ${fornecedorType === 'FORNECEDOR' ? 'bg-red-500 text-white' : 'text-white'}`}>
                                         Fornecedor
                                     </button>
                                     <button type="button" onClick={() => setFornecedorType('FUNCIONÁRIO')}
-                                        className={`flex-1 py-2.5 rounded-lg font-black uppercase text-xs tracking-widest transition-all ${fornecedorType === 'FUNCIONÁRIO' ? 'bg-blue-500 text-[#fff]' : 'text-white'}`}>
+                                        className={`flex-1 py-2.5 rounded-lg font-black uppercase text-xs tracking-widest transition-all ${fornecedorType === 'FUNCIONÁRIO' ? 'bg-blue-500 text-white' : 'text-white'}`}>
                                         Funcionário
                                     </button>
                                 </div>
@@ -4438,7 +4154,7 @@ export default function DashboardPage() {
                             </div>
                             <button
                                 onClick={() => { setGastoDesc(''); setGastoAmount(''); setGastoPayMethod('PIX'); setShowGastoModal(true); }}
-                                className="bg-red-500 text-[#fff] px-6 py-3 rounded-2xl font-black uppercase text-sm hover:scale-105 transition-all shadow-lg shadow-red-500/20 flex items-center gap-2"
+                                className="bg-red-500 text-white px-6 py-3 rounded-2xl font-black uppercase text-sm hover:scale-105 transition-all shadow-lg shadow-red-500/20 flex items-center gap-2"
                             >
                                 <DollarSign size={16} /> Gastos do Dia
                             </button>
@@ -5039,7 +4755,7 @@ export default function DashboardPage() {
                                 </button>
                                 <button
                                     type="submit"
-                                    className="flex-1 bg-red-500 text-[#fff] py-4 rounded-xl font-black uppercase text-xs hover:scale-105 transition-all shadow-lg shadow-red-500/10"
+                                    className="flex-1 bg-red-500 text-white py-4 rounded-xl font-black uppercase text-xs hover:scale-105 transition-all shadow-lg shadow-red-500/10"
                                 >
                                     Confirmar Pendência
                                 </button>
@@ -5101,7 +4817,7 @@ export default function DashboardPage() {
                                             <div className="relative w-16 h-16 rounded-xl overflow-hidden border border-zinc-800 shrink-0">
                                                 <img src={prodImage} alt="Preview" className="w-full h-full object-cover" />
                                                 <button type="button" onClick={() => setProdImage('')}
-                                                    className="absolute -top-1 -right-1 bg-red-500 text-[#fff] rounded-full w-5 h-5 flex items-center justify-center text-sm">
+                                                    className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-sm">
                                                     <X size={10} />
                                                 </button>
                                             </div>
@@ -5139,7 +4855,7 @@ export default function DashboardPage() {
                                             <div key={idx} className="relative w-14 h-14 rounded-xl overflow-hidden border border-zinc-800 shrink-0">
                                                 <img src={img} alt={`Extra ${idx + 1}`} className="w-full h-full object-cover" />
                                                 <button type="button" onClick={() => setProdImages(prodImages.filter((_, i) => i !== idx))}
-                                                    className="absolute -top-1 -right-1 bg-red-500 text-[#fff] rounded-full w-4 h-4 flex items-center justify-center">
+                                                    className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center">
                                                     <X size={8} />
                                                 </button>
                                             </div>
@@ -5369,7 +5085,7 @@ export default function DashboardPage() {
                                 Cancelar
                             </button>
                             <button onClick={handleDeleteConta}
-                                className="flex-1 py-3 rounded-2xl bg-red-500 text-[#fff] font-black uppercase text-sm tracking-widest hover:bg-red-600 transition-all">
+                                className="flex-1 py-3 rounded-2xl bg-red-500 text-white font-black uppercase text-sm tracking-widest hover:bg-red-600 transition-all">
                                 Sim, apagar!
                             </button>
                         </div>

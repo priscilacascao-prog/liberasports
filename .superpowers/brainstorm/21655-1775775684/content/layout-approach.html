@@ -1,0 +1,83 @@
+<h2>Qual abordagem para a tela de Cadastrar Venda?</h2>
+<p class="subtitle">Clique na que combina mais com seu jeito de trabalhar</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Layout 2 colunas</h3>
+      <p><strong>Esquerda:</strong> carrinho / produtos<br/>
+      <strong>Direita:</strong> cliente + entrega + pagamento</p>
+      <p style="margin-top:8px;opacity:0.8">Tudo visível de uma vez só. Zero rolagem em telas grandes (desktop/notebook). Em celular vira uma coluna só.</p>
+      <div class="mockup" style="margin-top:12px">
+        <div class="mockup-header">Preview: 2 colunas</div>
+        <div class="mockup-body" style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div>
+            <div class="label">Carrinho</div>
+            <div class="placeholder" style="height:40px">Produto 1</div>
+            <div class="placeholder" style="height:40px">Produto 2</div>
+            <div class="placeholder" style="height:40px">Total</div>
+          </div>
+          <div>
+            <div class="label">Cliente</div>
+            <input class="mock-input" placeholder="Nome"/>
+            <div class="label" style="margin-top:8px">Entrega</div>
+            <input class="mock-input" placeholder="CEP"/>
+            <div class="label" style="margin-top:8px">Pagamento</div>
+            <div style="display:flex;gap:4px"><button class="mock-button" style="flex:1;font-size:10px">PIX</button><button class="mock-button" style="flex:1;font-size:10px">CARTÃO</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Wizard em 3 etapas</h3>
+      <p><strong>1.</strong> Cliente & Produto → <strong>2.</strong> Entrega → <strong>3.</strong> Pagamento</p>
+      <p style="margin-top:8px;opacity:0.8">Uma etapa de cada vez, com botão "Próximo". Menos informação na tela, mais clara, mas precisa clicar para avançar.</p>
+      <div class="mockup" style="margin-top:12px">
+        <div class="mockup-header">Preview: Wizard passo 1/3</div>
+        <div class="mockup-body">
+          <div style="display:flex;gap:4px;margin-bottom:12px">
+            <div style="flex:1;height:4px;background:#39FF14;border-radius:2px"></div>
+            <div style="flex:1;height:4px;background:#ddd;border-radius:2px"></div>
+            <div style="flex:1;height:4px;background:#ddd;border-radius:2px"></div>
+          </div>
+          <div class="label">Cliente</div>
+          <input class="mock-input" placeholder="Nome do cliente"/>
+          <input class="mock-input" placeholder="WhatsApp"/>
+          <button class="mock-button" style="margin-top:8px;width:100%">Próximo →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Seções colapsáveis</h3>
+      <p>Tudo em uma coluna, mas cada seção abre/fecha. Você só vê a que está preenchendo.</p>
+      <p style="margin-top:8px;opacity:0.8">Parecido com hoje, mas compacto. Não precisa clicar "próximo", só expandir o que interessa.</p>
+      <div class="mockup" style="margin-top:12px">
+        <div class="mockup-header">Preview: Seções</div>
+        <div class="mockup-body">
+          <div class="placeholder" style="padding:8px;display:flex;justify-content:space-between;align-items:center">
+            <span>▼ Cliente</span><span style="opacity:0.5">preenchendo...</span>
+          </div>
+          <div style="padding:8px 12px;background:rgba(255,255,255,0.03)">
+            <input class="mock-input" placeholder="Nome"/>
+            <input class="mock-input" placeholder="WhatsApp"/>
+          </div>
+          <div class="placeholder" style="padding:8px;display:flex;justify-content:space-between;align-items:center;margin-top:4px">
+            <span>▶ Entrega</span><span style="opacity:0.5">—</span>
+          </div>
+          <div class="placeholder" style="padding:8px;display:flex;justify-content:space-between;align-items:center;margin-top:4px">
+            <span>▶ Pagamento</span><span style="opacity:0.5">—</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
