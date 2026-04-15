@@ -1525,19 +1525,19 @@ export default function DashboardPage() {
                         * { margin: 0; padding: 0; box-sizing: border-box; }
                         body { font-family: 'Inter', sans-serif; padding: 16px; color: #111; background: white; }
                         .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #111; padding-bottom: 8px; margin-bottom: 12px; }
-                        .logo { font-size: 22px; font-weight: 900; font-style: italic; }
+                        .logo { font-size: 28px; font-weight: 900; font-style: italic; }
                         .os-title { text-align: right; }
-                        .os-title h1 { font-size: 16px; font-weight: 900; }
-                        .os-title p { font-size: 10px; color: #666; font-weight: 700; margin-top: 2px; }
+                        .os-title h1 { font-size: 22px; font-weight: 900; }
+                        .os-title p { font-size: 14px; color: #666; font-weight: 700; margin-top: 2px; }
                         .section { margin-bottom: 10px; }
-                        .section-title { font-size: 9px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.1em; color: #666; margin-bottom: 4px; border-bottom: 1px solid #eee; padding-bottom: 2px; }
+                        .section-title { font-size: 13px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.1em; color: #666; margin-bottom: 4px; border-bottom: 1px solid #eee; padding-bottom: 2px; }
                         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
                         .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
                         .info-block { margin-bottom: 8px; }
-                        .info-label { font-size: 8px; font-weight: 700; color: #999; text-transform: uppercase; }
-                        .info-value { font-size: 13px; font-weight: 700; margin-top: 1px; }
-                        .description-box { background: #f9f9f9; padding: 12px; border-radius: 8px; white-space: pre-wrap; font-size: 11px; line-height: 1.5; border: 1px solid #eee; }
-                        .footer { margin-top: 12px; padding-top: 8px; border-top: 1px solid #eee; font-size: 8px; color: #999; text-align: center; }
+                        .info-label { font-size: 12px; font-weight: 700; color: #999; text-transform: uppercase; }
+                        .info-value { font-size: 16px; font-weight: 700; margin-top: 1px; }
+                        .description-box { background: #f9f9f9; padding: 12px; border-radius: 8px; white-space: pre-wrap; font-size: 14px; line-height: 1.5; border: 1px solid #eee; }
+                        .footer { margin-top: 12px; padding-top: 8px; border-top: 1px solid #eee; font-size: 11px; color: #999; text-align: center; }
                         .split-row { display: flex; gap: 12px; align-items: stretch; }
                         .split-left { flex: 2; min-width: 0; }
                         .split-right { flex: 3; min-width: 0; }
@@ -1546,10 +1546,10 @@ export default function DashboardPage() {
                         .step-box { display: flex; align-items: center; gap: 6px; border: 2px solid #ccc; border-radius: 6px; padding: 6px 10px; flex: 1; min-width: calc(50% - 6px); }
                         .step-box.completed { border-color: #111; background: #f5f5f5; }
                         .step-box.current { border-color: #f97316; background: #fff7ed; }
-                        .step-check { width: 22px; height: 22px; border: 2.5px solid #bbb; border-radius: 4px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 900; }
+                        .step-check { width: 26px; height: 26px; border: 2.5px solid #bbb; border-radius: 4px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 900; }
                         .step-check.completed { border-color: #111; background: #111; color: #fff; }
                         .step-check.current { border-color: #f97316; }
-                        .step-name { font-size: 12px; font-weight: 800; text-transform: uppercase; color: #999; }
+                        .step-name { font-size: 14px; font-weight: 800; text-transform: uppercase; color: #999; }
                         .step-name.completed { color: #111; }
                         .step-name.current { color: #f97316; }
                         @media print { body { padding: 10px; } button { display: none; } @page { margin: 8mm; size: A4 portrait; } }
@@ -1604,13 +1604,13 @@ export default function DashboardPage() {
                         <div class="section-title">Produtos / Imagem da Gráfica</div>
                         <div class="${order.production_image ? 'split-row' : ''}">
                             <div class="${order.production_image ? 'split-left' : ''}">
-                                ${order.description ? `<div class="description-box" style="margin-bottom: 8px; font-size: 10px;">${order.description}</div>` : ''}
+                                ${order.description ? `<div class="description-box" style="margin-bottom: 8px;">${order.description}</div>` : ''}
                                 ${(() => {
                                     let itemsHtml = '';
                                     if (order.items && order.items.length > 0) {
-                                        itemsHtml = `<div style="background: #f0f0f0; padding: 8px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 6px;">
-                                            <div style="font-size: 7px; font-weight: 800; text-transform: uppercase; color: #888; margin-bottom: 4px;">Produtos do Pedido</div>
-                                            ${order.items.map((i: any) => `<div style="font-size: 10px; padding: 2px 0; border-bottom: 1px solid #e5e5e5;">
+                                        itemsHtml = `<div style="background: #f0f0f0; padding: 10px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 6px;">
+                                            <div style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #888; margin-bottom: 4px;">Produtos do Pedido</div>
+                                            ${order.items.map((i: any) => `<div style="font-size: 14px; padding: 3px 0; border-bottom: 1px solid #e5e5e5;">
                                                 <span style="font-weight: 700;">${i.quantity}x ${i.name}</span>
                                             </div>`).join('')}
                                         </div>`;
@@ -1622,17 +1622,17 @@ export default function DashboardPage() {
                                         if (saleMatch) linkedSale = sales.find((s: any) => s.sale_number === saleMatch[1]);
                                     }
                                     if (linkedSale?.items?.length) {
-                                        linkedHtml = `<div style="background: #f0f0f0; padding: 8px; border-radius: 8px; border: 1px solid #ddd;">
-                                            <div style="font-size: 7px; font-weight: 800; text-transform: uppercase; color: #888; margin-bottom: 4px;">Itens da Venda Vinculada (${linkedSale.sale_number})</div>
-                                            ${linkedSale.items.map((i: any) => `<div style="font-size: 10px; padding: 2px 0; border-bottom: 1px solid #e5e5e5;">
+                                        linkedHtml = `<div style="background: #f0f0f0; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
+                                            <div style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #888; margin-bottom: 4px;">Itens da Venda Vinculada (${linkedSale.sale_number})</div>
+                                            ${linkedSale.items.map((i: any) => `<div style="font-size: 14px; padding: 3px 0; border-bottom: 1px solid #e5e5e5;">
                                                 <span style="font-weight: 700;">${i.quantity}x ${i.name}</span>
                                             </div>`).join('')}
                                         </div>`;
                                     }
                                     return itemsHtml + linkedHtml;
                                 })()}
-                                ${order.observations ? `<div style="margin-top: 6px; background: #fff8f8; padding: 8px; border-radius: 8px; border: 1px solid #ffeaea; font-size: 10px; white-space: pre-wrap; line-height: 1.4;">
-                                    <div style="font-size: 7px; font-weight: 800; text-transform: uppercase; color: #c88; margin-bottom: 3px;">Observações</div>
+                                ${order.observations ? `<div style="margin-top: 6px; background: #fff8f8; padding: 10px; border-radius: 8px; border: 1px solid #ffeaea; font-size: 14px; white-space: pre-wrap; line-height: 1.4;">
+                                    <div style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #c88; margin-bottom: 3px;">Observações</div>
                                     ${order.observations}
                                 </div>` : ''}
                             </div>
@@ -1671,7 +1671,7 @@ export default function DashboardPage() {
                     <div style="margin-top: 12px; border-top: 2px solid #eee; padding-top: 12px;">
                         <div class="info-block">
                             <div class="info-label">Status Atual</div>
-                            <div class="info-value" style="font-weight: 900;">${order.status}</div>
+                            <div class="info-value" style="font-weight: 900; font-size: 18px;">${order.status}</div>
                         </div>
                     </div>
 
