@@ -2,11 +2,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { auth, db } from '@/lib/firebase';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, sendPasswordResetEmail } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Eye, EyeOff } from 'lucide-react';
 import Image from 'next/image';
 
 const appId = 'libera-sports-v1';
@@ -22,6 +22,7 @@ export default function LojaLoginPage() {
     const [name, setName] = useState('');
     const [whatsapp, setWhatsapp] = useState('');
     const [cpfCnpj, setCpfCnpj] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -114,9 +115,28 @@ export default function LojaLoginPage() {
                     </div>
                     <div>
                         <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Senha</label>
-                        <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••"
-                            className="w-full border border-gray-200 rounded-xl p-3 text-black outline-none focus:border-black transition-colors text-sm font-medium" required />
+                        <div className="relative">
+                            <input type={showPassword ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••"
+                                className="w-full border border-gray-200 rounded-xl p-3 pr-12 text-black outline-none focus:border-black transition-colors text-sm font-medium" required />
+                            <button type="button" onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black transition-colors">
+                                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                            </button>
+                        </div>
                     </div>
+                    {!isRegistering && (
+                        <button type="button" onClick={async () => {
+                            if (!email.trim()) { toast.error('Digite seu e-mail primeiro'); return; }
+                            try {
+                                await sendPasswordResetEmail(auth, email.trim());
+                                toast.success('E-mail de redefinição de senha enviado!');
+                            } catch {
+                                toast.error('E-mail não encontrado');
+                            }
+                        }} className="text-sm text-gray-500 hover:text-black font-medium transition-colors">
+                            Esqueci minha senha
+                        </button>
+                    )}
                     <button type="submit" disabled={authLoading}
                         className="w-full bg-black text-white py-3 rounded-xl font-bold uppercase text-sm hover:bg-gray-900 transition-colors disabled:opacity-50">
                         {authLoading ? 'Aguarde...' : isRegistering ? 'Criar Conta' : 'Entrar'}
