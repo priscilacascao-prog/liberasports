@@ -1523,22 +1523,26 @@ export default function DashboardPage() {
                     <style>
                         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
                         * { margin: 0; padding: 0; box-sizing: border-box; }
-                        body { font-family: 'Inter', sans-serif; padding: 24px; color: #111; background: white; }
-                        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #111; padding-bottom: 12px; margin-bottom: 20px; }
+                        body { font-family: 'Inter', sans-serif; padding: 16px; color: #111; background: white; }
+                        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #111; padding-bottom: 8px; margin-bottom: 12px; }
                         .logo { font-size: 22px; font-weight: 900; font-style: italic; }
                         .os-title { text-align: right; }
                         .os-title h1 { font-size: 16px; font-weight: 900; }
                         .os-title p { font-size: 10px; color: #666; font-weight: 700; margin-top: 2px; }
-                        .section { margin-bottom: 16px; }
-                        .section-title { font-size: 9px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.1em; color: #666; margin-bottom: 6px; border-bottom: 1px solid #eee; padding-bottom: 3px; }
+                        .section { margin-bottom: 10px; }
+                        .section-title { font-size: 9px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.1em; color: #666; margin-bottom: 4px; border-bottom: 1px solid #eee; padding-bottom: 2px; }
                         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
                         .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
                         .info-block { margin-bottom: 8px; }
                         .info-label { font-size: 8px; font-weight: 700; color: #999; text-transform: uppercase; }
                         .info-value { font-size: 13px; font-weight: 700; margin-top: 1px; }
                         .description-box { background: #f9f9f9; padding: 12px; border-radius: 8px; white-space: pre-wrap; font-size: 11px; line-height: 1.5; border: 1px solid #eee; }
-                        .footer { margin-top: 20px; padding-top: 10px; border-top: 1px solid #eee; font-size: 8px; color: #999; text-align: center; }
-                        .stepper { display: flex; align-items: center; margin: 16px 0; }
+                        .footer { margin-top: 12px; padding-top: 8px; border-top: 1px solid #eee; font-size: 8px; color: #999; text-align: center; }
+                        .split-row { display: flex; gap: 12px; align-items: stretch; }
+                        .split-left { flex: 2; min-width: 0; }
+                        .split-right { flex: 3; min-width: 0; }
+                        .split-right img { width: 100%; height: 100%; max-height: 280px; object-fit: contain; border-radius: 6px; }
+                        .stepper { display: flex; align-items: center; margin: 10px 0; }
                         .step { display: flex; flex-direction: column; align-items: center; flex: 1; position: relative; }
                         .step-dot { width: 12px; height: 12px; border-radius: 50%; border: 2px solid #ddd; background: #fff; z-index: 1; }
                         .step-dot.completed { background: #111; border-color: #111; }
@@ -1548,7 +1552,7 @@ export default function DashboardPage() {
                         .step-label.current { color: #f97316; font-weight: 900; }
                         .step-line { flex: 1; height: 2px; background: #ddd; margin-top: -6px; z-index: 0; }
                         .step-line.completed { background: #111; }
-                        @media print { body { padding: 16px; } button { display: none; } @page { margin: 10mm; } }
+                        @media print { body { padding: 10px; } button { display: none; } @page { margin: 8mm; size: A4; } }
                     </style>
                 </head>
                 <body>
@@ -1597,53 +1601,50 @@ export default function DashboardPage() {
                     </div>
 
                     <div class="section">
-                        <div class="section-title">Grade / Descrição</div>
-                        ${order.description ? `<div class="description-box">${order.description}</div>` : ''}
-                        ${(() => {
-                            // Produtos do próprio pedido (order.items)
-                            let itemsHtml = '';
-                            if (order.items && order.items.length > 0) {
-                                itemsHtml = `<div style="margin-top: 8px; background: #f0f0f0; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
-                                    <div style="font-size: 8px; font-weight: 800; text-transform: uppercase; color: #888; margin-bottom: 6px;">Produtos do Pedido</div>
-                                    ${order.items.map((i: any) => `<div style="font-size: 11px; padding: 3px 0; border-bottom: 1px solid #e5e5e5;">
-                                        <span style="font-weight: 700;">${i.quantity}x ${i.name}</span>
-                                    </div>`).join('')}
-                                </div>`;
-                            }
-                            // Itens da venda vinculada (caso exista)
-                            let linkedHtml = '';
-                            let linkedSale = order.linked_sale_id ? sales.find((s: any) => s.id === order.linked_sale_id) : null;
-                            if (!linkedSale && order.description) {
-                                const saleMatch = order.description.match(/\[Vinculado à (VENDA-\d+)\]/);
-                                if (saleMatch) linkedSale = sales.find((s: any) => s.sale_number === saleMatch[1]);
-                            }
-                            if (linkedSale?.items?.length) {
-                                linkedHtml = `<div style="margin-top: 8px; background: #f0f0f0; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
-                                    <div style="font-size: 8px; font-weight: 800; text-transform: uppercase; color: #888; margin-bottom: 6px;">Itens da Venda Vinculada (${linkedSale.sale_number})</div>
-                                    ${linkedSale.items.map((i: any) => `<div style="font-size: 11px; padding: 3px 0; border-bottom: 1px solid #e5e5e5;">
-                                        <span style="font-weight: 700;">${i.quantity}x ${i.name}</span>
-                                    </div>`).join('')}
-                                </div>`;
-                            }
-                            return itemsHtml + linkedHtml;
-                        })()}
-                    </div>
-
-                    ${order.observations ? `
-                    <div class="section">
-                        <div class="section-title">Observações</div>
-                        <div class="description-box" style="background: #fff8f8; border-color: #ffeaea;">${order.observations}</div>
-                    </div>
-                    ` : ''}
-
-                    ${order.production_image ? `
-                    <div class="section">
-                        <div class="section-title">Imagem da Gráfica</div>
-                        <div style="text-align: center; padding: 10px; background: #f9f9f9; border-radius: 8px; border: 1px solid #eee;">
-                            <img src="${order.production_image}" style="max-width: 100%; max-height: 400px; border-radius: 6px; object-fit: contain;" />
+                        <div class="section-title">Produtos / Imagem da Gráfica</div>
+                        <div class="${order.production_image ? 'split-row' : ''}">
+                            <div class="${order.production_image ? 'split-left' : ''}">
+                                ${order.description ? `<div class="description-box" style="margin-bottom: 8px; font-size: 10px;">${order.description}</div>` : ''}
+                                ${(() => {
+                                    let itemsHtml = '';
+                                    if (order.items && order.items.length > 0) {
+                                        itemsHtml = `<div style="background: #f0f0f0; padding: 8px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 6px;">
+                                            <div style="font-size: 7px; font-weight: 800; text-transform: uppercase; color: #888; margin-bottom: 4px;">Produtos do Pedido</div>
+                                            ${order.items.map((i: any) => `<div style="font-size: 10px; padding: 2px 0; border-bottom: 1px solid #e5e5e5;">
+                                                <span style="font-weight: 700;">${i.quantity}x ${i.name}</span>
+                                            </div>`).join('')}
+                                        </div>`;
+                                    }
+                                    let linkedHtml = '';
+                                    let linkedSale = order.linked_sale_id ? sales.find((s: any) => s.id === order.linked_sale_id) : null;
+                                    if (!linkedSale && order.description) {
+                                        const saleMatch = order.description.match(/\\[Vinculado à (VENDA-\\d+)\\]/);
+                                        if (saleMatch) linkedSale = sales.find((s: any) => s.sale_number === saleMatch[1]);
+                                    }
+                                    if (linkedSale?.items?.length) {
+                                        linkedHtml = `<div style="background: #f0f0f0; padding: 8px; border-radius: 8px; border: 1px solid #ddd;">
+                                            <div style="font-size: 7px; font-weight: 800; text-transform: uppercase; color: #888; margin-bottom: 4px;">Itens da Venda Vinculada (${linkedSale.sale_number})</div>
+                                            ${linkedSale.items.map((i: any) => `<div style="font-size: 10px; padding: 2px 0; border-bottom: 1px solid #e5e5e5;">
+                                                <span style="font-weight: 700;">${i.quantity}x ${i.name}</span>
+                                            </div>`).join('')}
+                                        </div>`;
+                                    }
+                                    return itemsHtml + linkedHtml;
+                                })()}
+                                ${order.observations ? `<div style="margin-top: 6px; background: #fff8f8; padding: 8px; border-radius: 8px; border: 1px solid #ffeaea; font-size: 10px; white-space: pre-wrap; line-height: 1.4;">
+                                    <div style="font-size: 7px; font-weight: 800; text-transform: uppercase; color: #c88; margin-bottom: 3px;">Observações</div>
+                                    ${order.observations}
+                                </div>` : ''}
+                            </div>
+                            ${order.production_image ? `
+                            <div class="split-right">
+                                <div style="background: #f9f9f9; border-radius: 8px; border: 1px solid #eee; padding: 6px; height: 100%; display: flex; align-items: center; justify-content: center;">
+                                    <img src="${order.production_image}" />
+                                </div>
+                            </div>
+                            ` : ''}
                         </div>
                     </div>
-                    ` : ''}
 
                     <div class="section">
                         <div class="section-title">Evolução do Pedido</div>
