@@ -1598,20 +1598,34 @@ export default function DashboardPage() {
 
                     <div class="section">
                         <div class="section-title">Grade / Descrição</div>
-                        <div class="description-box">${order.description}</div>
+                        ${order.description ? `<div class="description-box">${order.description}</div>` : ''}
                         ${(() => {
+                            // Produtos do próprio pedido (order.items)
+                            let itemsHtml = '';
+                            if (order.items && order.items.length > 0) {
+                                itemsHtml = `<div style="margin-top: 8px; background: #f0f0f0; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
+                                    <div style="font-size: 8px; font-weight: 800; text-transform: uppercase; color: #888; margin-bottom: 6px;">Produtos do Pedido</div>
+                                    ${order.items.map((i: any) => `<div style="font-size: 11px; padding: 3px 0; border-bottom: 1px solid #e5e5e5;">
+                                        <span style="font-weight: 700;">${i.quantity}x ${i.name}</span>
+                                    </div>`).join('')}
+                                </div>`;
+                            }
+                            // Itens da venda vinculada (caso exista)
+                            let linkedHtml = '';
                             let linkedSale = order.linked_sale_id ? sales.find((s: any) => s.id === order.linked_sale_id) : null;
                             if (!linkedSale && order.description) {
                                 const saleMatch = order.description.match(/\[Vinculado à (VENDA-\d+)\]/);
                                 if (saleMatch) linkedSale = sales.find((s: any) => s.sale_number === saleMatch[1]);
                             }
-                            if (!linkedSale?.items?.length) return '';
-                            return `<div style="margin-top: 8px; background: #f0f0f0; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
-                                <div style="font-size: 8px; font-weight: 800; text-transform: uppercase; color: #888; margin-bottom: 6px;">Itens da Venda Vinculada (${linkedSale.sale_number})</div>
-                                ${linkedSale.items.map((i: any) => `<div style="font-size: 11px; padding: 3px 0; border-bottom: 1px solid #e5e5e5;">
-                                    <span style="font-weight: 700;">${i.quantity}x ${i.name}</span>
-                                </div>`).join('')}
-                            </div>`;
+                            if (linkedSale?.items?.length) {
+                                linkedHtml = `<div style="margin-top: 8px; background: #f0f0f0; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
+                                    <div style="font-size: 8px; font-weight: 800; text-transform: uppercase; color: #888; margin-bottom: 6px;">Itens da Venda Vinculada (${linkedSale.sale_number})</div>
+                                    ${linkedSale.items.map((i: any) => `<div style="font-size: 11px; padding: 3px 0; border-bottom: 1px solid #e5e5e5;">
+                                        <span style="font-weight: 700;">${i.quantity}x ${i.name}</span>
+                                    </div>`).join('')}
+                                </div>`;
+                            }
+                            return itemsHtml + linkedHtml;
                         })()}
                     </div>
 
