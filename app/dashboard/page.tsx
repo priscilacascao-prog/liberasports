@@ -1636,6 +1636,15 @@ export default function DashboardPage() {
                     </div>
                     ` : ''}
 
+                    ${order.production_image ? `
+                    <div class="section">
+                        <div class="section-title">Imagem da Gráfica</div>
+                        <div style="text-align: center; padding: 10px; background: #f9f9f9; border-radius: 8px; border: 1px solid #eee;">
+                            <img src="${order.production_image}" style="max-width: 100%; max-height: 400px; border-radius: 6px; object-fit: contain;" />
+                        </div>
+                    </div>
+                    ` : ''}
+
                     <div class="section">
                         <div class="section-title">Evolução do Pedido</div>
                         <div class="stepper">
