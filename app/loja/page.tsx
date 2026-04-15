@@ -169,7 +169,52 @@ export default function LojaPage() {
     const selectedGroupData = selectedGroup ? groupedProducts.find(([key]) => key === selectedGroup)?.[1] : null;
     const selectedVariant = selectedGroupData?.variants.find((v: any) => v.extractedSize === selectedSize) || null;
 
-    const cartTotal = cart.reduce((acc, item) => acc + item.sale_price * item.quantity, 0);
+    // Tabela de preço atacado para tocas/toucas
+    const toucaPricingTable = [
+        { min: 500, unitPrice: 15.00 },
+        { min: 400, unitPrice: 15.10 },
+        { min: 300, unitPrice: 15.20 },
+        { min: 200, unitPrice: 15.30 },
+        { min: 150, unitPrice: 15.40 },
+        { min: 100, unitPrice: 15.50 },
+        { min: 50, unitPrice: 15.80 },
+        { min: 40, unitPrice: 15.95 },
+        { min: 30, unitPrice: 16.20 },
+        { min: 20, unitPrice: 16.50 },
+        { min: 10, unitPrice: 17.00 },
+        { min: 5, unitPrice: 20.00 },
+    ];
+
+    const isTouca = (name: string) => /touc?a/i.test(name);
+
+    const getToucaWholesalePrice = (totalQty: number): number | null => {
+        for (const tier of toucaPricingTable) {
+            if (totalQty >= tier.min) return tier.unitPrice;
+        }
+        return null;
+    };
+
+    const { cartTotal, toucaDiscount, toucaTotalQty, toucaWholesaleUnit } = useMemo(() => {
+        const totalBruto = cart.reduce((acc, item) => acc + item.sale_price * item.quantity, 0);
+        const toucaItems = cart.filter(item => isTouca(item.name));
+        const totalToucas = toucaItems.reduce((acc, item) => acc + item.quantity, 0);
+        const wholesalePrice = getToucaWholesalePrice(totalToucas);
+
+        let discount = 0;
+        if (wholesalePrice && totalToucas >= 5) {
+            const totalOriginal = toucaItems.reduce((acc, item) => acc + (item.sale_price * item.quantity), 0);
+            const totalAtacado = totalToucas * wholesalePrice;
+            discount = totalOriginal - totalAtacado;
+            if (discount < 0) discount = 0;
+        }
+
+        return {
+            cartTotal: totalBruto - discount,
+            toucaDiscount: discount,
+            toucaTotalQty: totalToucas,
+            toucaWholesaleUnit: wholesalePrice,
+        };
+    }, [cart]);
 
     const addToCart = (product: any, qty: number = 1) => {
         const existing = cart.find(i => i.id === product.id);
@@ -210,6 +255,7 @@ export default function LojaPage() {
                 order_number: orderNumber, sale_number: orderNumber,
                 items: cart.map(i => ({ id: i.id, name: i.name, quantity: i.quantity, sale_price: i.sale_price, stock: i.stock })),
                 total: cartTotal, value: cartTotal,
+                ...(toucaDiscount > 0 ? { touca_discount: toucaDiscount, touca_wholesale_unit: toucaWholesaleUnit, touca_qty: toucaTotalQty } : {}),
                 client: clientData.name, client_whatsapp: clientData.whatsapp || '',
                 cpf_cnpj: clientData.cpf_cnpj || '', client_email: clientData.email || user.email,
                 client_uid: user.uid, delivery_method: deliveryMethod, delivery_cep: cepDigits,
@@ -546,9 +592,25 @@ export default function LojaPage() {
                             <div className="p-4 border-t border-gray-100 overflow-y-auto max-h-[70vh]">
                                 {!showCheckout ? (
                                     <>
+                                        {toucaDiscount > 0 && (
+                                            <div className="bg-green-50 border border-green-200 rounded-xl p-3 mb-3">
+                                                <div className="flex justify-between items-center">
+                                                    <div>
+                                                        <p className="text-xs font-black uppercase text-green-700">Atacado Toucas ({toucaTotalQty} un.)</p>
+                                                        <p className="text-[11px] text-green-600">Preço unitário: R$ {toucaWholesaleUnit?.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                                                    </div>
+                                                    <span className="text-sm font-black text-green-700">-R$ {toucaDiscount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                                                </div>
+                                            </div>
+                                        )}
                                         <div className="flex justify-between mb-4">
                                             <span className="font-bold text-gray-500 uppercase text-sm">Total</span>
-                                            <span className="text-xl font-black">R$ {cartTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                                            <div className="text-right">
+                                                {toucaDiscount > 0 && (
+                                                    <span className="text-sm text-gray-400 line-through block">R$ {(cartTotal + toucaDiscount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                                                )}
+                                                <span className="text-xl font-black">R$ {cartTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                                            </div>
                                         </div>
                                         {user ? (
                                             <button onClick={() => setShowCheckout(true)} className="w-full bg-black text-white py-3 rounded-xl font-bold uppercase text-sm hover:bg-gray-900">Finalizar Pedido</button>
@@ -710,8 +772,24 @@ export default function LojaPage() {
                                             <textarea value={observations} onChange={e => setObservations(e.target.value)} placeholder="Alguma observação..."
                                                 rows={2} className="w-full border border-gray-200 rounded-xl p-2.5 text-sm text-black outline-none focus:border-black resize-none" />
                                         </div>
+                                        {toucaDiscount > 0 && (
+                                            <div className="bg-green-50 border border-green-200 rounded-xl p-3">
+                                                <div className="flex justify-between items-center">
+                                                    <div>
+                                                        <p className="text-xs font-black uppercase text-green-700">Atacado Toucas ({toucaTotalQty} un.)</p>
+                                                        <p className="text-[11px] text-green-600">Preço unitário: R$ {toucaWholesaleUnit?.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                                                    </div>
+                                                    <span className="text-sm font-black text-green-700">-R$ {toucaDiscount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                                                </div>
+                                            </div>
+                                        )}
                                         <div className="flex justify-between items-center pt-2">
-                                            <span className="text-xl font-black text-black">R$ {cartTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                                            <div>
+                                                {toucaDiscount > 0 && (
+                                                    <span className="text-sm text-gray-400 line-through block">R$ {(cartTotal + toucaDiscount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                                                )}
+                                                <span className="text-xl font-black text-black">R$ {cartTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                                            </div>
                                         </div>
                                         <button onClick={handleCheckout} disabled={checkoutLoading}
                                             className="w-full bg-black text-white py-3 rounded-xl font-bold uppercase text-sm hover:bg-gray-900 disabled:opacity-50">

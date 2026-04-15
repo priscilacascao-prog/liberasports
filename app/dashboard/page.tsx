@@ -1682,22 +1682,22 @@ export default function DashboardPage() {
                 </div>
             </div>
             <div class="section">
+                <div class="section-title">Produtos${hasImagesForReport ? ' / Imagens da Gráfica' : ''}</div>
+                <div class="${hasImagesForReport ? 'split-row' : ''}">
+                    <div class="${hasImagesForReport ? 'split-left' : ''}">
+                        ${itemsHtml}${linkedHtml}
+                        ${order.description ? '<div class="description-box" style="margin-top: 8px;">' + order.description + '</div>' : ''}
+                        ${order.observations ? '<div style="margin-top: 6px; background: #fff8f8; padding: 10px; border-radius: 8px; border: 1px solid #ffeaea; font-size: 14px; white-space: pre-wrap; line-height: 1.4;"><div style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #944; margin-bottom: 3px;">Observações</div>' + order.observations + '</div>' : ''}
+                    </div>
+                    ${hasImagesForReport ? '<div class="split-right"><div style="display: flex; flex-wrap: wrap; gap: 4px; height: 100%;">' + imgsForReport.map((img: string) => '<img src="' + img + '" style="flex: 1; min-width: 45%; max-height: ' + (imgsForReport.length === 1 ? '280px' : '135px') + '; object-fit: contain; border-radius: 6px; background: #f9f9f9; border: 1px solid #eee; padding: 4px;" />').join('') + '</div></div>' : ''}
+                </div>
+            </div>
+            <div class="section">
                 <div class="section-title">Detalhes do Pedido</div>
                 <div class="grid-3">
                     <div class="info-block"><div class="info-label">Data de Entrega</div><div class="info-value">${order.deadline ? new Date(order.deadline).toLocaleDateString('pt-BR') : '-'}</div></div>
                     <div class="info-block"><div class="info-label">Método de Entrega</div><div class="info-value">${order.delivery_method || 'Não informado'}</div></div>
                     <div class="info-block"><div class="info-label">Pagamento</div><div class="info-value">${order.payment_method || 'PIX'}</div></div>
-                </div>
-            </div>
-            <div class="section">
-                <div class="section-title">Produtos${hasImagesForReport ? ' / Imagens da Gráfica' : ''}</div>
-                <div class="${hasImagesForReport ? 'split-row' : ''}">
-                    <div class="${hasImagesForReport ? 'split-left' : ''}">
-                        ${order.description ? '<div class="description-box" style="margin-bottom: 8px;">' + order.description + '</div>' : ''}
-                        ${itemsHtml}${linkedHtml}
-                        ${order.observations ? '<div style="margin-top: 6px; background: #fff8f8; padding: 10px; border-radius: 8px; border: 1px solid #ffeaea; font-size: 14px; white-space: pre-wrap; line-height: 1.4;"><div style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #944; margin-bottom: 3px;">Observações</div>' + order.observations + '</div>' : ''}
-                    </div>
-                    ${hasImagesForReport ? '<div class="split-right"><div style="display: flex; flex-wrap: wrap; gap: 4px; height: 100%;">' + imgsForReport.map((img: string) => '<img src="' + img + '" style="flex: 1; min-width: 45%; max-height: ' + (imgsForReport.length === 1 ? '280px' : '135px') + '; object-fit: contain; border-radius: 6px; background: #f9f9f9; border: 1px solid #eee; padding: 4px;" />').join('') + '</div></div>' : ''}
                 </div>
             </div>
             <div class="section">
