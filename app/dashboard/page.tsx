@@ -3928,17 +3928,36 @@ export default function DashboardPage() {
                                             const dateB = new Date(b.paid_at || b.created_at).getTime();
                                             return dateB - dateA;
                                         }
-                                        // Ordenar por vencimento (mais antigo primeiro)
                                         const dateA = new Date(a.due_date || a.transaction_date || a.created_at).getTime();
                                         const dateB = new Date(b.due_date || b.transaction_date || b.created_at).getTime();
                                         return dateA - dateB;
                                     });
 
+                                    const totalFiltered = filtered.reduce((acc: number, item: any) => acc + (item.amount || 0), 0);
+                                    const periodLabel = financeDateFrom && financeDateTo
+                                        ? `${financeDateFrom.split('-').reverse().join('/')} até ${financeDateTo.split('-').reverse().join('/')}`
+                                        : financeDateFrom ? `A partir de ${financeDateFrom.split('-').reverse().join('/')}`
+                                        : financeDateTo ? `Até ${financeDateTo.split('-').reverse().join('/')}`
+                                        : 'Todos os períodos';
+
                                     if (filtered.length === 0) {
                                         return <div className="p-12 text-center text-white font-bold uppercase text-sm tracking-widest italic">Nenhuma conta no período</div>;
                                     }
 
-                                    return filtered.map(item => (
+                                    return (<>
+                                    {/* Resumo do filtro */}
+                                    <div className="px-4 md:px-6 py-3 bg-zinc-900/50 flex flex-wrap items-center justify-between gap-3">
+                                        <div className="flex items-center gap-3">
+                                            <span className="text-xs font-bold uppercase text-white/40">{periodLabel}</span>
+                                            <span className="text-xs font-bold text-white/40">•</span>
+                                            <span className="text-xs font-bold uppercase text-white/40">{filtered.length} {filtered.length === 1 ? 'conta' : 'contas'}</span>
+                                        </div>
+                                        <div className={`text-lg font-black ${(financeView === 'A RECEBER' || financeView === 'RECEBIDAS') ? 'text-[#39FF14]' : 'text-red-500'}`}>
+                                            {(financeView === 'A RECEBER' || financeView === 'RECEBIDAS') ? '+' : '-'} R$ {totalFiltered.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                        </div>
+                                    </div>
+
+                                    {filtered.map(item => (
                                         <div key={item.id} className="p-4 md:p-6 hover:bg-zinc-900/50 transition-colors" style={{display: 'grid', gridTemplateColumns: '1fr auto', gap: '12px', alignItems: 'start'}}>
                                             <div style={{minWidth: 0}}>
                                                 <div className="flex items-start gap-3">
@@ -4103,7 +4122,8 @@ export default function DashboardPage() {
                                             </div>
                                             </div>
                                         </div>
-                                    ));
+                                    ))}
+                                    </>);
                                 })()}
                             </div>
                         </div>
