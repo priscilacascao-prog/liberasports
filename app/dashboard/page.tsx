@@ -4062,6 +4062,22 @@ export default function DashboardPage() {
                                             (item.supplier_name || '').toLowerCase().includes(search) ||
                                             (item.payment_method || '').toLowerCase().includes(search);
                                     }).sort((a: any, b: any) => {
+                                        if (financeView === 'A RECEBER') {
+                                            // Ordena pelo número do pedido (LIBERA-XXXX) extraído da descrição
+                                            const extractOrderNum = (desc: string) => {
+                                                const m = (desc || '').match(/\[LIBERA-(\d+)\]/);
+                                                return m ? parseInt(m[1], 10) : 999999;
+                                            };
+                                            const numA = extractOrderNum(a.description);
+                                            const numB = extractOrderNum(b.description);
+                                            if (numA !== numB) return numA - numB;
+                                            // Desempate: por número da parcela
+                                            const extractParcela = (desc: string) => {
+                                                const m = (desc || '').match(/Parcela (\d+)\/\d+/i);
+                                                return m ? parseInt(m[1], 10) : 0;
+                                            };
+                                            return extractParcela(a.description) - extractParcela(b.description);
+                                        }
                                         if (financeView === 'PAGAS' || financeView === 'RECEBIDAS') {
                                             const dateA = new Date(a.paid_at || a.created_at).getTime();
                                             const dateB = new Date(b.paid_at || b.created_at).getTime();
