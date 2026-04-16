@@ -1659,37 +1659,48 @@ export default function DashboardPage() {
             <style>
                 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
                 * { margin: 0; padding: 0; box-sizing: border-box; }
-                body { font-family: 'Inter', Arial, sans-serif; padding: 16px; color: #111; background: white; }
-                .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #111; padding-bottom: 8px; margin-bottom: 12px; }
-                .logo { font-size: 28px; font-weight: 900; font-style: italic; }
+                html, body { width: 100%; }
+                body { font-family: 'Inter', Arial, sans-serif; padding: 12px; color: #111; background: white; }
+                .page { display: flex; flex-direction: column; }
+                .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #111; padding-bottom: 6px; margin-bottom: 8px; }
+                .logo { font-size: 24px; font-weight: 900; font-style: italic; }
                 .os-title { text-align: right; }
-                .os-title h1 { font-size: 22px; font-weight: 900; }
-                .os-title p { font-size: 14px; color: #444; font-weight: 700; margin-top: 2px; }
-                .section { margin-bottom: 10px; }
-                .section-title { font-size: 13px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.1em; color: #444; margin-bottom: 4px; border-bottom: 1px solid #ddd; padding-bottom: 2px; }
-                .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-                .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
-                .info-block { margin-bottom: 8px; }
-                .info-label { font-size: 12px; font-weight: 700; color: #555; text-transform: uppercase; }
-                .info-value { font-size: 16px; font-weight: 700; margin-top: 1px; }
-                .description-box { background: #f9f9f9; padding: 12px; border-radius: 8px; white-space: pre-wrap; font-size: 18px; font-weight: 900; line-height: 1.4; border: 1px solid #eee; }
-                .footer { margin-top: 12px; padding-top: 8px; border-top: 1px solid #ddd; font-size: 11px; color: #555; text-align: center; }
-                .split-row { display: flex; gap: 12px; align-items: stretch; }
+                .os-title h1 { font-size: 18px; font-weight: 900; }
+                .os-title p { font-size: 12px; color: #444; font-weight: 700; margin-top: 1px; }
+                .section { margin-bottom: 6px; page-break-inside: avoid; }
+                .section-title { font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.1em; color: #444; margin-bottom: 3px; border-bottom: 1px solid #ddd; padding-bottom: 1px; }
+                .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+                .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+                .info-block { margin-bottom: 4px; }
+                .info-label { font-size: 10px; font-weight: 700; color: #555; text-transform: uppercase; }
+                .info-value { font-size: 13px; font-weight: 700; margin-top: 1px; }
+                .description-box { background: #f9f9f9; padding: 8px; border-radius: 6px; white-space: pre-wrap; font-size: 13px; font-weight: 800; line-height: 1.3; border: 1px solid #eee; }
+                .footer { margin-top: auto; padding-top: 6px; border-top: 1px solid #ddd; font-size: 10px; color: #555; text-align: center; }
+                .split-row { display: flex; gap: 10px; align-items: stretch; }
                 .split-left { flex: 2; min-width: 0; }
                 .split-right { flex: 3; min-width: 0; }
-                .split-right img { width: 100%; height: 100%; max-height: 280px; object-fit: contain; border-radius: 6px; }
-                .stepper { display: flex; flex-wrap: wrap; gap: 5px; margin: 8px 0; }
-                .step-box { display: flex; align-items: center; gap: 4px; border: 2px solid #888; border-radius: 5px; padding: 4px 6px; flex: 1 1 calc(25% - 5px); min-width: calc(25% - 5px); max-width: calc(25% - 5px); }
+                .split-right img { width: 100%; height: 100%; max-height: 220px; object-fit: contain; border-radius: 6px; }
+                .stepper { display: flex; flex-wrap: wrap; gap: 4px; margin: 4px 0; }
+                .step-box { display: flex; align-items: center; gap: 4px; border: 2px solid #888; border-radius: 5px; padding: 3px 5px; flex: 1 1 calc(25% - 4px); min-width: calc(25% - 4px); max-width: calc(25% - 4px); }
                 .step-box.completed { border-color: #111; background: #f5f5f5; }
                 .step-box.current { border-color: #f97316; background: #fff7ed; }
-                .step-check { width: 18px; height: 18px; border: 2px solid #666; border-radius: 3px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 900; }
+                .step-check { width: 16px; height: 16px; border: 2px solid #666; border-radius: 3px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 900; }
                 .step-check.completed { border-color: #111; background: #111; color: #fff; }
                 .step-check.current { border-color: #f97316; }
-                .step-name { font-size: 11px; font-weight: 800; text-transform: uppercase; color: #555; }
+                .step-name { font-size: 10px; font-weight: 800; text-transform: uppercase; color: #555; }
                 .step-name.completed { color: #111; }
                 .step-name.current { color: #f97316; }
-                @media print { body { padding: 10px; } button { display: none; } @page { margin: 8mm; size: A4 portrait; } }
+                @page { margin: 6mm; size: A4 portrait; }
+                @media print {
+                    html, body { width: 210mm; height: 297mm; }
+                    body { padding: 0; }
+                    button { display: none; }
+                    .page { min-height: calc(297mm - 12mm); }
+                    .section { page-break-inside: avoid; break-inside: avoid; }
+                    .split-right img { max-height: 180px; }
+                }
             </style></head><body>
+            <div class="page">
             <div class="header">
                 <div class="logo">LIBERA SPORTS</div>
                 <div class="os-title"><h1>ORDEM DE SERVIÇO</h1><p>${order.order_number}</p></div>
@@ -1728,6 +1739,7 @@ export default function DashboardPage() {
                 <div class="info-block"><div class="info-label">Status Atual</div><div class="info-value" style="font-weight: 900; font-size: 18px;">${order.status}</div></div>
             </div>
             <div class="footer">Gerado em ${new Date().toLocaleString('pt-BR')} • Libera Sports</div>
+            </div>
             ${!forEmail ? '<script>window.onload = () => { window.print(); };</script>' : ''}
         </body></html>`;
     };
