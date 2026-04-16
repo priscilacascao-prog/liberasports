@@ -1668,7 +1668,7 @@ export default function DashboardPage() {
                 .os-title { text-align: right; }
                 .os-title h1 { font-size: 18px; font-weight: 900; }
                 .os-title p { font-size: 12px; color: #444; font-weight: 700; margin-top: 1px; }
-                .section { margin-bottom: 6px; page-break-inside: avoid; }
+                .section { margin-bottom: 6px; }
                 .section-title { font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.1em; color: #444; margin-bottom: 3px; border-bottom: 1px solid #ddd; padding-bottom: 1px; }
                 .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
                 .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
@@ -1700,12 +1700,15 @@ export default function DashboardPage() {
                 .editable:focus { background: #fff3cd; box-shadow: 0 0 0 2px #f97316; }
                 @page { margin: 8mm; size: A4 landscape; }
                 @media print {
-                    html, body { margin: 0 !important; padding: 0 !important; background: white !important; }
+                    html, body { margin: 0 !important; padding: 0 !important; background: white !important; height: auto !important; overflow: visible !important; }
                     body { padding: 0 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
                     button, .toolbar { display: none !important; }
-                    .page { display: block; }
-                    .section { page-break-inside: avoid; break-inside: avoid; }
-                    .split-right img { max-height: 150px; }
+                    .page { display: block; height: auto !important; overflow: visible !important; }
+                    .stepper { page-break-inside: avoid; break-inside: avoid; }
+                    .step-box { page-break-inside: avoid; break-inside: avoid; }
+                    .info-block { page-break-inside: avoid; break-inside: avoid; }
+                    .split-right img { max-height: 140px; }
+                    .description-box { page-break-inside: auto; }
                     .editable:hover, .editable:focus { background: transparent !important; box-shadow: none !important; }
                 }
             </style></head><body>
