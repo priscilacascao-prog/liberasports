@@ -1662,6 +1662,7 @@ export default function DashboardPage() {
         return `<!DOCTYPE html><html lang="pt-BR"><head>
             <meta charset="utf-8">
             <title>OS ${order.order_number || ''} - ${order.client || ''}</title>
+            ${!forEmail ? '<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.3/html2pdf.bundle.min.js"></script>' : ''}
             <style>
                 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
                 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -1757,30 +1758,51 @@ export default function DashboardPage() {
                         alert('Nenhum e-mail configurado.\\n\\nPara configurar, clique no ícone de envelope no topo do dashboard e informe o e-mail.');
                         return;
                     }
-                    if (!confirm('Enviar este relatório para:\\n\\n' + __emailTo + '\\n\\nAs edições feitas nesta tela serão enviadas.')) return;
+                    if (typeof html2pdf === 'undefined') {
+                        alert('Biblioteca de geração de PDF ainda carregando. Aguarde 2 segundos e tente novamente.');
+                        return;
+                    }
+                    if (!confirm('Enviar este relatório em PDF para:\\n\\n' + __emailTo + '\\n\\nAs edições feitas nesta tela serão enviadas no PDF.')) return;
 
                     var btn = document.querySelector('.btn-send');
                     var oldText = btn.textContent;
                     btn.disabled = true;
-                    btn.textContent = 'Enviando...';
+                    btn.textContent = 'Gerando PDF...';
 
-                    var els = document.querySelectorAll('[contenteditable]');
-                    els.forEach(function(e) { e.removeAttribute('contenteditable'); });
+                    // Remove contenteditable e toolbar do clone para o PDF
+                    var container = document.querySelector('.page').cloneNode(true);
+                    container.querySelectorAll('[contenteditable]').forEach(function(e) { e.removeAttribute('contenteditable'); });
 
-                    var docClone = document.documentElement.cloneNode(true);
-                    var tb = docClone.querySelector('.toolbar');
-                    if (tb) tb.remove();
-                    var scripts = docClone.querySelectorAll('script');
-                    scripts.forEach(function(s) { s.remove(); });
-                    var html = '<!DOCTYPE html>' + docClone.outerHTML;
-
-                    els.forEach(function(e) { e.setAttribute('contenteditable', 'true'); });
+                    var opt = {
+                        margin: [5, 5, 5, 5],
+                        filename: 'OS_' + (${JSON.stringify(order.order_number || 'relatorio')}) + '.pdf',
+                        image: { type: 'jpeg', quality: 0.95 },
+                        html2canvas: { scale: 2, useCORS: true, letterRendering: true, backgroundColor: '#ffffff' },
+                        jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape', compress: true },
+                        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+                    };
 
                     try {
+                        var pdfBlob = await html2pdf().set(opt).from(container).outputPdf('blob');
+
+                        btn.textContent = 'Enviando...';
+
+                        var base64 = await new Promise(function(resolve, reject) {
+                            var reader = new FileReader();
+                            reader.onload = function() { resolve(reader.result); };
+                            reader.onerror = reject;
+                            reader.readAsDataURL(pdfBlob);
+                        });
+
                         var res = await fetch(__apiOrigin + '/api/send-report', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ html: html, to: __emailTo, subject: __emailSubject })
+                            body: JSON.stringify({
+                                to: __emailTo,
+                                subject: __emailSubject,
+                                pdfBase64: base64,
+                                pdfFilename: opt.filename
+                            })
                         });
                         if (res.ok) {
                             btn.textContent = '✓ Enviado!';
@@ -1797,7 +1819,7 @@ export default function DashboardPage() {
                             btn.disabled = false;
                         }
                     } catch (e) {
-                        alert('Erro ao enviar: ' + e.message);
+                        alert('Erro ao gerar/enviar PDF: ' + e.message);
                         btn.textContent = oldText;
                         btn.disabled = false;
                     }
