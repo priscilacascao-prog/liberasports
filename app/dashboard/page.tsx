@@ -3965,7 +3965,19 @@ export default function DashboardPage() {
                                                         {item.type === 'INFLOW' ? <ArrowUpRight size={16} /> : <ArrowDownLeft size={16} />}
                                                     </div>
                                                     <div style={{minWidth: 0}}>
-                                                        <p className="text-base font-black text-white uppercase" style={{wordBreak: 'break-all'}}>{item.description}</p>
+                                                        <p className="text-base font-black text-white uppercase" style={{wordBreak: 'break-all'}}>{(() => {
+                                                            const desc = item.description || '';
+                                                            const orderMatch = desc.match(/\[LIBERA-\d+\]/);
+                                                            if (orderMatch) {
+                                                                // Buscar nome do cliente no pedido vinculado
+                                                                const sale = item.order_id ? sales.find((s: any) => s.id === item.order_id) : null;
+                                                                const clientName = sale?.client || '';
+                                                                // Extrair parcela se existir
+                                                                const parcelaMatch = desc.match(/\(Parcela \d+\/\d+\)/i) || desc.match(/\(PIX \d+\/\d+.*?\)/i) || desc.match(/\(Boleto \d+\/\d+\)/i);
+                                                                return `${orderMatch[0]} ${clientName}${parcelaMatch ? ' ' + parcelaMatch[0] : ''}`;
+                                                            }
+                                                            return desc;
+                                                        })()}</p>
                                                         {item.supplier_name && <p className="text-sm font-bold text-[#39FF14]/70 uppercase mt-0.5">{item.supplier_name}</p>}
                                                         {item.payment_method && item.status !== 'RECEBIDO' && item.status !== 'PAGO' && (
                                                             <span className="text-xs text-white/50 font-bold uppercase mt-1">{item.payment_method}</span>
