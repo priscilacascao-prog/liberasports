@@ -3767,24 +3767,62 @@ export default function DashboardPage() {
                                     {financeView === 'RECEBIDAS' && <><Check size={11} /> Contas Recebidas</>}
                                 </h3>
                                 <div className="flex flex-wrap items-center gap-2">
+                                    {/* Filtros rápidos */}
+                                    <div className="flex items-center gap-1.5 flex-wrap">
+                                        {[
+                                            { label: 'Hoje', getRange: () => { const d = new Date().toISOString().split('T')[0]; return [d, d]; } },
+                                            { label: 'Semana', getRange: () => {
+                                                const now = new Date(); const day = now.getDay();
+                                                const start = new Date(now); start.setDate(now.getDate() - (day === 0 ? 6 : day - 1));
+                                                const end = new Date(start); end.setDate(start.getDate() + 6);
+                                                return [start.toISOString().split('T')[0], end.toISOString().split('T')[0]];
+                                            }},
+                                            { label: 'Mês', getRange: () => {
+                                                const now = new Date();
+                                                const start = new Date(now.getFullYear(), now.getMonth(), 1);
+                                                const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+                                                return [start.toISOString().split('T')[0], end.toISOString().split('T')[0]];
+                                            }},
+                                        ].map(f => {
+                                            const [s, e] = f.getRange();
+                                            const isActive = financeDateFrom === s && financeDateTo === e;
+                                            return (
+                                                <button key={f.label} onClick={() => {
+                                                    if (isActive) { setFinanceDateFrom(''); setFinanceDateTo(''); }
+                                                    else { setFinanceDateFrom(s); setFinanceDateTo(e); }
+                                                }}
+                                                    className={`text-xs font-black uppercase px-3 py-1.5 rounded-full transition-all ${isActive
+                                                        ? 'bg-[#39FF14] text-black'
+                                                        : 'bg-zinc-900 border border-zinc-800 text-white/60 hover:border-[#39FF14]/50 hover:text-white'
+                                                    }`}>
+                                                    {f.label}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                    {/* Seletor de período customizado */}
                                     <div className="flex items-center gap-1.5">
-                                        <input
-                                            type="date"
-                                            value={financeDateFrom}
-                                            onChange={e => setFinanceDateFrom(e.target.value)}
-                                            className="bg-zinc-900 text-sm font-bold px-3 py-2 rounded-xl border border-zinc-800 outline-none text-white focus:border-[#39FF14] transition-colors"
-                                        />
+                                        <div className="relative">
+                                            <input
+                                                type="date"
+                                                value={financeDateFrom}
+                                                onChange={e => setFinanceDateFrom(e.target.value)}
+                                                className="bg-zinc-900 text-sm font-bold px-3 py-2 rounded-xl border border-zinc-800 outline-none text-white focus:border-[#39FF14] transition-colors [color-scheme:dark] min-w-[140px]"
+                                            />
+                                        </div>
                                         <span className="text-white/50 text-xs font-bold">até</span>
-                                        <input
-                                            type="date"
-                                            value={financeDateTo}
-                                            onChange={e => setFinanceDateTo(e.target.value)}
-                                            className="bg-zinc-900 text-sm font-bold px-3 py-2 rounded-xl border border-zinc-800 outline-none text-white focus:border-[#39FF14] transition-colors"
-                                        />
+                                        <div className="relative">
+                                            <input
+                                                type="date"
+                                                value={financeDateTo}
+                                                onChange={e => setFinanceDateTo(e.target.value)}
+                                                className="bg-zinc-900 text-sm font-bold px-3 py-2 rounded-xl border border-zinc-800 outline-none text-white focus:border-[#39FF14] transition-colors [color-scheme:dark] min-w-[140px]"
+                                            />
+                                        </div>
                                         {(financeDateFrom || financeDateTo) && (
                                             <button
                                                 onClick={() => { setFinanceDateFrom(''); setFinanceDateTo(''); }}
-                                                className="text-white/50 hover:text-white transition-colors p-1"
+                                                className="text-white/50 hover:text-[#39FF14] transition-colors p-1.5 rounded-lg hover:bg-zinc-800"
                                                 title="Limpar filtro"
                                             >
                                                 <X size={14} />
