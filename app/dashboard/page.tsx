@@ -3341,40 +3341,38 @@ export default function DashboardPage() {
                                             </div>
                                         </label>
                                     )}
-                                    <div className="grid grid-cols-2 gap-2">
-                                        <div>
-                                            <label className="block text-xs font-black uppercase tracking-widest mb-1 text-white">Data</label>
-                                            <input type="date" value={transactionDate} onChange={e => setTransactionDate(e.target.value)} required
-                                                className="w-full bg-zinc-800 border border-zinc-900 rounded-xl p-2 text-white outline-none focus:ring-1 focus:ring-[#39FF14] transition-all [color-scheme:dark] text-xs" />
-                                        </div>
-                                        {paymentMethod === 'CARTÃO CRÉDITO' && (() => {
-                                            const taxasCartao: Record<number, number> = { 1: 4.20, 2: 6.09, 3: 7.01, 4: 7.91, 5: 8.80, 6: 9.67 };
-                                            const baseTotal = cart.length > 0 ? cartTotal : parseBRL(saleManualValue);
-                                            return (
-                                            <div className="col-span-2">
-                                                <label className="block text-xs font-black uppercase tracking-widest mb-2 text-[#39FF14]">Parcelas (com juros)</label>
-                                                <div className="grid grid-cols-3 gap-2">
-                                                    {[1, 2, 3, 4, 5, 6].map(n => {
-                                                        const totalComJuros = baseTotal * (1 + (taxasCartao[n] || 0) / 100);
-                                                        const parcela = totalComJuros / n;
-                                                        return (
-                                                            <button key={n} type="button" onClick={() => setInstallments(n)}
-                                                                className={`py-2.5 px-2 rounded-xl text-xs font-bold border transition-all text-left ${installments === n
-                                                                    ? 'border-[#39FF14] bg-[#39FF14]/10 text-[#39FF14]'
-                                                                    : 'border-zinc-800 bg-zinc-900/50 text-white hover:border-zinc-700'
-                                                                }`}>
-                                                                <span className="block font-black">{n}x R$ {parcela.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
-                                                                <span className={`block text-[10px] ${installments === n ? 'text-[#39FF14]/70' : 'text-white/40'}`}>
-                                                                    Total: R$ {totalComJuros.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} ({taxasCartao[n]}%)
-                                                                </span>
-                                                            </button>
-                                                        );
-                                                    })}
-                                                </div>
-                                            </div>
-                                            );
-                                        })()}
+                                    <div>
+                                        <label className="block text-xs font-black uppercase tracking-widest mb-1 text-white">Data</label>
+                                        <input type="date" value={transactionDate} onChange={e => setTransactionDate(e.target.value)} required
+                                            className="w-full bg-zinc-800 border border-zinc-900 rounded-xl p-2 text-white outline-none focus:ring-1 focus:ring-[#39FF14] transition-all [color-scheme:dark] text-xs" />
                                     </div>
+                                    {paymentMethod === 'CARTÃO CRÉDITO' && (() => {
+                                        const taxasCartao: Record<number, number> = { 1: 4.20, 2: 6.09, 3: 7.01, 4: 7.91, 5: 8.80, 6: 9.67 };
+                                        const baseTotal = cart.length > 0 ? cartTotal : parseBRL(saleManualValue);
+                                        return (
+                                        <div>
+                                            <label className="block text-xs font-black uppercase tracking-widest mb-2 text-[#39FF14]">Parcelas (com juros)</label>
+                                            <div className="grid grid-cols-2 gap-2">
+                                                {[1, 2, 3, 4, 5, 6].map(n => {
+                                                    const totalComJuros = baseTotal * (1 + (taxasCartao[n] || 0) / 100);
+                                                    const parcela = totalComJuros / n;
+                                                    return (
+                                                        <button key={n} type="button" onClick={() => setInstallments(n)}
+                                                            className={`py-3 px-3 rounded-xl text-sm font-bold border transition-all text-left ${installments === n
+                                                                ? 'border-[#39FF14] bg-[#39FF14]/10 text-[#39FF14]'
+                                                                : 'border-zinc-800 bg-zinc-900/50 text-white hover:border-zinc-700'
+                                                            }`}>
+                                                            <span className="block font-black">{n}x R$ {parcela.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                                                            <span className={`block text-[11px] ${installments === n ? 'text-[#39FF14]/70' : 'text-white/40'}`}>
+                                                                Total: R$ {totalComJuros.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} ({taxasCartao[n]}%)
+                                                            </span>
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                        );
+                                    })()}
                                     {paymentMethod === 'BOLETO' && (
                                         <div className="grid grid-cols-3 gap-2">
                                             <div>
