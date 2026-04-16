@@ -4008,14 +4008,17 @@ export default function DashboardPage() {
                                                         </>
                                                     ) : (
                                                         <>
+                                                            <span className="text-sm font-black uppercase px-3 py-1 rounded-full bg-green-500/20 text-green-400">
+                                                                {item.type === 'OUTFLOW' ? 'Pagar' : 'Receber'} em {((item.due_date || item.transaction_date || item.created_at) || '').split('T')[0].split('-').reverse().join('/')}
+                                                            </span>
                                                             <button
                                                                 onClick={() => handleUpdateFinanceEntry(item.id, {
                                                                     status: item.type === 'OUTFLOW' ? 'PAGO' : 'RECEBIDO',
                                                                     paid_at: new Date().toISOString()
                                                                 })}
-                                                                className="text-sm font-black uppercase px-3 py-1 rounded-full bg-green-500/20 text-green-400 hover:bg-green-500/30 transition-all hover:scale-105"
+                                                                className="text-xs font-bold uppercase px-3 py-1.5 rounded-full border border-zinc-700 bg-zinc-900 text-white/60 hover:border-[#39FF14]/50 hover:text-[#39FF14] transition-all hover:scale-105"
                                                             >
-                                                                {item.type === 'OUTFLOW' ? 'Pagar' : 'Receber'} em {((item.due_date || item.transaction_date || item.created_at) || '').split('T')[0].split('-').reverse().join('/')}
+                                                                {item.type === 'OUTFLOW' ? 'Marcar como pago' : 'Marcar como recebido'}
                                                             </button>
                                                         </>
                                                     )}
