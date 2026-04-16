@@ -1656,7 +1656,9 @@ export default function DashboardPage() {
             return `<div class="step-box ${boxClass}"><div class="step-check ${boxClass}">${isCompleted ? '✓' : ''}</div><span class="step-name ${boxClass}">${labels[step]}</span></div>`;
         }).join('');
 
-        return `<html><head>
+        return `<!DOCTYPE html><html lang="pt-BR"><head>
+            <meta charset="utf-8">
+            <title>OS ${order.order_number || ''} - ${order.client || ''}</title>
             <style>
                 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
                 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -1712,7 +1714,7 @@ export default function DashboardPage() {
                     .editable:hover, .editable:focus { background: transparent !important; box-shadow: none !important; }
                 }
             </style></head><body>
-            ${!forEmail ? '<div class="toolbar"><div class="info">💡 Clique em qualquer texto destacado para editar antes de imprimir</div><button onclick="window.print()">Imprimir / Salvar PDF</button></div>' : ''}
+            ${!forEmail ? '<div class="toolbar"><div class="info">💡 Clique em qualquer texto destacado para editar antes de imprimir</div><button onclick="(function(){var els=document.querySelectorAll(\'[contenteditable]\');els.forEach(function(e){e.setAttribute(\'data-ce\',e.getAttribute(\'contenteditable\'));e.removeAttribute(\'contenteditable\');});window.focus();setTimeout(function(){window.print();setTimeout(function(){els.forEach(function(e){e.setAttribute(\'contenteditable\',e.getAttribute(\'data-ce\')||\'true\');e.removeAttribute(\'data-ce\');});},200);},50);})()">Imprimir / Salvar PDF</button></div>' : ''}
             <div class="page">
             <div class="header">
                 <div class="logo">LIBERA SPORTS</div>
@@ -1783,12 +1785,15 @@ export default function DashboardPage() {
     };
 
     const handlePrintOrder = (order: any) => {
-        const printWindow = window.open('', '_blank');
+        const uniqueName = `libera_os_${order.order_number || 'report'}_${Date.now()}`;
+        const printWindow = window.open('about:blank', uniqueName);
         if (!printWindow) return;
 
         const html = generateReportHtml(order);
+        printWindow.document.open();
         printWindow.document.write(html);
         printWindow.document.close();
+        printWindow.focus();
     };
 
     const handleDeleteOrder = async (id: string, number: string) => {
