@@ -1681,8 +1681,8 @@ export default function DashboardPage() {
                 .split-left { flex: 2; min-width: 0; }
                 .split-right { flex: 3; min-width: 0; }
                 .split-right img { width: 100%; height: 100%; max-height: 220px; object-fit: contain; border-radius: 6px; }
-                .stepper { display: flex; flex-wrap: wrap; gap: 5px; margin: 6px 0; }
-                .step-box { display: flex; align-items: center; justify-content: center; gap: 6px; border: 2px solid #888; border-radius: 6px; padding: 6px 8px; flex: 1 1 calc(25% - 5px); min-width: calc(25% - 5px); max-width: calc(25% - 5px); }
+                .stepper { display: flex; flex-wrap: nowrap; gap: 5px; margin: 6px 0; }
+                .step-box { display: flex; align-items: center; justify-content: center; gap: 6px; border: 2px solid #888; border-radius: 6px; padding: 6px 8px; flex: 1 1 0; min-width: 0; }
                 .step-box.completed { border-color: #111; background: #f5f5f5; }
                 .step-box.current { border-color: #f97316; background: #fff7ed; }
                 .step-check { width: 22px; height: 22px; border: 2.5px solid #666; border-radius: 4px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 900; }
@@ -1698,14 +1698,14 @@ export default function DashboardPage() {
                 .editable { outline: none; border-radius: 3px; padding: 1px 3px; transition: background 0.15s; }
                 .editable:hover { background: #fff3cd; cursor: text; }
                 .editable:focus { background: #fff3cd; box-shadow: 0 0 0 2px #f97316; }
-                @page { margin: 6mm; size: A4 portrait; }
+                @page { margin: 6mm; size: A4 landscape; }
                 @media print {
-                    html, body { width: 210mm; height: 297mm; }
+                    html, body { width: 297mm; height: 210mm; }
                     body { padding: 0; }
                     button, .toolbar { display: none !important; }
-                    .page { min-height: calc(297mm - 12mm); }
+                    .page { min-height: calc(210mm - 12mm); }
                     .section { page-break-inside: avoid; break-inside: avoid; }
-                    .split-right img { max-height: 180px; }
+                    .split-right img { max-height: 160px; }
                     .editable:hover, .editable:focus { background: transparent; box-shadow: none; }
                 }
             </style></head><body>
