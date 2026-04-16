@@ -14,7 +14,7 @@ import { onAuthStateChanged, signOut } from 'firebase/auth';
 import {
     collection, doc, addDoc, updateDoc, deleteDoc,
     onSnapshot, query, orderBy, serverTimestamp,
-    getDoc, setDoc, getDocs
+    getDoc, setDoc, getDocs, where, writeBatch
 } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
@@ -384,12 +384,11 @@ export default function DashboardPage() {
         loadSettings();
     }, [authChecking]);
 
-    // Products - carrega sob demanda (VENDAS ou ESTOQUE)
-    const productsLoadedRef = React.useRef(false);
+    // Products - carrega sob demanda (VENDAS ou ESTOQUE) e mantém listener vivo
+    const productsUnsubRef = React.useRef<null | (() => void)>(null);
     useEffect(() => {
-        if (authChecking || productsLoadedRef.current) return;
+        if (authChecking || productsUnsubRef.current) return;
         if (activeTab !== 'VENDAS' && activeTab !== 'ESTOQUE') return;
-        productsLoadedRef.current = true;
         const q = query(collection(db, productsCollectionPath));
         const unsubscribe = onSnapshot(q, (snapshot: any) => {
             const data = snapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));
@@ -415,21 +414,21 @@ export default function DashboardPage() {
             setProducts(data);
             setStockLoading(false);
         });
-        return () => unsubscribe();
+        productsUnsubRef.current = unsubscribe;
+        // NÃO retornar cleanup: a assinatura tem que sobreviver à troca de aba
     }, [authChecking, activeTab]);
 
-    // Finance - carrega sob demanda (FINANCEIRO ou CAIXA)
-    const financeLoadedRef = React.useRef(false);
+    // Finance - carrega uma vez e mantém listener vivo
+    const financeUnsubRef = React.useRef<null | (() => void)>(null);
     useEffect(() => {
-        if (authChecking || financeLoadedRef.current) return;
-        financeLoadedRef.current = true;
+        if (authChecking || financeUnsubRef.current) return;
         const q = query(collection(db, financeCollectionPath), orderBy('created_at', 'desc'));
         const unsubscribe = onSnapshot(q, (snapshot: any) => {
             const data = snapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));
             setFinancialItems(data);
         });
-        return () => unsubscribe();
-    }, [authChecking, activeTab]);
+        financeUnsubRef.current = unsubscribe;
+    }, [authChecking]);
 
     // Auto-mark overdue financial items as ATRASADO (runs once on load)
     const overdueCheckedRef = React.useRef(false);
@@ -475,33 +474,45 @@ export default function DashboardPage() {
         }
     }, [financialItems]);
 
-    // Contas a Pagar - carrega sob demanda (CAIXA)
-    const contasLoadedRef = React.useRef(false);
+    // Contas a Pagar - carrega sob demanda (CAIXA) e mantém listener vivo
+    const contasUnsubRef = React.useRef<null | (() => void)>(null);
     useEffect(() => {
-        if (authChecking || contasLoadedRef.current) return;
+        if (authChecking || contasUnsubRef.current) return;
         if (activeTab !== 'CAIXA') return;
-        contasLoadedRef.current = true;
         const q = query(collection(db, contasAPagarPath), orderBy('created_at', 'desc'));
         const unsubscribe = onSnapshot(q, (snapshot: any) => {
             const data = snapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));
             setContasAPagar(data);
         });
-        return () => unsubscribe();
+        contasUnsubRef.current = unsubscribe;
     }, [authChecking, activeTab]);
 
-    // Fornecedores - carrega sob demanda (FINANCEIRO ou VENDAS)
-    const fornecedoresLoadedRef = React.useRef(false);
+    // Fornecedores - carrega sob demanda (FINANCEIRO ou VENDAS) e mantém listener vivo
+    const fornecedoresUnsubRef = React.useRef<null | (() => void)>(null);
     useEffect(() => {
-        if (authChecking || fornecedoresLoadedRef.current) return;
+        if (authChecking || fornecedoresUnsubRef.current) return;
         if (activeTab !== 'FINANCEIRO' && activeTab !== 'VENDAS') return;
-        fornecedoresLoadedRef.current = true;
         const q = query(collection(db, fornecedoresCollectionPath), orderBy('name', 'asc'));
         const unsubscribe = onSnapshot(q, (snapshot: any) => {
             const data = snapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));
             setFornecedores(data);
         });
-        return () => unsubscribe();
+        fornecedoresUnsubRef.current = unsubscribe;
     }, [authChecking, activeTab]);
+
+    // Cleanup dos listeners apenas quando o dashboard desmonta (logout/sair da página)
+    useEffect(() => {
+        return () => {
+            productsUnsubRef.current?.();
+            financeUnsubRef.current?.();
+            contasUnsubRef.current?.();
+            fornecedoresUnsubRef.current?.();
+            productsUnsubRef.current = null;
+            financeUnsubRef.current = null;
+            contasUnsubRef.current = null;
+            fornecedoresUnsubRef.current = null;
+        };
+    }, []);
 
     useEffect(() => {
         if (isModalOpen) {
@@ -908,38 +919,44 @@ export default function DashboardPage() {
 
     const handleDeleteSale = async (id: string) => {
         if (!confirm('Deseja realmente excluir esta venda? Os itens voltarão para o estoque e as contas financeiras vinculadas serão excluídas.')) return;
-        setLoading(true);
+
+        const sale = sales.find(s => s.id === id);
+        if (!sale) return;
+
+        // Update otimista: sumir da tela imediatamente
+        const prevSales = sales;
+        const prevOrders = orders;
+        setSales(s => s.filter(x => x.id !== id));
+        setOrders(o => o.filter(x => x.id !== id));
+
         try {
-            const sale = sales.find(s => s.id === id);
-            if (!sale) return;
+            // 1) Busca estoque atual e entradas financeiras em paralelo (muito mais rápido)
+            const uniqueItems = (sale.items || []).filter((it: any) => it.id);
+            const [productSnaps, finSnap] = await Promise.all([
+                Promise.all(uniqueItems.map((it: any) => getDoc(doc(db, productsCollectionPath, it.id)))),
+                getDocs(query(collection(db, financeCollectionPath), where('order_id', '==', id))),
+            ]);
 
-            // Retornar itens ao estoque
-            for (const item of sale.items || []) {
-                if (item.id) {
-                    const productRef = doc(db, productsCollectionPath, item.id);
-                    const pSnap = await getDoc(productRef);
-                    if (pSnap.exists()) {
-                        await updateDoc(productRef, { stock: (pSnap.data().stock || 0) + item.quantity });
-                    }
+            // 2) Monta um batch único: devolve estoque + exclui finance + exclui venda
+            const batch = writeBatch(db);
+            uniqueItems.forEach((it: any, idx: number) => {
+                const pSnap = productSnaps[idx];
+                if (pSnap.exists()) {
+                    const currentStock = (pSnap.data() as any).stock || 0;
+                    batch.update(doc(db, productsCollectionPath, it.id), { stock: currentStock + it.quantity });
                 }
-            }
+            });
+            finSnap.docs.forEach(d => batch.delete(doc(db, financeCollectionPath, d.id)));
+            batch.delete(doc(db, salesCollectionPath, id));
 
-            // Excluir entradas financeiras vinculadas
-            const finSnap = await getDocs(collection(db, financeCollectionPath));
-            for (const d of finSnap.docs) {
-                if (d.data().order_id === id) {
-                    await deleteDoc(doc(db, financeCollectionPath, d.id));
-                }
-            }
-
-            // Deletar documento da venda
-            await deleteDoc(doc(db, salesCollectionPath, id));
+            await batch.commit();
             toast.success('Venda, estoque e contas financeiras atualizados!');
         } catch (err) {
             console.error(err);
+            // Rollback otimista
+            setSales(prevSales);
+            setOrders(prevOrders);
             toast.error('Erro ao excluir venda.');
-        } finally {
-            setLoading(false);
         }
     };
 
@@ -1149,11 +1166,18 @@ export default function DashboardPage() {
 
     const handleDeleteConta = async () => {
         if (!confirmDeleteContaId) return;
+        const id = confirmDeleteContaId;
+        // Update otimista
+        const prev = contasAPagar;
+        setContasAPagar(c => c.filter(x => x.id !== id));
+        setConfirmDeleteContaId(null);
         try {
-            await deleteDoc(doc(db, contasAPagarPath, confirmDeleteContaId));
-            setConfirmDeleteContaId(null);
+            await deleteDoc(doc(db, contasAPagarPath, id));
             toast.success('Conta removida!');
-        } catch (err) { toast.error('Erro ao excluir'); }
+        } catch (err) {
+            setContasAPagar(prev);
+            toast.error('Erro ao excluir');
+        }
     };
 
     // Agrupa produtos por nome base para mostrar tamanhos como quadradinhos
@@ -1984,22 +2008,26 @@ export default function DashboardPage() {
     const handleDeleteOrder = async (id: string, number: string) => {
         if (!window.confirm(`Tem certeza que deseja EXCLUIR o pedido ${number}? A venda e as contas financeiras vinculadas serão excluídas.`)) return;
 
-        setLoading(true);
+        // Update otimista: sumir da tela imediatamente
+        const prevOrders = orders;
+        const prevSales = sales;
+        setOrders(o => o.filter(x => x.id !== id));
+        setSales(s => s.filter(x => x.id !== id));
+
         try {
-            // Excluir entradas financeiras vinculadas
-            const finSnap = await getDocs(collection(db, financeCollectionPath));
-            for (const d of finSnap.docs) {
-                if (d.data().order_id === id) {
-                    await deleteDoc(doc(db, financeCollectionPath, d.id));
-                }
-            }
-            await deleteDoc(doc(db, salesCollectionPath, id));
+            // Busca só as entradas financeiras vinculadas (where em vez de getDocs + filter)
+            const finSnap = await getDocs(query(collection(db, financeCollectionPath), where('order_id', '==', id)));
+            const batch = writeBatch(db);
+            finSnap.docs.forEach(d => batch.delete(doc(db, financeCollectionPath, d.id)));
+            batch.delete(doc(db, salesCollectionPath, id));
+            await batch.commit();
             toast.success('Pedido e contas financeiras excluídos!');
         } catch (error) {
             console.error('Error deleting order:', error);
+            // Rollback otimista
+            setOrders(prevOrders);
+            setSales(prevSales);
             toast.error('Erro ao excluir pedido');
-        } finally {
-            setLoading(false);
         }
     };
 
@@ -2078,10 +2106,16 @@ export default function DashboardPage() {
 
     const handleDeleteFornecedor = async (id: string) => {
         if (!confirm('Excluir este fornecedor?')) return;
+        // Update otimista
+        const prev = fornecedores;
+        setFornecedores(f => f.filter(x => x.id !== id));
         try {
             await deleteDoc(doc(db, fornecedoresCollectionPath, id));
             toast.success('Fornecedor excluído!');
-        } catch (err) { toast.error('Erro ao excluir'); }
+        } catch (err) {
+            setFornecedores(prev);
+            toast.error('Erro ao excluir');
+        }
     };
 
     const handleFornecedorCpfCnpjChange = (val: string) => {
@@ -3269,11 +3303,14 @@ export default function DashboardPage() {
                                                             className="px-3 h-9 rounded-lg text-white/50 hover:text-white text-xs font-black uppercase">Cancelar</button>
                                                         <button onClick={async () => {
                                                             if (confirm(`Excluir o tamanho ${editingVariant.extractedSize || 'ÚNICO'} deste produto?`)) {
+                                                                const prev = products;
+                                                                setProducts(list => list.filter(p => p.id !== editingVariant.id));
+                                                                setEditingProductId(null);
                                                                 try {
                                                                     await deleteDoc(doc(db, productsCollectionPath, editingVariant.id));
                                                                     toast.success('Tamanho excluído!');
-                                                                    setEditingProductId(null);
                                                                 } catch (err) {
+                                                                    setProducts(prev);
                                                                     toast.error('Erro ao excluir');
                                                                 }
                                                             }
@@ -4483,11 +4520,14 @@ export default function DashboardPage() {
                                                     </button>
                                                     )}
                                                     <button onClick={async () => {
+                                                        const prev = financialItems;
+                                                        setFinancialItems(list => list.filter(x => x.id !== item.id));
                                                         try {
                                                             await deleteDoc(doc(db, financeCollectionPath, item.id));
                                                             toast.success('Conta excluída!');
                                                         } catch (err) {
                                                             console.error('Erro ao excluir:', err);
+                                                            setFinancialItems(prev);
                                                             toast.error('Erro ao excluir conta');
                                                         }
                                                     }} className="text-white/70 hover:text-red-500 transition-colors p-3" title="Excluir conta">
