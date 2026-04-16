@@ -3912,7 +3912,7 @@ export default function DashboardPage() {
                                                         {item.supplier_name && <p className="text-sm font-bold text-[#39FF14]/70 uppercase mt-0.5">{item.supplier_name}</p>}
                                                         <div className="flex items-center gap-2 mt-1.5">
                                                             <span className="text-sm font-black uppercase px-2.5 py-1 rounded-lg bg-[#39FF14] text-black">
-                                                                📅 {((item.due_date || item.transaction_date || item.created_at) || '').split('T')[0].split('-').reverse().join('/')}
+                                                                {((item.due_date || item.transaction_date || item.created_at) || '').split('T')[0].split('-').reverse().join('/')}
                                                             </span>
                                                             {item.payment_method && <span className="text-xs text-white/50 font-bold uppercase">{item.payment_method}</span>}
                                                         </div>
@@ -3986,7 +3986,7 @@ export default function DashboardPage() {
                                                     {item.status === 'PAGO' || item.status === 'RECEBIDO' ? (
                                                         <>
                                                         <label className="text-sm font-black uppercase px-3 py-1 rounded-full bg-green-500/20 text-green-400 cursor-pointer hover:bg-green-500/30 transition-colors flex items-center gap-1">
-                                                            {item.status} em {item.paid_at ? new Date(item.paid_at.split('T')[0] + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : ''}
+                                                            {item.status} em {(() => { const d = item.paid_at || item.created_at || ''; return d ? d.split('T')[0].split('-').reverse().join('/') : ''; })()}
                                                             <input type="date" className="opacity-0 absolute w-0 h-0" value={item.paid_at ? item.paid_at.split('T')[0] : ''} onChange={async (e) => {
                                                                 if (e.target.value) {
                                                                     try {
