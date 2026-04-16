@@ -203,6 +203,7 @@ export default function DashboardPage() {
     const [sales, setSales] = useState<any[]>([]);
     const [financialItems, setFinancialItems] = useState<any[]>([]);
     const [stockLoading, setStockLoading] = useState(true);
+    const [saleQtyByGroup, setSaleQtyByGroup] = useState<Record<string, number>>({});
 
     // Form Estado - Vendas (PDV)
     const [cart, setCart] = useState<any[]>([]);
@@ -3339,27 +3340,103 @@ export default function DashboardPage() {
                                     className="w-full bg-zinc-800 border border-zinc-900 rounded-xl p-3 text-white outline-none focus:ring-1 focus:ring-[#39FF14] text-sm font-bold placeholder:text-zinc-600"
                                 />
                                 <div className="grid grid-cols-1 gap-3 max-h-[600px] overflow-y-auto pr-1">
-                                    {products.filter(p => !productSearch || p.name.toLowerCase().includes(productSearch.toLowerCase())).map(p => (
-                                        <button
-                                            key={p.id}
-                                            onClick={() => addToCart(p)}
-                                            disabled={p.stock <= 0}
-                                            className="bg-zinc-950 border border-zinc-900 p-4 rounded-2xl flex items-center justify-between hover:border-[#39FF14]/30 transition-all group disabled:opacity-50"
-                                        >
-                                            <div className="flex items-center gap-3 text-left">
-                                                {p.image ? (
-                                                    <div className="w-10 h-10 rounded-xl overflow-hidden border border-zinc-800 shrink-0">
-                                                        <img src={p.image} alt={p.name} className="w-full h-full object-cover" />
+                                    {groupedProducts
+                                        .filter(([key, g]) => !productSearch || g.baseName.toLowerCase().includes(productSearch.toLowerCase()))
+                                        .map(([key, group]) => {
+                                            const currentQty = saleQtyByGroup[key] || 1;
+                                            const setQty = (n: number) => setSaleQtyByGroup(prev => ({ ...prev, [key]: Math.max(1, n) }));
+                                            return (
+                                        <div key={key} className="bg-zinc-950 border border-zinc-900 p-4 rounded-2xl hover:border-[#39FF14]/30 transition-all">
+                                            <div className="flex items-center gap-3 mb-3">
+                                                {group.image ? (
+                                                    <div className="w-12 h-12 rounded-xl overflow-hidden border border-zinc-800 shrink-0">
+                                                        <img src={group.image} alt={group.baseName} className="w-full h-full object-cover" />
                                                     </div>
-                                                ) : null}
-                                                <div>
-                                                <p className="text-sm font-black text-white group-hover:text-[#39FF14] transition-colors">{p.name}</p>
-                                                <p className="text-sm text-white font-bold uppercase">R$ {p.sale_price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} • {p.stock} un</p>
+                                                ) : (
+                                                    <div className="w-12 h-12 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center shrink-0">
+                                                        <Box size={20} className="text-[#39FF14]/50" />
+                                                    </div>
+                                                )}
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-sm font-black text-white truncate">{group.baseName}</p>
+                                                    <p className="text-[11px] text-white/70 font-bold uppercase">
+                                                        {group.minPrice === group.maxPrice
+                                                            ? `R$ ${group.minPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
+                                                            : `R$ ${group.minPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} - ${group.maxPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
+                                                        {` • ${group.totalStock} un total`}
+                                                    </p>
                                                 </div>
                                             </div>
-                                            <Plus size={16} className="text-white group-hover:text-[#39FF14]" />
-                                        </button>
-                                    ))}
+
+                                            {/* Quadradinhos de tamanho */}
+                                            <div className="flex flex-wrap gap-1.5 mb-2">
+                                                {group.variants.map((v: any) => {
+                                                    const stk = v.stock || 0;
+                                                    const outOfStock = stk === 0;
+                                                    const lowStock = stk > 0 && stk <= 5;
+                                                    const inCart = cart.find((c: any) => c.id === v.id);
+                                                    return (
+                                                        <button
+                                                            key={v.id}
+                                                            onClick={() => {
+                                                                if (outOfStock) return;
+                                                                addToCart(v, currentQty);
+                                                                // Reseta qtd para 1 após adicionar
+                                                                setSaleQtyByGroup(prev => ({ ...prev, [key]: 1 }));
+                                                            }}
+                                                            disabled={outOfStock}
+                                                            className={`relative min-w-[58px] px-2 py-1.5 rounded-lg border-2 text-center transition-all ${
+                                                                outOfStock
+                                                                    ? 'border-red-500/30 bg-red-500/5 opacity-40 cursor-not-allowed'
+                                                                    : lowStock
+                                                                        ? 'border-orange-500/50 bg-orange-500/5 hover:border-orange-500 hover:scale-105'
+                                                                        : 'border-zinc-700 bg-zinc-900 hover:border-[#39FF14] hover:bg-[#39FF14]/10 hover:scale-105'
+                                                            }`}
+                                                            title={outOfStock ? `${v.extractedSize || 'Único'}: sem estoque` : `Adicionar ${currentQty} un do tamanho ${v.extractedSize || 'único'}`}
+                                                        >
+                                                            <div className="text-[9px] font-black uppercase text-white/60 tracking-wider">{v.extractedSize || 'ÚN'}</div>
+                                                            <div className={`text-sm font-black ${outOfStock ? 'text-red-500' : lowStock ? 'text-orange-500' : 'text-white'}`}>
+                                                                {stk}
+                                                            </div>
+                                                            {inCart && (
+                                                                <span className="absolute -top-1.5 -right-1.5 bg-[#39FF14] text-black text-[9px] font-black rounded-full w-4 h-4 flex items-center justify-center">
+                                                                    {inCart.quantity}
+                                                                </span>
+                                                            )}
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+
+                                            {/* Seletor de quantidade (afeta próximo clique no tamanho) */}
+                                            <div className="flex items-center gap-2 pt-2 border-t border-zinc-900">
+                                                <span className="text-[10px] font-black uppercase text-white/50 tracking-wider">Qtd p/ clique:</span>
+                                                <div className="flex items-center gap-1 bg-zinc-900 rounded-lg p-0.5">
+                                                    <button
+                                                        onClick={() => setQty(currentQty - 1)}
+                                                        className="w-6 h-6 rounded-md bg-zinc-800 text-white font-black text-xs flex items-center justify-center hover:bg-zinc-700 transition-colors"
+                                                    >−</button>
+                                                    <input
+                                                        type="number"
+                                                        min={1}
+                                                        value={currentQty}
+                                                        onChange={e => setQty(parseInt(e.target.value) || 1)}
+                                                        className="w-10 h-6 bg-zinc-950 text-white text-center text-xs font-black outline-none rounded-md border border-zinc-800"
+                                                    />
+                                                    <button
+                                                        onClick={() => setQty(currentQty + 1)}
+                                                        className="w-6 h-6 rounded-md bg-zinc-800 text-white font-black text-xs flex items-center justify-center hover:bg-zinc-700 transition-colors"
+                                                    >+</button>
+                                                </div>
+                                                {currentQty > 1 && (
+                                                    <span className="text-[10px] font-bold text-[#39FF14] uppercase tracking-wider">
+                                                        ▸ +{currentQty} ao clicar
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                            );
+                                        })}
                                 </div>
                             </div>
 
