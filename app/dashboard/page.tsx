@@ -1626,6 +1626,9 @@ export default function DashboardPage() {
         const hasImagesForReport = forEmail ? false : hasImages;
 
         const editAttr = forEmail ? '' : ' contenteditable="true" spellcheck="false"';
+        const apiOrigin = typeof window !== 'undefined' ? window.location.origin : '';
+        const sendEmailTo = reportEmail || '';
+        const emailSubject = `Ordem de Serviço - ${order.order_number || ''} - ${order.client || 'Sem cliente'}`;
         let itemsHtml = '';
         if (order.items && order.items.length > 0) {
             itemsHtml = '<div style="background: #f0f0f0; padding: 10px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 6px;">' +
@@ -1695,8 +1698,13 @@ export default function DashboardPage() {
                 .step-name.current { color: #f97316; }
                 .toolbar { position: sticky; top: 0; background: #111; color: #fff; padding: 8px 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: -12px -12px 10px -12px; z-index: 10; }
                 .toolbar .info { font-size: 12px; font-weight: 600; }
-                .toolbar button { background: #39FF14; color: #111; border: none; padding: 8px 14px; font-weight: 900; font-size: 13px; border-radius: 6px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.05em; }
-                .toolbar button:hover { background: #4fff2a; }
+                .toolbar-actions { display: flex; gap: 8px; align-items: center; }
+                .toolbar button { border: none; padding: 8px 14px; font-weight: 900; font-size: 13px; border-radius: 6px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.05em; transition: all 0.15s; }
+                .toolbar button:disabled { opacity: 0.6; cursor: not-allowed; }
+                .btn-print { background: #39FF14; color: #111; }
+                .btn-print:hover:not(:disabled) { background: #4fff2a; }
+                .btn-send { background: #3b82f6; color: #fff; }
+                .btn-send:hover:not(:disabled) { background: #2563eb; }
                 .editable { outline: none; border-radius: 3px; padding: 1px 3px; transition: background 0.15s; }
                 .editable:hover { background: #fff3cd; cursor: text; }
                 .editable:focus { background: #fff3cd; box-shadow: 0 0 0 2px #f97316; }
@@ -1714,7 +1722,87 @@ export default function DashboardPage() {
                     .editable:hover, .editable:focus { background: transparent !important; box-shadow: none !important; }
                 }
             </style></head><body>
-            ${!forEmail ? '<div class="toolbar"><div class="info">💡 Clique em qualquer texto destacado para editar antes de imprimir</div><button onclick="(function(){var els=document.querySelectorAll(\'[contenteditable]\');els.forEach(function(e){e.setAttribute(\'data-ce\',e.getAttribute(\'contenteditable\'));e.removeAttribute(\'contenteditable\');});window.focus();setTimeout(function(){window.print();setTimeout(function(){els.forEach(function(e){e.setAttribute(\'contenteditable\',e.getAttribute(\'data-ce\')||\'true\');e.removeAttribute(\'data-ce\');});},200);},50);})()">Imprimir / Salvar PDF</button></div>' : ''}
+            ${!forEmail ? `<div class="toolbar">
+                <div class="info">💡 Clique em qualquer texto destacado para editar antes de imprimir ou enviar</div>
+                <div class="toolbar-actions">
+                    <button class="btn-send" onclick="enviarRelatorioEmail()">📧 Enviar</button>
+                    <button class="btn-print" onclick="imprimirRelatorio()">Imprimir / Salvar PDF</button>
+                </div>
+            </div>
+            <script>
+                var __apiOrigin = ${JSON.stringify(apiOrigin)};
+                var __emailTo = ${JSON.stringify(sendEmailTo)};
+                var __emailSubject = ${JSON.stringify(emailSubject)};
+
+                function imprimirRelatorio() {
+                    var els = document.querySelectorAll('[contenteditable]');
+                    els.forEach(function(e) {
+                        e.setAttribute('data-ce', e.getAttribute('contenteditable'));
+                        e.removeAttribute('contenteditable');
+                    });
+                    window.focus();
+                    setTimeout(function() {
+                        window.print();
+                        setTimeout(function() {
+                            els.forEach(function(e) {
+                                e.setAttribute('contenteditable', e.getAttribute('data-ce') || 'true');
+                                e.removeAttribute('data-ce');
+                            });
+                        }, 200);
+                    }, 50);
+                }
+
+                async function enviarRelatorioEmail() {
+                    if (!__emailTo) {
+                        alert('Nenhum e-mail configurado.\\n\\nPara configurar, clique no ícone de envelope no topo do dashboard e informe o e-mail.');
+                        return;
+                    }
+                    if (!confirm('Enviar este relatório para:\\n\\n' + __emailTo + '\\n\\nAs edições feitas nesta tela serão enviadas.')) return;
+
+                    var btn = document.querySelector('.btn-send');
+                    var oldText = btn.textContent;
+                    btn.disabled = true;
+                    btn.textContent = 'Enviando...';
+
+                    var els = document.querySelectorAll('[contenteditable]');
+                    els.forEach(function(e) { e.removeAttribute('contenteditable'); });
+
+                    var docClone = document.documentElement.cloneNode(true);
+                    var tb = docClone.querySelector('.toolbar');
+                    if (tb) tb.remove();
+                    var scripts = docClone.querySelectorAll('script');
+                    scripts.forEach(function(s) { s.remove(); });
+                    var html = '<!DOCTYPE html>' + docClone.outerHTML;
+
+                    els.forEach(function(e) { e.setAttribute('contenteditable', 'true'); });
+
+                    try {
+                        var res = await fetch(__apiOrigin + '/api/send-report', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ html: html, to: __emailTo, subject: __emailSubject })
+                        });
+                        if (res.ok) {
+                            btn.textContent = '✓ Enviado!';
+                            btn.style.background = '#39FF14';
+                            setTimeout(function() {
+                                btn.textContent = oldText;
+                                btn.disabled = false;
+                                btn.style.background = '';
+                            }, 2500);
+                        } else {
+                            var err = await res.json().catch(function() { return {}; });
+                            alert('Erro ao enviar: ' + (err.error || 'Erro desconhecido'));
+                            btn.textContent = oldText;
+                            btn.disabled = false;
+                        }
+                    } catch (e) {
+                        alert('Erro ao enviar: ' + e.message);
+                        btn.textContent = oldText;
+                        btn.disabled = false;
+                    }
+                }
+            </script>` : ''}
             <div class="page">
             <div class="header">
                 <div class="logo">LIBERA SPORTS</div>
