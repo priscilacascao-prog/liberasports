@@ -3910,13 +3910,8 @@ export default function DashboardPage() {
                                                     <div style={{minWidth: 0}}>
                                                         <p className="text-base font-black text-white uppercase" style={{wordBreak: 'break-all'}}>{item.description}</p>
                                                         {item.supplier_name && <p className="text-sm font-bold text-[#39FF14]/70 uppercase mt-0.5">{item.supplier_name}</p>}
-                                                        {item.status !== 'RECEBIDO' && item.status !== 'PAGO' && (
-                                                        <div className="flex items-center gap-2 mt-1.5">
-                                                            <span className="text-sm font-black uppercase px-2.5 py-1 rounded-lg bg-[#39FF14] text-black">
-                                                                {((item.due_date || item.transaction_date || item.created_at) || '').split('T')[0].split('-').reverse().join('/')}
-                                                            </span>
-                                                            {item.payment_method && <span className="text-xs text-white/50 font-bold uppercase">{item.payment_method}</span>}
-                                                        </div>
+                                                        {item.payment_method && item.status !== 'RECEBIDO' && item.status !== 'PAGO' && (
+                                                            <span className="text-xs text-white/50 font-bold uppercase mt-1">{item.payment_method}</span>
                                                         )}
                                                         {item.observations && <p className="text-sm text-white/70 italic mt-0.5" style={{wordBreak: 'break-all'}}>{item.observations}</p>}
                                                         <p className="text-xs text-white/40 mt-1">
@@ -4020,7 +4015,7 @@ export default function DashboardPage() {
                                                                 })}
                                                                 className="text-sm font-black uppercase px-3 py-1 rounded-full bg-green-500/20 text-green-400 hover:bg-green-500/30 transition-all hover:scale-105"
                                                             >
-                                                                {item.type === 'OUTFLOW' ? 'Marcar como pago' : 'Marcar como recebido'}
+                                                                {item.type === 'OUTFLOW' ? 'Pagar' : 'Receber'} em {((item.due_date || item.transaction_date || item.created_at) || '').split('T')[0].split('-').reverse().join('/')}
                                                             </button>
                                                         </>
                                                     )}
