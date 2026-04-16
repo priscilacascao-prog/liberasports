@@ -1698,15 +1698,15 @@ export default function DashboardPage() {
                 .editable { outline: none; border-radius: 3px; padding: 1px 3px; transition: background 0.15s; }
                 .editable:hover { background: #fff3cd; cursor: text; }
                 .editable:focus { background: #fff3cd; box-shadow: 0 0 0 2px #f97316; }
-                @page { margin: 6mm; size: A4 landscape; }
+                @page { margin: 8mm; size: A4 landscape; }
                 @media print {
-                    html, body { width: 297mm; height: 210mm; }
-                    body { padding: 0; }
+                    html, body { margin: 0 !important; padding: 0 !important; background: white !important; }
+                    body { padding: 0 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
                     button, .toolbar { display: none !important; }
-                    .page { min-height: calc(210mm - 12mm); }
+                    .page { display: block; }
                     .section { page-break-inside: avoid; break-inside: avoid; }
-                    .split-right img { max-height: 160px; }
-                    .editable:hover, .editable:focus { background: transparent; box-shadow: none; }
+                    .split-right img { max-height: 150px; }
+                    .editable:hover, .editable:focus { background: transparent !important; box-shadow: none !important; }
                 }
             </style></head><body>
             ${!forEmail ? '<div class="toolbar"><div class="info">💡 Clique em qualquer texto destacado para editar antes de imprimir</div><button onclick="window.print()">Imprimir / Salvar PDF</button></div>' : ''}
