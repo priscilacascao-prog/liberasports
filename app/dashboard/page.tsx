@@ -1625,11 +1625,12 @@ export default function DashboardPage() {
         const imgsForReport = forEmail ? [] : imgs;
         const hasImagesForReport = forEmail ? false : hasImages;
 
+        const editAttr = forEmail ? '' : ' contenteditable="true" spellcheck="false"';
         let itemsHtml = '';
         if (order.items && order.items.length > 0) {
             itemsHtml = '<div style="background: #f0f0f0; padding: 10px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 6px;">' +
                 '<div style="font-size: 13px; font-weight: 900; text-transform: uppercase; color: #555; margin-bottom: 6px;">Produtos do Pedido</div>' +
-                order.items.map((i: any) => '<div style="font-size: 18px; padding: 4px 0; border-bottom: 1px solid #e5e5e5;"><span style="font-weight: 900;">' + i.quantity + 'x ' + i.name + '</span></div>').join('') +
+                order.items.map((i: any) => '<div style="font-size: 18px; padding: 4px 0; border-bottom: 1px solid #e5e5e5;"><span class="editable" style="font-weight: 900;"' + editAttr + '>' + i.quantity + 'x ' + i.name + '</span></div>').join('') +
             '</div>';
         }
         let linkedHtml = '';
@@ -1641,7 +1642,7 @@ export default function DashboardPage() {
         if (linkedSale?.items?.length) {
             linkedHtml = '<div style="background: #f0f0f0; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">' +
                 '<div style="font-size: 13px; font-weight: 900; text-transform: uppercase; color: #555; margin-bottom: 6px;">Itens da Venda Vinculada (' + linkedSale.sale_number + ')</div>' +
-                linkedSale.items.map((i: any) => '<div style="font-size: 18px; padding: 4px 0; border-bottom: 1px solid #e5e5e5;"><span style="font-weight: 900;">' + i.quantity + 'x ' + i.name + '</span></div>').join('') +
+                linkedSale.items.map((i: any) => '<div style="font-size: 18px; padding: 4px 0; border-bottom: 1px solid #e5e5e5;"><span class="editable" style="font-weight: 900;"' + editAttr + '>' + i.quantity + 'x ' + i.name + '</span></div>').join('') +
             '</div>';
         }
 
@@ -1690,16 +1691,25 @@ export default function DashboardPage() {
                 .step-name { font-size: 10px; font-weight: 800; text-transform: uppercase; color: #555; }
                 .step-name.completed { color: #111; }
                 .step-name.current { color: #f97316; }
+                .toolbar { position: sticky; top: 0; background: #111; color: #fff; padding: 8px 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: -12px -12px 10px -12px; z-index: 10; }
+                .toolbar .info { font-size: 12px; font-weight: 600; }
+                .toolbar button { background: #39FF14; color: #111; border: none; padding: 8px 14px; font-weight: 900; font-size: 13px; border-radius: 6px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.05em; }
+                .toolbar button:hover { background: #4fff2a; }
+                .editable { outline: none; border-radius: 3px; padding: 1px 3px; transition: background 0.15s; }
+                .editable:hover { background: #fff3cd; cursor: text; }
+                .editable:focus { background: #fff3cd; box-shadow: 0 0 0 2px #f97316; }
                 @page { margin: 6mm; size: A4 portrait; }
                 @media print {
                     html, body { width: 210mm; height: 297mm; }
                     body { padding: 0; }
-                    button { display: none; }
+                    button, .toolbar { display: none !important; }
                     .page { min-height: calc(297mm - 12mm); }
                     .section { page-break-inside: avoid; break-inside: avoid; }
                     .split-right img { max-height: 180px; }
+                    .editable:hover, .editable:focus { background: transparent; box-shadow: none; }
                 }
             </style></head><body>
+            ${!forEmail ? '<div class="toolbar"><div class="info">💡 Clique em qualquer texto destacado para editar antes de imprimir</div><button onclick="window.print()">Imprimir / Salvar PDF</button></div>' : ''}
             <div class="page">
             <div class="header">
                 <div class="logo">LIBERA SPORTS</div>
@@ -1717,8 +1727,8 @@ export default function DashboardPage() {
                 <div class="${hasImagesForReport ? 'split-row' : ''}">
                     <div class="${hasImagesForReport ? 'split-left' : ''}">
                         ${itemsHtml}${linkedHtml}
-                        ${order.description ? '<div class="description-box" style="margin-top: 8px;">' + order.description + '</div>' : ''}
-                        ${order.observations ? '<div style="margin-top: 6px; background: #fff8f8; padding: 10px; border-radius: 8px; border: 1px solid #ffeaea; font-size: 14px; white-space: pre-wrap; line-height: 1.4;"><div style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #944; margin-bottom: 3px;">Observações</div>' + order.observations + '</div>' : ''}
+                        ${order.description ? '<div class="description-box editable" style="margin-top: 8px;"' + editAttr + '>' + order.description + '</div>' : ''}
+                        ${order.observations ? '<div style="margin-top: 6px; background: #fff8f8; padding: 10px; border-radius: 8px; border: 1px solid #ffeaea; font-size: 14px; white-space: pre-wrap; line-height: 1.4;"><div style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #944; margin-bottom: 3px;">Observações</div><span class="editable"' + editAttr + '>' + order.observations + '</span></div>' : ''}
                     </div>
                     ${hasImagesForReport ? '<div class="split-right"><div style="display: flex; flex-wrap: wrap; gap: 4px; height: 100%;">' + imgsForReport.map((img: string) => '<img src="' + img + '" style="flex: 1; min-width: 45%; max-height: ' + (imgsForReport.length === 1 ? '280px' : '135px') + '; object-fit: contain; border-radius: 6px; background: #f9f9f9; border: 1px solid #eee; padding: 4px;" />').join('') + '</div></div>' : ''}
                 </div>
@@ -1740,7 +1750,6 @@ export default function DashboardPage() {
             </div>
             <div class="footer">Gerado em ${new Date().toLocaleString('pt-BR')} • Libera Sports</div>
             </div>
-            ${!forEmail ? '<script>window.onload = () => { window.print(); };</script>' : ''}
         </body></html>`;
     };
 
