@@ -251,10 +251,15 @@ export default function LojaPage() {
             const maxNum = Math.max(...allSales.docs.map(d => parseInt((d.data().order_number || '').replace(/\D/g, '') || '0')), 0);
             const orderNumber = `LIBERA-${String(maxNum + 1).padStart(4, '0')}`;
 
+            const taxasCartao: Record<number, number> = { 1: 4.20, 2: 6.09, 3: 7.01, 4: 7.91, 5: 8.80, 6: 9.67 };
+            const saleTotal = paymentMethod === 'CARTÃO CRÉDITO'
+                ? cartTotal * (1 + (taxasCartao[storeInstallments] || 0) / 100)
+                : cartTotal;
+
             const saleData = {
                 order_number: orderNumber, sale_number: orderNumber,
                 items: cart.map(i => ({ id: i.id, name: i.name, quantity: i.quantity, sale_price: i.sale_price, stock: i.stock })),
-                total: cartTotal, value: cartTotal,
+                total: saleTotal, value: saleTotal,
                 ...(toucaDiscount > 0 ? { touca_discount: toucaDiscount, touca_wholesale_unit: toucaWholesaleUnit, touca_qty: toucaTotalQty } : {}),
                 client: clientData.name, client_whatsapp: clientData.whatsapp || '',
                 cpf_cnpj: clientData.cpf_cnpj || '', client_email: clientData.email || user.email,
@@ -289,15 +294,36 @@ export default function LojaPage() {
                     description: `[${orderNumber}] Pedido Loja - ${clientData.name} (PIX 2/2 - Na Entrega)`,
                     payment_method: 'PIX 50/50',
                     status: 'A RECEBER', created_at: new Date().toISOString(),
-                    transaction_date: new Date().toISOString(), due_date: new Date(deadlineDate + 'T12:00:00').toISOString(),
+                    transaction_date: new Date().toISOString(), due_date: deadlineDate + 'T12:00:00',
                     order_id: docRef.id, user_id: user.uid,
                 });
+            } else if (paymentMethod === 'CARTÃO CRÉDITO') {
+                // Cartão crédito: aplicar juros e parcelar a cada 30 dias
+                const taxasCartao: Record<number, number> = { 1: 4.20, 2: 6.09, 3: 7.01, 4: 7.91, 5: 8.80, 6: 9.67 };
+                const totalComJuros = cartTotal * (1 + (taxasCartao[storeInstallments] || 0) / 100);
+                const installmentValue = totalComJuros / storeInstallments;
+                const now = new Date();
+                for (let i = 1; i <= storeInstallments; i++) {
+                    const dueDate = new Date(now);
+                    dueDate.setDate(dueDate.getDate() + (30 * i));
+                    await addDoc(collection(db, financePath), {
+                        type: 'INFLOW', amount: Math.round(installmentValue * 100) / 100,
+                        description: storeInstallments > 1
+                            ? `[${orderNumber}] Pedido Loja - ${clientData.name} (Parcela ${i}/${storeInstallments})`
+                            : `[${orderNumber}] Pedido Loja - ${clientData.name}`,
+                        payment_method: 'CARTÃO CRÉDITO',
+                        status: 'A RECEBER', created_at: new Date().toISOString(),
+                        transaction_date: now.toISOString(), due_date: dueDate.toISOString(),
+                        order_id: docRef.id, user_id: user.uid,
+                    });
+                }
             } else {
+                // PIX normal e outros: recebido na hora
                 await addDoc(collection(db, financePath), {
                     type: 'INFLOW', amount: cartTotal,
                     description: `[${orderNumber}] Pedido Loja - ${clientData.name}`,
                     payment_method: paymentMethod,
-                    status: 'A RECEBER', created_at: new Date().toISOString(),
+                    status: 'RECEBIDO', created_at: new Date().toISOString(),
                     transaction_date: new Date().toISOString(), due_date: new Date().toISOString(),
                     order_id: docRef.id, user_id: user.uid,
                 });

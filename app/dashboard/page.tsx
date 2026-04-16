@@ -661,7 +661,10 @@ export default function DashboardPage() {
 
     const handleCheckout = async () => {
         if (!userId) return;
-        const finalTotal = cart.length > 0 ? cartTotal : parseBRL(saleManualValue);
+        const baseTotal = cart.length > 0 ? cartTotal : parseBRL(saleManualValue);
+        // Aplicar juros de cartão de crédito
+        const taxasCartao: Record<number, number> = { 1: 4.20, 2: 6.09, 3: 7.01, 4: 7.91, 5: 8.80, 6: 9.67 };
+        const finalTotal = paymentMethod === 'CARTÃO CRÉDITO' ? baseTotal * (1 + (taxasCartao[installments] || 0) / 100) : baseTotal;
         if (finalTotal <= 0) { toast.error('Informe o valor da venda'); return; }
         if (saleEntersProduction && !saleClient.trim()) { toast.error('Informe o nome do cliente'); return; }
         if (saleCpfCnpj) {
@@ -752,7 +755,7 @@ export default function DashboardPage() {
                     payment_method: 'PIX 50/50',
                     created_at: new Date().toISOString(),
                     transaction_date: transactionDate,
-                    due_date: saleDeadline ? new Date(saleDeadline + 'T12:00:00').toISOString() : transactionDate,
+                    due_date: saleDeadline ? saleDeadline + 'T12:00:00' : transactionDate,
                     order_id: docRef.id,
                     user_id: userId,
                     operator_name: operatorName,
@@ -1440,7 +1443,7 @@ export default function DashboardPage() {
 
         let prefix = orderNumber ? `[${orderNumber}] ` : '';
 
-        if (payMethod === 'PIX' || payMethod === 'CARTÃO DÉBITO' || payMethod === 'DINHEIRO') {
+        if (payMethod === 'PIX' || payMethod === 'DINHEIRO') {
             await addDoc(collection(db, financeCollectionPath), {
                 type: 'INFLOW',
                 amount: totalValue,
@@ -1454,7 +1457,24 @@ export default function DashboardPage() {
                 user_id: uid,
                 operator_name: operatorName,
             });
+        } else if (payMethod === 'CARTÃO DÉBITO') {
+            // Débito: recebimento no próximo dia útil
+            const nextBizDay = addBusinessDays(baseDate, 1);
+            await addDoc(collection(db, financeCollectionPath), {
+                type: 'INFLOW',
+                amount: totalValue,
+                description: `${prefix}${desc}`,
+                payment_method: payMethod,
+                status: 'A RECEBER',
+                created_at: new Date().toISOString(),
+                transaction_date: baseDate.toISOString(),
+                due_date: new Date(nextBizDay + 'T12:00:00').toISOString(),
+                order_id: orderId,
+                user_id: uid,
+                operator_name: operatorName,
+            });
         } else if (payMethod === 'CARTÃO CRÉDITO') {
+            // Crédito: cada parcela a cada 30 dias (1x = 30 dias, 2x = 30 e 60, etc.)
             const installmentValue = totalValue / installmentsCount;
             for (let i = 1; i <= installmentsCount; i++) {
                 let dueDate = new Date(baseDate);
@@ -1468,7 +1488,7 @@ export default function DashboardPage() {
                     status: 'A RECEBER',
                     created_at: new Date().toISOString(),
                     transaction_date: baseDate.toISOString(),
-                    due_date: installmentsCount > 1 ? dueDate.toISOString() : (new Date(baseDate.setDate(baseDate.getDate() + 30)).toISOString()),
+                    due_date: dueDate.toISOString(),
                     order_id: orderId,
                     user_id: uid,
                     operator_name: operatorName,
@@ -2455,6 +2475,11 @@ export default function DashboardPage() {
                                                         <span className="bg-zinc-900 text-orange-500 px-1.5 py-0.5 rounded text-sm font-bold flex items-center gap-1 uppercase">
                                                             <TrendingUp size={9} /> {order.payment_method || 'PIX'}
                                                         </span>
+                                                        {(order.total || order.value) ? (
+                                                            <span className="bg-[#39FF14]/10 text-[#39FF14] px-2 py-0.5 rounded text-sm font-black flex items-center gap-1">
+                                                                R$ {(order.total || order.value || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                                            </span>
+                                                        ) : null}
                                                     </div>
 
                                                     <div className="flex-1">
@@ -3322,17 +3347,33 @@ export default function DashboardPage() {
                                             <input type="date" value={transactionDate} onChange={e => setTransactionDate(e.target.value)} required
                                                 className="w-full bg-zinc-800 border border-zinc-900 rounded-xl p-2 text-white outline-none focus:ring-1 focus:ring-[#39FF14] transition-all [color-scheme:dark] text-xs" />
                                         </div>
-                                        {paymentMethod === 'CARTÃO CRÉDITO' && (
-                                            <div>
-                                                <label className="block text-xs font-black uppercase tracking-widest mb-1 text-[#39FF14]">Parcelas</label>
-                                                <select value={installments} onChange={e => setInstallments(parseInt(e.target.value))}
-                                                    className="w-full bg-zinc-800 border border-zinc-900 rounded-xl p-2 text-white outline-none focus:ring-1 focus:ring-[#39FF14] transition-all appearance-none text-center text-xs">
-                                                    {Array.from({ length: 12 }, (_, i) => i + 1).map(num => (
-                                                        <option key={num} value={num}>{num}x</option>
-                                                    ))}
-                                                </select>
+                                        {paymentMethod === 'CARTÃO CRÉDITO' && (() => {
+                                            const taxasCartao: Record<number, number> = { 1: 4.20, 2: 6.09, 3: 7.01, 4: 7.91, 5: 8.80, 6: 9.67 };
+                                            const baseTotal = cart.length > 0 ? cartTotal : parseBRL(saleManualValue);
+                                            return (
+                                            <div className="col-span-2">
+                                                <label className="block text-xs font-black uppercase tracking-widest mb-2 text-[#39FF14]">Parcelas (com juros)</label>
+                                                <div className="grid grid-cols-3 gap-2">
+                                                    {[1, 2, 3, 4, 5, 6].map(n => {
+                                                        const totalComJuros = baseTotal * (1 + (taxasCartao[n] || 0) / 100);
+                                                        const parcela = totalComJuros / n;
+                                                        return (
+                                                            <button key={n} type="button" onClick={() => setInstallments(n)}
+                                                                className={`py-2.5 px-2 rounded-xl text-xs font-bold border transition-all text-left ${installments === n
+                                                                    ? 'border-[#39FF14] bg-[#39FF14]/10 text-[#39FF14]'
+                                                                    : 'border-zinc-800 bg-zinc-900/50 text-white hover:border-zinc-700'
+                                                                }`}>
+                                                                <span className="block font-black">{n}x R$ {parcela.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                                                                <span className={`block text-[10px] ${installments === n ? 'text-[#39FF14]/70' : 'text-white/40'}`}>
+                                                                    Total: R$ {totalComJuros.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} ({taxasCartao[n]}%)
+                                                                </span>
+                                                            </button>
+                                                        );
+                                                    })}
+                                                </div>
                                             </div>
-                                        )}
+                                            );
+                                        })()}
                                     </div>
                                     {paymentMethod === 'BOLETO' && (
                                         <div className="grid grid-cols-3 gap-2">
@@ -3374,9 +3415,27 @@ export default function DashboardPage() {
                                             </div>
                                         </div>
                                     )}
+                                    {paymentMethod === 'CARTÃO CRÉDITO' && (() => {
+                                        const taxasShow: Record<number, number> = { 1: 4.20, 2: 6.09, 3: 7.01, 4: 7.91, 5: 8.80, 6: 9.67 };
+                                        const base = cart.length > 0 ? cartTotal : parseBRL(saleManualValue);
+                                        const comJuros = base * (1 + (taxasShow[installments] || 0) / 100);
+                                        return (
+                                            <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-3 mb-3">
+                                                <div className="flex justify-between items-center">
+                                                    <span className="text-orange-400 text-xs font-black uppercase tracking-widest">Juros Cartão ({taxasShow[installments]}%)</span>
+                                                    <span className="text-orange-400 text-sm font-black">+ R$ {(comJuros - base).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                                                </div>
+                                            </div>
+                                        );
+                                    })()}
                                     <div className="flex justify-between items-end mb-4">
                                         <p className="text-white text-sm font-black uppercase tracking-widest">Total</p>
-                                        <p className="text-2xl font-black text-[#39FF14]">R$ {(cart.length > 0 ? cartTotal : parseBRL(saleManualValue)).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                                        <p className="text-2xl font-black text-[#39FF14]">R$ {(() => {
+                                            const base = cart.length > 0 ? cartTotal : parseBRL(saleManualValue);
+                                            const txs: Record<number, number> = { 1: 4.20, 2: 6.09, 3: 7.01, 4: 7.91, 5: 8.80, 6: 9.67 };
+                                            const total = paymentMethod === 'CARTÃO CRÉDITO' ? base * (1 + (txs[installments] || 0) / 100) : base;
+                                            return total.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+                                        })()}</p>
                                     </div>
                                     <button
                                         onClick={handleCheckout}
@@ -3472,6 +3531,31 @@ export default function DashboardPage() {
                                                                         <span className="text-sm text-white/50 ml-2">• {sale.payment_method}</span>
                                                                         <span className="text-sm text-white/50 ml-2">• {new Date(sale.created_at).toLocaleDateString('pt-BR')}</span>
                                                                     </div>
+                                                                    {(sale.payment_method === 'CARTÃO CRÉDITO' || sale.payment_method === 'CARTÃO CREDITO') && (sale.installments || 1) >= 1 && (() => {
+                                                                        const inst = sale.installments || 1;
+                                                                        const total = sale.total || sale.value || 0;
+                                                                        const parcelaVal = total / inst;
+                                                                        const saleDate = new Date(sale.created_at);
+                                                                        return (
+                                                                            <div className="bg-orange-500/10 border border-orange-500/20 rounded-xl px-3 py-2 space-y-1">
+                                                                                <span className="text-xs text-orange-400 font-black uppercase tracking-widest">
+                                                                                    {inst}x de R$ {parcelaVal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                                                                </span>
+                                                                                <div className="flex flex-wrap gap-2">
+                                                                                    {Array.from({ length: inst }, (_, i) => {
+                                                                                        const dueDate = new Date(saleDate);
+                                                                                        dueDate.setDate(dueDate.getDate() + (30 * (i + 1)));
+                                                                                        const isPast = dueDate < new Date();
+                                                                                        return (
+                                                                                            <span key={i} className={`text-[11px] font-bold px-2 py-0.5 rounded ${isPast ? 'bg-[#39FF14]/10 text-[#39FF14]' : 'bg-zinc-800 text-white/70'}`}>
+                                                                                                {i + 1}/{inst} • {dueDate.toLocaleDateString('pt-BR')} {isPast ? '✓' : ''}
+                                                                                            </span>
+                                                                                        );
+                                                                                    })}
+                                                                                </div>
+                                                                            </div>
+                                                                        );
+                                                                    })()}
                                                                     {sale.client && (
                                                                         <div className="bg-zinc-900/50 rounded-xl px-3 py-2">
                                                                             <span className="text-xs text-white/50 font-bold uppercase">Cliente: </span>
@@ -3828,10 +3912,12 @@ export default function DashboardPage() {
                                                     <div style={{minWidth: 0}}>
                                                         <p className="text-base font-black text-white uppercase" style={{wordBreak: 'break-all'}}>{item.description}</p>
                                                         {item.supplier_name && <p className="text-sm font-bold text-[#39FF14]/70 uppercase mt-0.5">{item.supplier_name}</p>}
-                                                        <p className="text-sm text-white font-semibold uppercase mt-0.5">
-                                                            Venc: {((item.due_date || item.transaction_date || item.created_at) || '').split('T')[0].split('-').reverse().join('/')}
-                                                            {item.payment_method && <span className="ml-1.5 text-white/70">• {item.payment_method}</span>}
-                                                        </p>
+                                                        <div className="flex items-center gap-2 mt-1.5">
+                                                            <span className="text-sm font-black uppercase px-2.5 py-1 rounded-lg bg-[#39FF14] text-black">
+                                                                📅 {((item.due_date || item.transaction_date || item.created_at) || '').split('T')[0].split('-').reverse().join('/')}
+                                                            </span>
+                                                            {item.payment_method && <span className="text-xs text-white/50 font-bold uppercase">{item.payment_method}</span>}
+                                                        </div>
                                                         {item.observations && <p className="text-sm text-white/70 italic mt-0.5" style={{wordBreak: 'break-all'}}>{item.observations}</p>}
                                                         <p className="text-xs text-white/40 mt-1">
                                                             {item.created_at ? new Date(item.created_at).toLocaleDateString('pt-BR') + ' ' + new Date(item.created_at).toLocaleTimeString('pt-BR') : ''}
@@ -3902,7 +3988,7 @@ export default function DashboardPage() {
                                                     {item.status === 'PAGO' || item.status === 'RECEBIDO' ? (
                                                         <>
                                                         <label className="text-sm font-black uppercase px-3 py-1 rounded-full bg-green-500/20 text-green-400 cursor-pointer hover:bg-green-500/30 transition-colors flex items-center gap-1">
-                                                            {item.status} em {item.paid_at ? item.paid_at.split('T')[0].split('-').reverse().join('/') : ''}
+                                                            {item.status} em {item.paid_at ? new Date(item.paid_at.split('T')[0] + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : ''}
                                                             <input type="date" className="opacity-0 absolute w-0 h-0" value={item.paid_at ? item.paid_at.split('T')[0] : ''} onChange={async (e) => {
                                                                 if (e.target.value) {
                                                                     try {
@@ -3932,9 +4018,9 @@ export default function DashboardPage() {
                                                                     status: item.type === 'OUTFLOW' ? 'PAGO' : 'RECEBIDO',
                                                                     paid_at: new Date().toISOString()
                                                                 })}
-                                                                className={`text-sm font-black uppercase px-3 py-1 rounded-full transition-all hover:scale-105 ${item.type === 'OUTFLOW' ? 'bg-green-500 text-black' : 'bg-[#39FF14] text-black'}`}
+                                                                className="text-sm font-black uppercase px-3 py-1 rounded-full bg-green-500/20 text-green-400 hover:bg-green-500/30 transition-all hover:scale-105"
                                                             >
-                                                                {item.type === 'OUTFLOW' ? 'PAGO' : 'RECEBIDO'}
+                                                                {item.type === 'OUTFLOW' ? 'Marcar como pago' : 'Marcar como recebido'}
                                                             </button>
                                                         </>
                                                     )}
