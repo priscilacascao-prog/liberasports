@@ -1681,14 +1681,14 @@ export default function DashboardPage() {
                 .split-left { flex: 2; min-width: 0; }
                 .split-right { flex: 3; min-width: 0; }
                 .split-right img { width: 100%; height: 100%; max-height: 220px; object-fit: contain; border-radius: 6px; }
-                .stepper { display: flex; flex-wrap: wrap; gap: 4px; margin: 4px 0; }
-                .step-box { display: flex; align-items: center; gap: 4px; border: 2px solid #888; border-radius: 5px; padding: 3px 5px; flex: 1 1 calc(25% - 4px); min-width: calc(25% - 4px); max-width: calc(25% - 4px); }
+                .stepper { display: flex; flex-wrap: wrap; gap: 5px; margin: 6px 0; }
+                .step-box { display: flex; align-items: center; justify-content: center; gap: 6px; border: 2px solid #888; border-radius: 6px; padding: 6px 8px; flex: 1 1 calc(25% - 5px); min-width: calc(25% - 5px); max-width: calc(25% - 5px); }
                 .step-box.completed { border-color: #111; background: #f5f5f5; }
                 .step-box.current { border-color: #f97316; background: #fff7ed; }
-                .step-check { width: 16px; height: 16px; border: 2px solid #666; border-radius: 3px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 900; }
+                .step-check { width: 22px; height: 22px; border: 2.5px solid #666; border-radius: 4px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 900; }
                 .step-check.completed { border-color: #111; background: #111; color: #fff; }
                 .step-check.current { border-color: #f97316; }
-                .step-name { font-size: 10px; font-weight: 800; text-transform: uppercase; color: #555; }
+                .step-name { font-size: 15px; font-weight: 900; text-transform: uppercase; color: #555; white-space: nowrap; }
                 .step-name.completed { color: #111; }
                 .step-name.current { color: #f97316; }
                 .toolbar { position: sticky; top: 0; background: #111; color: #fff; padding: 8px 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: -12px -12px 10px -12px; z-index: 10; }
