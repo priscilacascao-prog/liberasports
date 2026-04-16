@@ -57,6 +57,40 @@ const addBusinessDays = (startDate: Date, days: number) => {
     return date.toISOString().split('T')[0];
 };
 
+// Extrai tamanho do nome do produto (reutilizado da loja)
+const sizeOrder: Record<string, number> = { 'BB': 0, 'PP': 1, 'P': 2, 'M': 3, 'G': 4, 'GG': 5, 'XG': 6, 'XXG': 7, 'EG': 8, 'EXG': 9 };
+
+function extractProductInfo(name: string) {
+    let size = '';
+    let baseName = name;
+    const tamMatch = name.match(/[-–]\s*TAM\.?\s*(\w+)/i);
+    if (tamMatch) {
+        size = tamMatch[1].toUpperCase();
+        baseName = name.replace(tamMatch[0], '').trim();
+    } else {
+        const sizeAfterDash = name.match(/[-–]\s*(BB|PP|XXG|EXG|XG|GG|EG|P|M|G)\s*$/i);
+        if (sizeAfterDash) {
+            size = sizeAfterDash[1].toUpperCase();
+            baseName = name.replace(sizeAfterDash[0], '').trim();
+        } else {
+            const lastWord = name.match(/\s+(BB|PP|XXG|EXG|XG|GG|EG)\s*$/i);
+            if (lastWord) {
+                size = lastWord[1].toUpperCase();
+                baseName = name.replace(lastWord[0], '').trim();
+            }
+        }
+    }
+    baseName = baseName.replace(/[-–]\s*$/, '').replace(/\s+/g, ' ').trim();
+    return { baseName, size };
+}
+
+function getSizeWeight(size: string): number {
+    if (sizeOrder[size] !== undefined) return sizeOrder[size];
+    const num = parseInt(size);
+    if (!isNaN(num)) return 10 + num;
+    return 50;
+}
+
 export default function DashboardPage() {
     const router = useRouter();
 
@@ -1120,6 +1154,46 @@ export default function DashboardPage() {
             toast.success('Conta removida!');
         } catch (err) { toast.error('Erro ao excluir'); }
     };
+
+    // Agrupa produtos por nome base para mostrar tamanhos como quadradinhos
+    const groupedProducts = useMemo(() => {
+        const groups: Record<string, { baseName: string; image: string; images: string[]; details: string; minPrice: number; maxPrice: number; prontaEntrega: boolean; showInStore: boolean; totalStock: number; variants: any[] }> = {};
+
+        products.forEach((p: any) => {
+            const { baseName, size } = extractProductInfo(p.name || '');
+            const key = baseName.toUpperCase();
+            if (!groups[key]) {
+                groups[key] = {
+                    baseName,
+                    image: p.image || '',
+                    images: p.images || [],
+                    details: p.details || '',
+                    minPrice: p.sale_price || 0,
+                    maxPrice: p.sale_price || 0,
+                    prontaEntrega: false,
+                    showInStore: false,
+                    totalStock: 0,
+                    variants: [],
+                };
+            }
+            const g = groups[key];
+            g.variants.push({ ...p, extractedSize: size });
+            if (p.image && !g.image) g.image = p.image;
+            if (p.images?.length && !g.images?.length) g.images = p.images;
+            if (p.details && !g.details) g.details = p.details;
+            if ((p.sale_price || 0) < g.minPrice || g.minPrice === 0) g.minPrice = p.sale_price || 0;
+            if ((p.sale_price || 0) > g.maxPrice) g.maxPrice = p.sale_price || 0;
+            if (p.pronta_entrega) g.prontaEntrega = true;
+            if (p.show_in_store) g.showInStore = true;
+            g.totalStock += (p.stock || 0);
+        });
+
+        Object.values(groups).forEach(g => {
+            g.variants.sort((a, b) => getSizeWeight(a.extractedSize) - getSizeWeight(b.extractedSize));
+        });
+
+        return Object.entries(groups).sort((a, b) => a[1].baseName.localeCompare(b[1].baseName, 'pt-BR', { numeric: true }));
+    }, [products]);
 
     // Filtros e Agrupamentos Financeiros
     const filteredFinancialItems = useMemo(() => {
@@ -2946,12 +3020,17 @@ export default function DashboardPage() {
                             </div>
                         ) : (
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {products.filter(p => !productSearch || p.name.toLowerCase().includes(productSearch.toLowerCase())).map((p) => (
-                                    <div key={p.id} className="bg-zinc-900/50 border border-zinc-800 p-5 rounded-[32px] hover:border-[#39FF14]/30 transition-all">
+                                {groupedProducts
+                                    .filter(([key, g]) => !productSearch || key.toLowerCase().includes(productSearch.toLowerCase()) || g.baseName.toLowerCase().includes(productSearch.toLowerCase()))
+                                    .map(([key, group]) => {
+                                        const editingVariant = group.variants.find((v: any) => v.id === editingProductId);
+                                        return (
+                                    <div key={key} className="bg-zinc-900/50 border border-zinc-800 p-5 rounded-[32px] hover:border-[#39FF14]/30 transition-all">
+                                        {/* Header: imagem + nome base + tags */}
                                         <div className="flex gap-4 mb-4">
-                                            {p.image ? (
+                                            {group.image ? (
                                                 <div className="w-24 h-24 rounded-2xl overflow-hidden border border-zinc-800 shrink-0">
-                                                    <img src={p.image} alt={p.name} className="w-full h-full object-cover" />
+                                                    <img src={group.image} alt={group.baseName} className="w-full h-full object-cover" />
                                                 </div>
                                             ) : (
                                                 <div className="w-24 h-24 rounded-2xl bg-zinc-950 border border-zinc-800 flex items-center justify-center shrink-0">
@@ -2959,222 +3038,273 @@ export default function DashboardPage() {
                                                 </div>
                                             )}
                                             <div className="flex-1 min-w-0">
-                                                {editingProductId === p.id ? (
-                                                    <div className="space-y-3">
-                                                        <div>
-                                                            <p className="text-xs text-white/70 font-bold uppercase mb-1">Nome</p>
-                                                            <input type="text" value={editProductName} onChange={e => setEditProductName(e.target.value)}
-                                                                className="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-2 text-sm text-white font-bold uppercase outline-none focus:border-[#39FF14]" />
-                                                        </div>
-                                                        <div>
-                                                            <p className="text-xs text-white/70 font-bold uppercase mb-1">Detalhes</p>
-                                                            <textarea value={editProductDetails} onChange={e => setEditProductDetails(e.target.value)}
-                                                                placeholder="Detalhes do produto..." rows={2}
-                                                                className="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-2 text-sm text-white outline-none focus:border-[#39FF14] resize-none" />
-                                                        </div>
-                                                        <div>
-                                                            <p className="text-xs text-white/70 font-bold uppercase mb-1">Foto</p>
-                                                            <div className="flex items-center gap-3">
-                                                                {editProductImage ? (
-                                                                    <div className="relative w-12 h-12 rounded-lg overflow-hidden border border-zinc-700 shrink-0">
-                                                                        <img src={editProductImage} alt="Preview" className="w-full h-full object-cover" />
-                                                                        <button type="button" onClick={() => setEditProductImage('')}
-                                                                            className="absolute -top-1 -right-1 bg-red-500 text-[#fff] rounded-full w-4 h-4 flex items-center justify-center">
-                                                                            <X size={8} />
-                                                                        </button>
-                                                                    </div>
-                                                                ) : (
-                                                                    <div className="w-12 h-12 rounded-lg border border-dashed border-zinc-700 flex items-center justify-center shrink-0">
-                                                                        <Package size={16} className="text-white/30" />
-                                                                    </div>
-                                                                )}
-                                                                <label className="flex-1 cursor-pointer">
-                                                                    <div className="bg-zinc-900 border border-dashed border-zinc-700 rounded-lg p-2 text-center hover:border-[#39FF14]/50 transition-all">
-                                                                        <p className="text-xs font-bold text-white uppercase">{editProductImage ? 'Trocar' : 'Escolher foto'}</p>
-                                                                    </div>
-                                                                    <input type="file" accept="image/*" className="hidden" onChange={e => {
-                                                                        const file = e.target.files?.[0];
-                                                                        if (!file) return;
-                                                                        if (file.size > 500000) { toast.error('Imagem muito grande (máx 500KB)'); return; }
-                                                                        const reader = new FileReader();
-                                                                        reader.onload = () => setEditProductImage(reader.result as string);
-                                                                        reader.readAsDataURL(file);
-                                                                    }} />
-                                                                </label>
-                                                            </div>
-                                                        </div>
-                                                        {/* Fotos extras na edição */}
-                                                        <div>
-                                                            <p className="text-xs text-white/70 font-bold uppercase mb-1">Fotos Extras ({editProductImages.length}/3)</p>
-                                                            <div className="flex items-center gap-2 flex-wrap">
-                                                                {editProductImages.map((img, idx) => (
-                                                                    <div key={idx} className="relative w-12 h-12 rounded-lg overflow-hidden border border-zinc-700 shrink-0">
-                                                                        <img src={img} alt={`Extra ${idx + 1}`} className="w-full h-full object-cover" />
-                                                                        <button type="button" onClick={() => setEditProductImages(editProductImages.filter((_, i) => i !== idx))}
-                                                                            className="absolute -top-1 -right-1 bg-red-500 text-[#fff] rounded-full w-4 h-4 flex items-center justify-center">
-                                                                            <X size={8} />
-                                                                        </button>
-                                                                    </div>
-                                                                ))}
-                                                                {editProductImages.length < 3 && (
-                                                                    <label className="w-12 h-12 rounded-lg border border-dashed border-zinc-700 flex items-center justify-center cursor-pointer hover:border-[#39FF14]/50 transition-all shrink-0">
-                                                                        <Plus size={14} className="text-white/50" />
-                                                                        <input type="file" accept="image/*" className="hidden" onChange={e => {
-                                                                            const file = e.target.files?.[0];
-                                                                            if (!file) return;
-                                                                            if (file.size > 200000) { toast.error('Imagem muito grande (máx 200KB)'); return; }
-                                                                            const reader = new FileReader();
-                                                                            reader.onload = () => setEditProductImages([...editProductImages, reader.result as string]);
-                                                                            reader.readAsDataURL(file);
-                                                                        }} />
-                                                                    </label>
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                        <div className="grid grid-cols-3 gap-2">
-                                                            <div>
-                                                                <p className="text-xs text-white/70 font-bold uppercase mb-1">Preço Venda</p>
-                                                                <input type="text" value={editProductSalePrice} onChange={e => setEditProductSalePrice(formatCurrency(e.target.value))}
-                                                                    className="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-2 text-sm text-white font-bold outline-none focus:border-[#39FF14]" />
-                                                            </div>
-                                                            <div>
-                                                                <p className="text-xs text-white/70 font-bold uppercase mb-1">Preço Custo</p>
-                                                                <input type="text" value={editProductCostPrice} onChange={e => setEditProductCostPrice(formatCurrency(e.target.value))}
-                                                                    className="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-2 text-sm text-white font-bold outline-none focus:border-[#39FF14]" />
-                                                            </div>
-                                                            <div>
-                                                                <p className="text-xs text-white/70 font-bold uppercase mb-1">Estoque</p>
-                                                                <div className="flex items-center gap-1">
-                                                                    <button onClick={() => setEditProductStock(String(Math.max(0, parseInt(editProductStock || '0') - 1)))}
-                                                                        className="w-7 h-8 rounded-lg bg-zinc-800 text-white font-black flex items-center justify-center hover:bg-zinc-700 text-sm">−</button>
-                                                                    <input type="number" value={editProductStock} onChange={e => setEditProductStock(e.target.value)}
-                                                                        className="w-12 h-8 rounded-lg bg-zinc-900 border border-zinc-700 text-white text-center text-sm font-black outline-none focus:border-[#39FF14]" />
-                                                                    <button onClick={() => setEditProductStock(String(parseInt(editProductStock || '0') + 1))}
-                                                                        className="w-7 h-8 rounded-lg bg-zinc-800 text-white font-black flex items-center justify-center hover:bg-zinc-700 text-sm">+</button>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <label className="flex items-center gap-2 cursor-pointer mt-1">
-                                                            <input type="checkbox" checked={editProductShowInStore} onChange={e => setEditProductShowInStore(e.target.checked)} className="w-4 h-4 rounded accent-[#39FF14]" />
-                                                            <span className="text-xs font-black uppercase text-white/70">Visível na Loja</span>
-                                                        </label>
-                                                        <label className="flex items-center gap-2 cursor-pointer mt-1">
-                                                            <input type="checkbox" checked={editProductProntaEntrega} onChange={e => setEditProductProntaEntrega(e.target.checked)} className="w-4 h-4 rounded accent-[#39FF14]" />
-                                                            <span className="text-xs font-black uppercase text-white/70">Pronta Entrega</span>
-                                                        </label>
-                                                        <div className="flex items-center gap-2 mt-1">
-                                                            <button onClick={async () => {
-                                                                try {
-                                                                    const updateData: any = {
-                                                                        name: editProductName.trim().toUpperCase(),
-                                                                        details: editProductDetails.trim(),
-                                                                        sale_price: parseBRL(editProductSalePrice),
-                                                                        cost_price: parseBRL(editProductCostPrice),
-                                                                        stock: parseInt(editProductStock) || 0,
-                                                                        image: editProductImage || '',
-                                                                        images: editProductImages,
-                                                                        show_in_store: editProductShowInStore,
-                                                                        pronta_entrega: editProductProntaEntrega,
-                                                                    };
-                                                                    await updateDoc(doc(db, productsCollectionPath, p.id), updateData);
-                                                                    toast.success('Produto atualizado!');
-                                                                    setEditingProductId(null);
-                                                                } catch (err) { toast.error('Erro ao atualizar'); }
-                                                            }}
-                                                                className="px-4 h-9 rounded-lg bg-[#39FF14] text-black text-xs font-black uppercase hover:scale-105 transition-all">Salvar</button>
-                                                            <button onClick={() => setEditingProductId(null)}
-                                                                className="px-3 h-9 rounded-lg text-white/50 hover:text-white text-xs font-black uppercase">Cancelar</button>
-                                                        </div>
-                                                    </div>
-                                                ) : (
-                                                    <>
-                                                        <div className="flex items-center gap-2">
-                                                            <h3 className="text-base font-black italic uppercase text-white leading-tight">{p.name}</h3>
-                                                            {p.show_in_store && <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-[#39FF14]/20 text-[#39FF14]">LOJA</span>}
-                                                            {p.pronta_entrega ? <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400">PRONTA ENTREGA</span> : <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-orange-500/20 text-orange-400">SOB ENCOMENDA</span>}
-                                                        </div>
-                                                        {p.details && <p className="text-sm text-white/50 mt-0.5">{p.details}</p>}
-                                                        <div className="mt-2">
-                                                            <p className="text-sm text-white/70 font-bold uppercase mb-1">Em Estoque</p>
-                                                            <p className={`text-2xl font-black ${p.stock <= 5 ? 'text-orange-500' : 'text-white'}`}>
-                                                                {p.stock} un
-                                                            </p>
-                                                        </div>
-                                                    </>
-                                                )}
+                                                <div className="flex items-center gap-2 flex-wrap">
+                                                    <h3 className="text-base font-black italic uppercase text-white leading-tight">{group.baseName}</h3>
+                                                    {group.showInStore && <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-[#39FF14]/20 text-[#39FF14]">LOJA</span>}
+                                                    {group.prontaEntrega ? <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400">PRONTA ENTREGA</span> : <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-orange-500/20 text-orange-400">SOB ENCOMENDA</span>}
+                                                </div>
+                                                {group.details && <p className="text-sm text-white/50 mt-0.5">{group.details}</p>}
+                                                <div className="mt-2">
+                                                    <p className="text-sm text-white/70 font-bold uppercase mb-1">Total em Estoque</p>
+                                                    <p className={`text-2xl font-black ${group.totalStock <= 5 ? 'text-orange-500' : 'text-white'}`}>
+                                                        {group.totalStock} un
+                                                    </p>
+                                                </div>
                                             </div>
                                         </div>
-                                        <div className="flex items-end justify-between pt-4 border-t border-zinc-800">
-                                            <div className="grid grid-cols-2 gap-4 flex-1">
-                                                <div>
-                                                    <p className="text-sm text-white/70 font-bold uppercase">Preço Venda</p>
-                                                    <p className="text-lg font-black text-[#39FF14]">R$ {p.sale_price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-                                                </div>
-                                                <div>
-                                                    <p className="text-sm text-white/70 font-bold uppercase">Preço Custo</p>
-                                                    <p className="text-lg font-black text-white/70">R$ {p.cost_price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-                                                </div>
-                                            </div>
-                                            <div className="flex items-center gap-1 shrink-0 ml-2">
-                                                <button
-                                                    onClick={() => {
-                                                        setEditingProductId(p.id);
-                                                        setEditProductName(p.name);
-                                                        setEditProductDetails(p.details || '');
-                                                        setEditProductSalePrice(p.sale_price.toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
-                                                        setEditProductCostPrice(p.cost_price.toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
-                                                        setEditProductStock(String(p.stock));
-                                                        setEditProductImage(p.image || '');
-                                                        setEditProductImages(p.images || []);
-                                                        setEditProductShowInStore(p.show_in_store || false);
-                                                        setEditProductProntaEntrega(p.pronta_entrega || false);
-                                                    }}
-                                                    className="p-2 rounded-lg text-white/40 hover:text-[#39FF14] hover:bg-[#39FF14]/10 transition-all"
-                                                    title="Editar produto"
-                                                >
-                                                    <Pencil size={16} />
-                                                </button>
+
+                                        {/* Quadradinhos de tamanho */}
+                                        <div className="pt-4 border-t border-zinc-800">
+                                            <p className="text-xs text-white/70 font-bold uppercase mb-2">Tamanhos & Estoque (clique para editar)</p>
+                                            <div className="flex flex-wrap gap-2 mb-3">
+                                                {group.variants.map((v: any) => {
+                                                    const isEditing = editingProductId === v.id;
+                                                    const stk = v.stock || 0;
+                                                    const outOfStock = stk === 0;
+                                                    const lowStock = stk > 0 && stk <= 5;
+                                                    return (
+                                                        <button
+                                                            key={v.id}
+                                                            onClick={() => {
+                                                                if (isEditing) { setEditingProductId(null); return; }
+                                                                setEditingProductId(v.id);
+                                                                setEditProductName(v.name);
+                                                                setEditProductDetails(v.details || '');
+                                                                setEditProductSalePrice((v.sale_price || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
+                                                                setEditProductCostPrice((v.cost_price || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
+                                                                setEditProductStock(String(v.stock || 0));
+                                                                setEditProductImage(v.image || '');
+                                                                setEditProductImages(v.images || []);
+                                                                setEditProductShowInStore(v.show_in_store || false);
+                                                                setEditProductProntaEntrega(v.pronta_entrega || false);
+                                                            }}
+                                                            className={`relative min-w-[64px] px-2 py-2 rounded-xl border-2 text-center transition-all ${
+                                                                isEditing
+                                                                    ? 'border-[#39FF14] bg-[#39FF14]/10 ring-2 ring-[#39FF14]/40'
+                                                                    : outOfStock
+                                                                        ? 'border-red-500/40 bg-red-500/5 opacity-60 hover:opacity-100'
+                                                                        : lowStock
+                                                                            ? 'border-orange-500/50 bg-orange-500/5 hover:border-orange-500'
+                                                                            : 'border-zinc-700 bg-zinc-950 hover:border-[#39FF14]/50'
+                                                            }`}
+                                                            title={`Editar tamanho ${v.extractedSize || 'único'}`}
+                                                        >
+                                                            <div className="text-[10px] font-black uppercase text-white/60 tracking-wider">{v.extractedSize || 'ÚNICO'}</div>
+                                                            <div className={`text-lg font-black ${outOfStock ? 'text-red-500' : lowStock ? 'text-orange-500' : 'text-white'}`}>
+                                                                {stk}
+                                                            </div>
+                                                        </button>
+                                                    );
+                                                })}
                                                 <button
                                                     onClick={async () => {
+                                                        const tam = prompt('Digite o novo tamanho (ex: PP, P, M, G, GG, XG):');
+                                                        if (!tam) return;
+                                                        const sizeUpper = tam.trim().toUpperCase();
+                                                        if (!sizeUpper) return;
+                                                        if (group.variants.some((v: any) => (v.extractedSize || '').toUpperCase() === sizeUpper)) {
+                                                            toast.error(`Tamanho ${sizeUpper} já existe nesse produto`);
+                                                            return;
+                                                        }
+                                                        const first = group.variants[0];
+                                                        const newName = `${group.baseName} - ${sizeUpper}`.toUpperCase();
                                                         try {
                                                             await addDoc(collection(db, productsCollectionPath), {
-                                                                name: `(CÓPIA) ${p.name}`,
-                                                                details: p.details || '',
-                                                                sale_price: p.sale_price,
-                                                                cost_price: p.cost_price,
-                                                                stock: p.stock,
-                                                                image: p.image || '',
+                                                                name: newName,
+                                                                details: first.details || '',
+                                                                sale_price: first.sale_price || 0,
+                                                                cost_price: first.cost_price || 0,
+                                                                stock: 0,
+                                                                image: first.image || '',
+                                                                images: first.images || [],
+                                                                show_in_store: first.show_in_store || false,
+                                                                pronta_entrega: first.pronta_entrega || false,
                                                                 created_at: new Date().toISOString(),
                                                                 user_id: userId,
                                                             });
-                                                            toast.success('Produto duplicado!');
-                                                        } catch (err) { toast.error('Erro ao duplicar'); }
-                                                    }}
-                                                    className="p-2 rounded-lg text-white/40 hover:text-blue-400 hover:bg-blue-400/10 transition-all"
-                                                    title="Duplicar produto"
-                                                >
-                                                    <Copy size={16} />
-                                                </button>
-                                                <button
-                                                    onClick={async () => {
-                                                        if (confirm(`Excluir ${p.name} do estoque?`)) {
-                                                            try {
-                                                                await deleteDoc(doc(db, productsCollectionPath, p.id));
-                                                                toast.success('Produto excluído!');
-                                                            } catch (err) {
-                                                                toast.error('Erro ao excluir produto');
-                                                            }
+                                                            toast.success(`Tamanho ${sizeUpper} adicionado!`);
+                                                        } catch (err) {
+                                                            toast.error('Erro ao adicionar tamanho');
                                                         }
                                                     }}
-                                                    className="p-2 rounded-lg text-white/40 hover:text-red-500 hover:bg-red-500/10 transition-all"
-                                                    title="Excluir produto"
+                                                    className="min-w-[64px] px-2 py-2 rounded-xl border-2 border-dashed border-zinc-700 hover:border-[#39FF14]/60 bg-zinc-950 text-white/50 hover:text-[#39FF14] transition-all flex flex-col items-center justify-center gap-0.5"
+                                                    title="Adicionar novo tamanho"
                                                 >
-                                                    <Trash2 size={16} />
+                                                    <div className="text-[10px] font-black uppercase tracking-wider">NOVO</div>
+                                                    <Plus size={16} />
                                                 </button>
+                                            </div>
+
+                                            {/* Formulário de edição — aparece abaixo dos quadradinhos */}
+                                            {editingVariant && (
+                                                <div className="mb-3 p-3 bg-zinc-950 border border-[#39FF14]/30 rounded-xl space-y-3">
+                                                    <div className="flex items-center justify-between">
+                                                        <p className="text-xs font-black uppercase text-[#39FF14] tracking-wider">Editando: {editingVariant.extractedSize || 'ÚNICO'}</p>
+                                                        <button onClick={() => setEditingProductId(null)} className="text-white/50 hover:text-white">
+                                                            <X size={16} />
+                                                        </button>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-xs text-white/70 font-bold uppercase mb-1">Nome</p>
+                                                        <input type="text" value={editProductName} onChange={e => setEditProductName(e.target.value)}
+                                                            className="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-2 text-sm text-white font-bold uppercase outline-none focus:border-[#39FF14]" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-xs text-white/70 font-bold uppercase mb-1">Detalhes</p>
+                                                        <textarea value={editProductDetails} onChange={e => setEditProductDetails(e.target.value)}
+                                                            placeholder="Detalhes do produto..." rows={2}
+                                                            className="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-2 text-sm text-white outline-none focus:border-[#39FF14] resize-none" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-xs text-white/70 font-bold uppercase mb-1">Foto principal</p>
+                                                        <div className="flex items-center gap-3">
+                                                            {editProductImage ? (
+                                                                <div className="relative w-12 h-12 rounded-lg overflow-hidden border border-zinc-700 shrink-0">
+                                                                    <img src={editProductImage} alt="Preview" className="w-full h-full object-cover" />
+                                                                    <button type="button" onClick={() => setEditProductImage('')}
+                                                                        className="absolute -top-1 -right-1 bg-red-500 text-[#fff] rounded-full w-4 h-4 flex items-center justify-center">
+                                                                        <X size={8} />
+                                                                    </button>
+                                                                </div>
+                                                            ) : (
+                                                                <div className="w-12 h-12 rounded-lg border border-dashed border-zinc-700 flex items-center justify-center shrink-0">
+                                                                    <Package size={16} className="text-white/30" />
+                                                                </div>
+                                                            )}
+                                                            <label className="flex-1 cursor-pointer">
+                                                                <div className="bg-zinc-900 border border-dashed border-zinc-700 rounded-lg p-2 text-center hover:border-[#39FF14]/50 transition-all">
+                                                                    <p className="text-xs font-bold text-white uppercase">{editProductImage ? 'Trocar' : 'Escolher foto'}</p>
+                                                                </div>
+                                                                <input type="file" accept="image/*" className="hidden" onChange={e => {
+                                                                    const file = e.target.files?.[0];
+                                                                    if (!file) return;
+                                                                    if (file.size > 500000) { toast.error('Imagem muito grande (máx 500KB)'); return; }
+                                                                    const reader = new FileReader();
+                                                                    reader.onload = () => setEditProductImage(reader.result as string);
+                                                                    reader.readAsDataURL(file);
+                                                                }} />
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-xs text-white/70 font-bold uppercase mb-1">Fotos Extras ({editProductImages.length}/3)</p>
+                                                        <div className="flex items-center gap-2 flex-wrap">
+                                                            {editProductImages.map((img, idx) => (
+                                                                <div key={idx} className="relative w-12 h-12 rounded-lg overflow-hidden border border-zinc-700 shrink-0">
+                                                                    <img src={img} alt={`Extra ${idx + 1}`} className="w-full h-full object-cover" />
+                                                                    <button type="button" onClick={() => setEditProductImages(editProductImages.filter((_, i) => i !== idx))}
+                                                                        className="absolute -top-1 -right-1 bg-red-500 text-[#fff] rounded-full w-4 h-4 flex items-center justify-center">
+                                                                        <X size={8} />
+                                                                    </button>
+                                                                </div>
+                                                            ))}
+                                                            {editProductImages.length < 3 && (
+                                                                <label className="w-12 h-12 rounded-lg border border-dashed border-zinc-700 flex items-center justify-center cursor-pointer hover:border-[#39FF14]/50 transition-all shrink-0">
+                                                                    <Plus size={14} className="text-white/50" />
+                                                                    <input type="file" accept="image/*" className="hidden" onChange={e => {
+                                                                        const file = e.target.files?.[0];
+                                                                        if (!file) return;
+                                                                        if (file.size > 200000) { toast.error('Imagem muito grande (máx 200KB)'); return; }
+                                                                        const reader = new FileReader();
+                                                                        reader.onload = () => setEditProductImages([...editProductImages, reader.result as string]);
+                                                                        reader.readAsDataURL(file);
+                                                                    }} />
+                                                                </label>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                    <div className="grid grid-cols-3 gap-2">
+                                                        <div>
+                                                            <p className="text-xs text-white/70 font-bold uppercase mb-1">Preço Venda</p>
+                                                            <input type="text" value={editProductSalePrice} onChange={e => setEditProductSalePrice(formatCurrency(e.target.value))}
+                                                                className="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-2 text-sm text-white font-bold outline-none focus:border-[#39FF14]" />
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-xs text-white/70 font-bold uppercase mb-1">Preço Custo</p>
+                                                            <input type="text" value={editProductCostPrice} onChange={e => setEditProductCostPrice(formatCurrency(e.target.value))}
+                                                                className="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-2 text-sm text-white font-bold outline-none focus:border-[#39FF14]" />
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-xs text-white/70 font-bold uppercase mb-1">Estoque</p>
+                                                            <div className="flex items-center gap-1">
+                                                                <button onClick={() => setEditProductStock(String(Math.max(0, parseInt(editProductStock || '0') - 1)))}
+                                                                    className="w-7 h-8 rounded-lg bg-zinc-800 text-white font-black flex items-center justify-center hover:bg-zinc-700 text-sm">−</button>
+                                                                <input type="number" value={editProductStock} onChange={e => setEditProductStock(e.target.value)}
+                                                                    className="w-12 h-8 rounded-lg bg-zinc-900 border border-zinc-700 text-white text-center text-sm font-black outline-none focus:border-[#39FF14]" />
+                                                                <button onClick={() => setEditProductStock(String(parseInt(editProductStock || '0') + 1))}
+                                                                    className="w-7 h-8 rounded-lg bg-zinc-800 text-white font-black flex items-center justify-center hover:bg-zinc-700 text-sm">+</button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <label className="flex items-center gap-2 cursor-pointer">
+                                                        <input type="checkbox" checked={editProductShowInStore} onChange={e => setEditProductShowInStore(e.target.checked)} className="w-4 h-4 rounded accent-[#39FF14]" />
+                                                        <span className="text-xs font-black uppercase text-white/70">Visível na Loja</span>
+                                                    </label>
+                                                    <label className="flex items-center gap-2 cursor-pointer">
+                                                        <input type="checkbox" checked={editProductProntaEntrega} onChange={e => setEditProductProntaEntrega(e.target.checked)} className="w-4 h-4 rounded accent-[#39FF14]" />
+                                                        <span className="text-xs font-black uppercase text-white/70">Pronta Entrega</span>
+                                                    </label>
+                                                    <div className="flex items-center gap-2 flex-wrap">
+                                                        <button onClick={async () => {
+                                                            try {
+                                                                const updateData: any = {
+                                                                    name: editProductName.trim().toUpperCase(),
+                                                                    details: editProductDetails.trim(),
+                                                                    sale_price: parseBRL(editProductSalePrice),
+                                                                    cost_price: parseBRL(editProductCostPrice),
+                                                                    stock: parseInt(editProductStock) || 0,
+                                                                    image: editProductImage || '',
+                                                                    images: editProductImages,
+                                                                    show_in_store: editProductShowInStore,
+                                                                    pronta_entrega: editProductProntaEntrega,
+                                                                };
+                                                                await updateDoc(doc(db, productsCollectionPath, editingVariant.id), updateData);
+                                                                toast.success('Tamanho atualizado!');
+                                                                setEditingProductId(null);
+                                                            } catch (err) { toast.error('Erro ao atualizar'); }
+                                                        }}
+                                                            className="px-4 h-9 rounded-lg bg-[#39FF14] text-black text-xs font-black uppercase hover:scale-105 transition-all">Salvar</button>
+                                                        <button onClick={() => setEditingProductId(null)}
+                                                            className="px-3 h-9 rounded-lg text-white/50 hover:text-white text-xs font-black uppercase">Cancelar</button>
+                                                        <button onClick={async () => {
+                                                            if (confirm(`Excluir o tamanho ${editingVariant.extractedSize || 'ÚNICO'} deste produto?`)) {
+                                                                try {
+                                                                    await deleteDoc(doc(db, productsCollectionPath, editingVariant.id));
+                                                                    toast.success('Tamanho excluído!');
+                                                                    setEditingProductId(null);
+                                                                } catch (err) {
+                                                                    toast.error('Erro ao excluir');
+                                                                }
+                                                            }
+                                                        }}
+                                                            className="ml-auto px-3 h-9 rounded-lg text-red-400 hover:text-red-300 hover:bg-red-500/10 text-xs font-black uppercase flex items-center gap-1">
+                                                            <Trash2 size={12} /> Excluir tamanho
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Rodapé: preço e variantes */}
+                                            <div className="flex items-end justify-between pt-3 border-t border-zinc-800">
+                                                <div className="grid grid-cols-2 gap-4 flex-1">
+                                                    <div>
+                                                        <p className="text-sm text-white/70 font-bold uppercase">Preço Venda</p>
+                                                        <p className="text-lg font-black text-[#39FF14]">
+                                                            {group.minPrice === group.maxPrice
+                                                                ? `R$ ${group.minPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
+                                                                : `R$ ${group.minPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} a ${group.maxPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
+                                                        </p>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-sm text-white/70 font-bold uppercase">Variantes</p>
+                                                        <p className="text-lg font-black text-white/70">{group.variants.length} {group.variants.length === 1 ? 'tamanho' : 'tamanhos'}</p>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                ))}
+                                        );
+                                    })}
                             </div>
                         )}
                     </div>
