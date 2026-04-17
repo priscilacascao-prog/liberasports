@@ -3061,24 +3061,96 @@ export default function DashboardPage() {
                                         const editingVariant = group.variants.find((v: any) => v.id === editingProductId);
                                         return (
                                     <div key={key} className="bg-zinc-900/50 border border-zinc-800 p-5 rounded-[32px] hover:border-[#39FF14]/30 transition-all">
-                                        {/* Header: imagem + nome base + tags */}
+                                        {/* Header: imagem + nome base + tags + ações */}
                                         <div className="flex gap-4 mb-4">
-                                            {group.image ? (
-                                                <div className="w-24 h-24 rounded-2xl overflow-hidden border border-zinc-800 shrink-0">
-                                                    <img src={group.image} alt={group.baseName} className="w-full h-full object-cover" />
-                                                </div>
-                                            ) : (
-                                                <div className="w-24 h-24 rounded-2xl bg-zinc-950 border border-zinc-800 flex items-center justify-center shrink-0">
-                                                    <Box size={32} className="text-[#39FF14]/50" />
-                                                </div>
-                                            )}
+                                            {/* Imagem com botão de trocar foto sobreposto */}
+                                            <div className="relative group/img shrink-0">
+                                                {group.image ? (
+                                                    <div className="w-24 h-24 rounded-2xl overflow-hidden border border-zinc-800">
+                                                        <img src={group.image} alt={group.baseName} className="w-full h-full object-cover" />
+                                                    </div>
+                                                ) : (
+                                                    <div className="w-24 h-24 rounded-2xl bg-zinc-950 border border-zinc-800 flex items-center justify-center">
+                                                        <Box size={32} className="text-[#39FF14]/50" />
+                                                    </div>
+                                                )}
+                                                <label className="absolute inset-0 bg-black/60 rounded-2xl flex flex-col items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity cursor-pointer">
+                                                    <Pencil size={18} className="text-white mb-1" />
+                                                    <span className="text-[9px] font-black uppercase text-white">Trocar foto</span>
+                                                    <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
+                                                        const file = e.target.files?.[0];
+                                                        if (!file) return;
+                                                        if (file.size > 500000) { toast.error('Imagem muito grande (máx 500KB)'); return; }
+                                                        const reader = new FileReader();
+                                                        reader.onload = async () => {
+                                                            const newImage = reader.result as string;
+                                                            try {
+                                                                const batch = writeBatch(db);
+                                                                group.variants.forEach((v: any) => {
+                                                                    batch.update(doc(db, productsCollectionPath, v.id), { image: newImage });
+                                                                });
+                                                                await batch.commit();
+                                                                toast.success('Foto atualizada!');
+                                                            } catch (err) { toast.error('Erro ao atualizar foto'); }
+                                                        };
+                                                        reader.readAsDataURL(file);
+                                                    }} />
+                                                </label>
+                                            </div>
                                             <div className="flex-1 min-w-0">
-                                                <div className="flex items-center gap-2 flex-wrap">
-                                                    <h3 className="text-base font-black italic uppercase text-white leading-tight">{group.baseName}</h3>
-                                                    {group.showInStore && <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-[#39FF14]/20 text-[#39FF14]">LOJA</span>}
-                                                    {group.prontaEntrega ? <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400">PRONTA ENTREGA</span> : <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-orange-500/20 text-orange-400">SOB ENCOMENDA</span>}
+                                                <div className="flex items-start justify-between gap-2">
+                                                    <div>
+                                                        <div className="flex items-center gap-2 flex-wrap">
+                                                            <h3 className="text-base font-black italic uppercase text-white leading-tight">{group.baseName}</h3>
+                                                            {group.showInStore && <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-[#39FF14]/20 text-[#39FF14]">LOJA</span>}
+                                                            {group.prontaEntrega ? <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400">PRONTA ENTREGA</span> : <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-orange-500/20 text-orange-400">SOB ENCOMENDA</span>}
+                                                        </div>
+                                                        {group.details && <p className="text-sm text-white/50 mt-0.5">{group.details}</p>}
+                                                    </div>
+                                                    {/* Botões de ação do produto */}
+                                                    <div className="flex items-center gap-1 shrink-0">
+                                                        <button
+                                                            onClick={() => {
+                                                                const first = group.variants[0];
+                                                                setEditingProductId(first.id);
+                                                                setEditProductName(first.name);
+                                                                setEditProductDetails(first.details || '');
+                                                                setEditProductSalePrice((first.sale_price || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
+                                                                setEditProductCostPrice((first.cost_price || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
+                                                                setEditProductStock(String(first.stock || 0));
+                                                                setEditProductImage(first.image || '');
+                                                                setEditProductImages(first.images || []);
+                                                                setEditProductShowInStore(first.show_in_store || false);
+                                                                setEditProductProntaEntrega(first.pronta_entrega || false);
+                                                            }}
+                                                            className="p-2 rounded-xl text-white/40 hover:text-[#39FF14] hover:bg-[#39FF14]/10 transition-all"
+                                                            title="Editar produto"
+                                                        >
+                                                            <Pencil size={16} />
+                                                        </button>
+                                                        <button
+                                                            onClick={async () => {
+                                                                if (!confirm(`Excluir "${group.baseName}" e TODOS os ${group.variants.length} tamanho(s)? Esta ação não pode ser desfeita.`)) return;
+                                                                const prev = products;
+                                                                const idsToDelete = group.variants.map((v: any) => v.id);
+                                                                setProducts(list => list.filter(p => !idsToDelete.includes(p.id)));
+                                                                try {
+                                                                    const batch = writeBatch(db);
+                                                                    idsToDelete.forEach((id: string) => batch.delete(doc(db, productsCollectionPath, id)));
+                                                                    await batch.commit();
+                                                                    toast.success(`"${group.baseName}" excluído!`);
+                                                                } catch (err) {
+                                                                    setProducts(prev);
+                                                                    toast.error('Erro ao excluir produto');
+                                                                }
+                                                            }}
+                                                            className="p-2 rounded-xl text-white/40 hover:text-red-500 hover:bg-red-500/10 transition-all"
+                                                            title="Excluir produto inteiro"
+                                                        >
+                                                            <Trash2 size={16} />
+                                                        </button>
+                                                    </div>
                                                 </div>
-                                                {group.details && <p className="text-sm text-white/50 mt-0.5">{group.details}</p>}
                                                 <div className="mt-2">
                                                     <p className="text-sm text-white/70 font-bold uppercase mb-1">Total em Estoque</p>
                                                     <p className={`text-2xl font-black ${group.totalStock <= 5 ? 'text-orange-500' : 'text-white'}`}>
