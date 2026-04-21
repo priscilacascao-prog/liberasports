@@ -63,16 +63,24 @@ const sizeOrder: Record<string, number> = { 'BB': 0, 'PP': 1, 'P': 2, 'M': 3, 'G
 function extractProductInfo(name: string) {
     let size = '';
     let baseName = name;
-    const tamMatch = name.match(/[-–]\s*TAM\.?\s*(\w+)/i);
+    // 1) "- TAM. X" ou "- TAM X" (aceita letras e números)
+    const tamMatch = name.match(/[-–]\s*TAM\.?\s*([A-Z0-9\/]+)/i);
     if (tamMatch) {
         size = tamMatch[1].toUpperCase();
         baseName = name.replace(tamMatch[0], '').trim();
     } else {
-        const sizeAfterDash = name.match(/[-–]\s*(BB|PP|XXG|EXG|XG|GG|EG|P|M|G)\s*$/i);
-        if (sizeAfterDash) {
-            size = sizeAfterDash[1].toUpperCase();
-            baseName = name.replace(sizeAfterDash[0], '').trim();
+        // 2) "- SIZE" no final — aceita letras conhecidas, número puro ou "38/40"
+        const afterDash = name.match(/[-–]\s*([A-Z0-9\/]+)\s*$/i);
+        if (afterDash) {
+            const candidate = afterDash[1].toUpperCase();
+            const isLetterSize = sizeOrder[candidate] !== undefined;
+            const isNumericSize = /^\d+([\/\-]\d+)?$/.test(candidate);
+            if (isLetterSize || isNumericSize) {
+                size = candidate;
+                baseName = name.replace(afterDash[0], '').trim();
+            }
         } else {
+            // 3) Última palavra = tamanho em letras (compatibilidade com cadastros antigos sem dash)
             const lastWord = name.match(/\s+(BB|PP|XXG|EXG|XG|GG|EG)\s*$/i);
             if (lastWord) {
                 size = lastWord[1].toUpperCase();
@@ -86,9 +94,10 @@ function extractProductInfo(name: string) {
 
 function getSizeWeight(size: string): number {
     if (sizeOrder[size] !== undefined) return sizeOrder[size];
-    const num = parseInt(size);
-    if (!isNaN(num)) return 10 + num;
-    return 50;
+    // Número puro ou "38/40" — ordena pelo primeiro número
+    const match = size.match(/^(\d+)/);
+    if (match) return 100 + parseInt(match[1]);
+    return 500;
 }
 
 export default function DashboardPage() {
@@ -394,18 +403,25 @@ export default function DashboardPage() {
             const data = snapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));
             const sizeOrder: Record<string, number> = { 'BB': 0, 'PP': 1, 'P': 2, 'M': 3, 'G': 4, 'GG': 5, 'XG': 6, 'XXG': 7, 'EG': 8, 'EXG': 9 };
             const getSizeWeight = (name: string) => {
-                const tamMatch = name.match(/TAM\.?\s*(\w+)/i);
+                const tamMatch = name.match(/TAM\.?\s*([A-Z0-9\/]+)/i);
                 if (tamMatch) {
                     const val = tamMatch[1].toUpperCase();
                     if (sizeOrder[val] !== undefined) return sizeOrder[val];
-                    const num = parseInt(val);
-                    if (!isNaN(num)) return 10 + num;
+                    const numMatch = val.match(/^(\d+)/);
+                    if (numMatch) return 100 + parseInt(numMatch[1]);
                 }
+                // Tamanho numérico puro no final: "- 38" ou "- 38/40"
+                const numAfterDash = name.match(/[-–]\s*(\d+)([\/\-]\d+)?\s*$/);
+                if (numAfterDash) return 100 + parseInt(numAfterDash[1]);
                 const sizeMatch = name.match(/\b(BB|PP|XXG|EXG|XG|GG|EG|P|M|G)\b/i);
-                if (sizeMatch) return sizeOrder[sizeMatch[1].toUpperCase()] ?? 50;
-                return 50;
+                if (sizeMatch) return sizeOrder[sizeMatch[1].toUpperCase()] ?? 500;
+                return 500;
             };
-            const cleanName = (name: string) => name.replace(/[-–]\s*TAM\.?\s*\w+/gi, '').replace(/\b(BB|PP|XXG|EXG|XG|GG|EG|P|M|G)\b/gi, '').trim();
+            const cleanName = (name: string) => name
+                .replace(/[-–]\s*TAM\.?\s*[A-Z0-9\/]+/gi, '')
+                .replace(/[-–]\s*\d+([\/\-]\d+)?\s*$/g, '')
+                .replace(/\b(BB|PP|XXG|EXG|XG|GG|EG|P|M|G)\b/gi, '')
+                .trim();
             data.sort((a: any, b: any) => {
                 const baseCmp = cleanName(a.name || '').localeCompare(cleanName(b.name || ''), 'pt-BR', { numeric: true });
                 if (baseCmp !== 0) return baseCmp;
@@ -3205,7 +3221,7 @@ export default function DashboardPage() {
                                                 })}
                                                 <button
                                                     onClick={async () => {
-                                                        const tam = prompt('Digite o novo tamanho (ex: PP, P, M, G, GG, XG):');
+                                                        const tam = prompt('Digite o novo tamanho (ex: PP, P, M, G, GG, XG, 38, 40, 42, 38/40):');
                                                         if (!tam) return;
                                                         const sizeUpper = tam.trim().toUpperCase();
                                                         if (!sizeUpper) return;
