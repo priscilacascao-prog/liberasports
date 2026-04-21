@@ -34,19 +34,24 @@ function extractInfo(name: string) {
     let color = '';
     let baseName = name;
 
-    // Extrair tamanho "- TAM. X" ou "TAM. X"
-    const tamMatch = name.match(/[-–]\s*TAM\.?\s*(\w+)/i);
+    // 1) Extrair tamanho "- TAM. X" ou "TAM. X" (aceita letras e números)
+    const tamMatch = name.match(/[-–]\s*TAM\.?\s*([A-Z0-9\/]+)/i);
     if (tamMatch) {
         size = tamMatch[1].toUpperCase();
         baseName = name.replace(tamMatch[0], '').trim();
     } else {
-        // Extrair tamanho no FINAL do nome após hífen: "- PP", "- M", "- GG"
-        const sizeAfterDash = name.match(/[-–]\s*(BB|PP|XXG|EXG|XG|GG|EG|P|M|G)\s*$/i);
-        if (sizeAfterDash) {
-            size = sizeAfterDash[1].toUpperCase();
-            baseName = name.replace(sizeAfterDash[0], '').trim();
+        // 2) Extrair tamanho no FINAL do nome após hífen — letras, números ou "38/40"
+        const afterDash = name.match(/[-–]\s*([A-Z0-9\/]+)\s*$/i);
+        if (afterDash) {
+            const candidate = afterDash[1].toUpperCase();
+            const isLetterSize = sizeOrder[candidate] !== undefined;
+            const isNumericSize = /^\d+([\/\-]\d+)?$/.test(candidate);
+            if (isLetterSize || isNumericSize) {
+                size = candidate;
+                baseName = name.replace(afterDash[0], '').trim();
+            }
         } else {
-            // Extrair tamanho como última palavra (só se for tamanho válido)
+            // 3) Tamanho como última palavra em letras (compatibilidade com cadastros antigos sem dash)
             const lastWord = name.match(/\s+(BB|PP|XXG|EXG|XG|GG|EG)\s*$/i);
             if (lastWord) {
                 size = lastWord[1].toUpperCase();
@@ -63,9 +68,10 @@ function extractInfo(name: string) {
 
 function getSizeWeight(size: string): number {
     if (sizeOrder[size] !== undefined) return sizeOrder[size];
-    const num = parseInt(size);
-    if (!isNaN(num)) return 10 + num;
-    return 50;
+    // Número puro ou "38/40" — ordena pelo primeiro número, sempre depois das letras
+    const match = size.match(/^(\d+)/);
+    if (match) return 100 + parseInt(match[1]);
+    return 500;
 }
 
 export default function LojaPage() {
