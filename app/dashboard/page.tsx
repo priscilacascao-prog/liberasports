@@ -3467,8 +3467,8 @@ export default function DashboardPage() {
                                                     </div>
                                                 )}
                                                 <div className="flex-1 min-w-0">
-                                                    <p className="text-sm font-black text-white truncate">{group.baseName}</p>
-                                                    <p className="text-[11px] text-white/70 font-bold uppercase">
+                                                    <p className="text-sm font-black text-white leading-tight break-words">{group.baseName}</p>
+                                                    <p className="text-[11px] text-white/70 font-bold uppercase mt-1">
                                                         {group.minPrice === group.maxPrice
                                                             ? `R$ ${group.minPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
                                                             : `R$ ${group.minPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} - ${group.maxPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
