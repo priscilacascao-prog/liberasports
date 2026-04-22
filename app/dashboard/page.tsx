@@ -135,7 +135,7 @@ export default function DashboardPage() {
     const [orders, setOrders] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [authChecking, setAuthChecking] = useState(true);
-    const [activeTab, setActiveTabState] = useState<'HOME' | 'PRODUÇÃO' | 'VENDAS' | 'ESTOQUE' | 'FINANCEIRO' | 'CAIXA'>(() => {
+    const [activeTab, setActiveTabState] = useState<'HOME' | 'PRODUÇÃO' | 'VENDAS' | 'ORÇAMENTOS' | 'ESTOQUE' | 'FINANCEIRO' | 'CAIXA'>(() => {
         if (typeof window !== 'undefined') {
             return (localStorage.getItem('libera_active_tab') as any) || 'HOME';
         }
@@ -168,6 +168,7 @@ export default function DashboardPage() {
     const salesCollectionPath = `artifacts/${appId}/public/data/vendas`;
     const financeCollectionPath = `artifacts/${appId}/public/data/financeiro`;
     const fornecedoresCollectionPath = `artifacts/${appId}/public/data/fornecedores`;
+    const orcamentosCollectionPath = `artifacts/${appId}/public/data/orcamentos`;
     const settingsDocPath = `artifacts/${appId}/public/data/settings/general`;
 
     // Fornecedores state
@@ -185,6 +186,13 @@ export default function DashboardPage() {
 
     const [showPaymentReminder, setShowPaymentReminder] = useState(false);
     const [reminderItems, setReminderItems] = useState<any[]>([]);
+
+    // Orçamentos
+    const [orcamentos, setOrcamentos] = useState<any[]>([]);
+    const [isOrcamentoMode, setIsOrcamentoMode] = useState(false); // quando true, o checkout salva como orçamento
+    const [editingOrcamentoId, setEditingOrcamentoId] = useState<string | null>(null);
+    const [orcamentoViewId, setOrcamentoViewId] = useState<string | null>(null);
+    const [orcamentoToConvertId, setOrcamentoToConvertId] = useState<string | null>(null);
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isPendingModalOpen, setIsPendingModalOpen] = useState(false);
@@ -518,6 +526,19 @@ export default function DashboardPage() {
         fornecedoresUnsubRef.current = unsubscribe;
     }, [authChecking, activeTab]);
 
+    // Orçamentos - carrega sob demanda (ORÇAMENTOS) e mantém listener vivo
+    const orcamentosUnsubRef = React.useRef<null | (() => void)>(null);
+    useEffect(() => {
+        if (authChecking || orcamentosUnsubRef.current) return;
+        if (activeTab !== 'ORÇAMENTOS') return;
+        const q = query(collection(db, orcamentosCollectionPath), orderBy('created_at', 'desc'));
+        const unsubscribe = onSnapshot(q, (snapshot: any) => {
+            const data = snapshot.docs.map((d: any) => ({ id: d.id, ...d.data() }));
+            setOrcamentos(data);
+        });
+        orcamentosUnsubRef.current = unsubscribe;
+    }, [authChecking, activeTab]);
+
     // Cleanup dos listeners apenas quando o dashboard desmonta (logout/sair da página)
     useEffect(() => {
         return () => {
@@ -525,10 +546,12 @@ export default function DashboardPage() {
             financeUnsubRef.current?.();
             contasUnsubRef.current?.();
             fornecedoresUnsubRef.current?.();
+            orcamentosUnsubRef.current?.();
             productsUnsubRef.current = null;
             financeUnsubRef.current = null;
             contasUnsubRef.current = null;
             fornecedoresUnsubRef.current = null;
+            orcamentosUnsubRef.current = null;
         };
     }, []);
 
@@ -808,7 +831,24 @@ export default function DashboardPage() {
                 }];
             }
 
+            // Se a venda vem de um orçamento, vincula o ID pra rastreabilidade
+            if (orcamentoToConvertId) {
+                saleData.orcamento_id = orcamentoToConvertId;
+            }
+
             const docRef = await addDoc(collection(db, salesCollectionPath), saleData);
+
+            // Se a venda vem de um orçamento aprovado, marca como CONVERTIDO
+            if (orcamentoToConvertId) {
+                try {
+                    await updateDoc(doc(db, orcamentosCollectionPath, orcamentoToConvertId), {
+                        status: 'CONVERTIDO',
+                        converted_sale_id: docRef.id,
+                        converted_at: new Date().toISOString(),
+                    });
+                } catch (e) { console.error('Erro ao marcar orçamento convertido', e); }
+                setOrcamentoToConvertId(null);
+            }
 
             // 2. Registrar no Financeiro
             const finDesc = cart.length > 0
@@ -997,6 +1037,240 @@ export default function DashboardPage() {
             setOrders(prevOrders);
             toast.error('Erro ao excluir venda.');
         }
+    };
+
+    // =================== HANDLERS DE ORÇAMENTO ===================
+
+    const generateShareToken = () => {
+        // Token aleatório de 24 chars (URL-safe)
+        const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+        let out = '';
+        for (let i = 0; i < 24; i++) out += chars[Math.floor(Math.random() * chars.length)];
+        return out;
+    };
+
+    const handleSaveOrcamento = async () => {
+        if (!userId) return;
+        if (!saleClient.trim()) { toast.error('Informe o nome do cliente'); return; }
+        if (cart.length === 0 && !saleManualValue) { toast.error('Adicione itens ou um valor manual'); return; }
+
+        const subtotalBruto = cart.length > 0
+            ? cart.reduce((acc, item) => acc + (item.sale_price * item.quantity), 0)
+            : parseBRL(saleManualValue);
+        const specialDiscValue = parseBRL(saleSpecialDiscount) || 0;
+
+        const cleanItems = cart.map(({ image, images, ...item }: any) => ({
+            id: item.id,
+            name: item.name,
+            quantity: item.quantity,
+            sale_price: item.sale_price,
+            cost_price: item.cost_price || 0,
+        }));
+
+        try {
+            if (editingOrcamentoId) {
+                // Atualiza orçamento existente mantendo token/número
+                const updateData: any = {
+                    client: saleClient.trim().toUpperCase(),
+                    client_whatsapp: saleWhatsapp.trim(),
+                    cpf_cnpj: saleCpfCnpj.replace(/\D/g, ''),
+                    items: cleanItems,
+                    subtotal: subtotalBruto,
+                    total: cartTotal,
+                    delivery_method: saleDeliveryMethod,
+                    delivery_address: buildDeliveryAddress(),
+                    description: saleDescription.trim(),
+                    deadline: saleDeadline || '',
+                    payment_method: paymentMethod,
+                    status: 'PENDENTE',
+                    client_comments: '',
+                    updated_at: new Date().toISOString(),
+                    ...(toucaDiscount > 0 ? {
+                        touca_discount: toucaDiscount,
+                        touca_wholesale_unit: toucaWholesaleUnit,
+                        touca_qty: toucaTotalQty,
+                    } : { touca_discount: 0, touca_wholesale_unit: null, touca_qty: 0 }),
+                    ...(specialDiscValue > 0 ? {
+                        special_discount: specialDiscValue,
+                        special_discount_reason: saleSpecialDiscountReason.trim(),
+                    } : { special_discount: 0, special_discount_reason: '' }),
+                };
+                await updateDoc(doc(db, orcamentosCollectionPath, editingOrcamentoId), updateData);
+                toast.success('Orçamento atualizado! Cliente pode aprovar novamente no link.');
+            } else {
+                // Gera número do orçamento
+                const allSnap = await getDocs(query(collection(db, orcamentosCollectionPath), orderBy('created_at', 'desc')));
+                const maxNum = Math.max(
+                    ...allSnap.docs.map(d => parseInt((d.data().orcamento_number || '').replace(/\D/g, '') || '0')),
+                    0
+                );
+                const newOrcamentoNumber = `ORC-${String(maxNum + 1).padStart(4, '0')}`;
+
+                const orcamentoData: any = {
+                    orcamento_number: newOrcamentoNumber,
+                    client: saleClient.trim().toUpperCase(),
+                    client_whatsapp: saleWhatsapp.trim(),
+                    cpf_cnpj: saleCpfCnpj.replace(/\D/g, ''),
+                    items: cleanItems,
+                    subtotal: subtotalBruto,
+                    total: cartTotal,
+                    delivery_method: saleDeliveryMethod,
+                    delivery_address: buildDeliveryAddress(),
+                    description: saleDescription.trim(),
+                    deadline: saleDeadline || '',
+                    payment_method: paymentMethod,
+                    status: 'PENDENTE',
+                    share_token: generateShareToken(),
+                    client_comments: '',
+                    created_at: new Date().toISOString(),
+                    user_id: userId,
+                    operator_name: operatorName,
+                    ...(toucaDiscount > 0 ? {
+                        touca_discount: toucaDiscount,
+                        touca_wholesale_unit: toucaWholesaleUnit,
+                        touca_qty: toucaTotalQty,
+                    } : {}),
+                    ...(specialDiscValue > 0 ? {
+                        special_discount: specialDiscValue,
+                        special_discount_reason: saleSpecialDiscountReason.trim(),
+                    } : {}),
+                };
+                await addDoc(collection(db, orcamentosCollectionPath), orcamentoData);
+                toast.success(`Orçamento ${newOrcamentoNumber} criado!`);
+            }
+
+            // Reset e volta pra aba ORÇAMENTOS
+            setIsOrcamentoMode(false);
+            setEditingOrcamentoId(null);
+            setCart([]);
+            setSaleClient('');
+            setSaleWhatsapp('');
+            setSaleCpfCnpj('');
+            setSaleDescription('');
+            setSaleManualValue('');
+            setSaleSpecialDiscount('');
+            setSaleSpecialDiscountReason('');
+            setSaleDeadline('');
+            setSaleEndereco(''); setSaleNumero(''); setSaleQuadra(''); setSaleLote('');
+            setSaleComplemento(''); setSaleCidade(''); setSaleEstado(''); setSaleCep('');
+            setActiveTab('ORÇAMENTOS');
+        } catch (err) {
+            console.error(err);
+            toast.error('Erro ao salvar orçamento.');
+        }
+    };
+
+    const handleEditOrcamento = (orc: any) => {
+        // Pré-preenche todos os campos do formulário com os dados do orçamento
+        setEditingOrcamentoId(orc.id);
+        setIsOrcamentoMode(true);
+        setActiveTab('VENDAS');
+        setSaleClient(orc.client || '');
+        setSaleWhatsapp(orc.client_whatsapp || '');
+        setSaleCpfCnpj(orc.cpf_cnpj ? formatCpfCnpj(orc.cpf_cnpj) : '');
+        setSaleDescription(orc.description || '');
+        setSaleDeadline(orc.deadline || '');
+        setSaleDeliveryMethod(orc.delivery_method || 'MOTOBOY');
+        setPaymentMethod(orc.payment_method || 'PIX');
+        setSaleManualValue('');
+        setSaleSpecialDiscount(orc.special_discount ? orc.special_discount.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : '');
+        setSaleSpecialDiscountReason(orc.special_discount_reason || '');
+        // Restaura itens no carrinho (busca imagem atual do produto se possível)
+        const restoredCart = (orc.items || []).map((it: any) => {
+            const prod = products.find(p => p.id === it.id);
+            return {
+                id: it.id,
+                name: it.name,
+                quantity: it.quantity,
+                sale_price: it.sale_price,
+                cost_price: it.cost_price || 0,
+                stock: prod?.stock || 0,
+                image: prod?.image || '',
+            };
+        });
+        setCart(restoredCart);
+    };
+
+    const handleDeleteOrcamento = async (id: string) => {
+        if (!confirm('Excluir este orçamento? Esta ação não pode ser desfeita.')) return;
+        const prev = orcamentos;
+        setOrcamentos(list => list.filter(o => o.id !== id));
+        try {
+            await deleteDoc(doc(db, orcamentosCollectionPath, id));
+            toast.success('Orçamento excluído!');
+        } catch (err) {
+            setOrcamentos(prev);
+            toast.error('Erro ao excluir orçamento');
+        }
+    };
+
+    const handleConvertOrcamentoToVenda = (orc: any) => {
+        // Fecha modais de orçamento e abre o modal de venda com dados pré-preenchidos
+        setOrcamentoViewId(null);
+        setIsOrcamentoMode(false);
+        setEditingOrcamentoId(null);
+
+        setSaleClient(orc.client || '');
+        setSaleWhatsapp(orc.client_whatsapp || '');
+        setSaleCpfCnpj(orc.cpf_cnpj ? formatCpfCnpj(orc.cpf_cnpj) : '');
+        setSaleDescription(orc.description || '');
+        setSaleDeadline(orc.deadline || '');
+        setSaleDeliveryMethod(orc.delivery_method || 'MOTOBOY');
+        setPaymentMethod(orc.payment_method || 'PIX');
+        setSaleManualValue('');
+        setSaleSpecialDiscount(orc.special_discount ? orc.special_discount.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : '');
+        setSaleSpecialDiscountReason(orc.special_discount_reason || '');
+
+        const restoredCart = (orc.items || []).map((it: any) => {
+            const prod = products.find(p => p.id === it.id);
+            return {
+                id: it.id,
+                name: it.name,
+                quantity: it.quantity,
+                sale_price: it.sale_price,
+                cost_price: it.cost_price || 0,
+                stock: prod?.stock || 0,
+                image: prod?.image || '',
+            };
+        });
+        setCart(restoredCart);
+
+        // Guarda o ID para marcar como convertido ao finalizar a venda
+        setOrcamentoToConvertId(orc.id);
+
+        // Navega pra aba VENDAS
+        setActiveTab('VENDAS');
+        toast.success('Orçamento carregado no checkout. Revise e finalize a venda.');
+    };
+
+    const copyOrcamentoLink = (orc: any) => {
+        if (typeof window === 'undefined') return;
+        const url = `${window.location.origin}/orcamento/${orc.share_token}`;
+        navigator.clipboard.writeText(url).then(
+            () => toast.success('Link copiado! Envie ao cliente pelo WhatsApp.'),
+            () => toast.error('Erro ao copiar link')
+        );
+    };
+
+    const shareOrcamentoWhatsapp = (orc: any) => {
+        if (typeof window === 'undefined') return;
+        const url = `${window.location.origin}/orcamento/${orc.share_token}`;
+        const phone = normalizePhone(orc.client_whatsapp || '');
+        const msg = [
+            `Olá *${orc.client || ''}*! Tudo bem?`,
+            '',
+            `Seu orçamento na *Libera Sports* está pronto para análise:`,
+            '',
+            `📄 *Número:* ${orc.orcamento_number}`,
+            `💰 *Valor:* R$ ${(orc.total || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+            '',
+            `Clique no link abaixo para visualizar e aprovar ou solicitar alterações:`,
+            url,
+            '',
+            '_Libera Sports - Vista Libera e viva a liberdade_',
+        ].map(encodeURIComponent).join('%0a');
+        const waUrl = phone ? `https://wa.me/${phone}?text=${msg}` : `https://wa.me/?text=${msg}`;
+        window.open(waUrl, '_blank');
     };
 
     const resetFinanceForm = () => {
@@ -2546,6 +2820,7 @@ export default function DashboardPage() {
                             <div className="grid grid-cols-3 gap-2.5 md:gap-3 max-w-md md:max-w-2xl mx-auto">
                                 {[
                                     { id: 'HOME', icon: Home, label: 'Início', color: 'group-hover:text-white' },
+                                    { id: 'ORÇAMENTOS', icon: FileText, label: 'Orçamentos', color: 'group-hover:text-yellow-400' },
                                     { id: 'VENDAS', icon: ShoppingCart, label: 'Vendas', color: 'group-hover:text-blue-400' },
                                     { id: 'PRODUÇÃO', icon: Layers, label: 'Fábrica', color: 'group-hover:text-[#39FF14]' },
                                     { id: 'ESTOQUE', icon: Box, label: 'Estoque', color: 'group-hover:text-purple-400' },
@@ -2594,6 +2869,7 @@ export default function DashboardPage() {
                             <Home size={20} />
                         </button>
                         {[
+                            { id: 'ORÇAMENTOS', icon: FileText, label: 'Orçamentos' },
                             { id: 'VENDAS', icon: ShoppingCart, label: 'Vendas' },
                             { id: 'PRODUÇÃO', icon: Layers, label: 'Fábrica' },
                             { id: 'ESTOQUE', icon: Box, label: 'Estoque' },
@@ -3483,12 +3759,229 @@ export default function DashboardPage() {
                     </div>
                 )}
 
-                {activeTab === 'VENDAS' && (
+                {activeTab === 'ORÇAMENTOS' && (
                     <div className="space-y-6">
                         <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 gap-4">
                             <div className="pl-1">
-                                <h1 className="text-2xl md:text-4xl font-black italic uppercase tracking-tighter">CHECKOUT</h1>
-                                <p className="text-white text-sm mt-1">Registro rápido de vendas</p>
+                                <h1 className="text-2xl md:text-4xl font-black italic uppercase tracking-tighter">ORÇAMENTOS</h1>
+                                <p className="text-white text-sm mt-1">Propostas enviadas para clientes antes de virar venda</p>
+                            </div>
+                            <button
+                                onClick={() => {
+                                    // Limpa campos e entra no modo orçamento
+                                    setEditingOrcamentoId(null);
+                                    setCart([]);
+                                    setSaleClient(''); setSaleWhatsapp(''); setSaleCpfCnpj('');
+                                    setSaleDescription(''); setSaleDeadline('');
+                                    setSaleSpecialDiscount(''); setSaleSpecialDiscountReason('');
+                                    setSaleManualValue('');
+                                    setSaleEndereco(''); setSaleNumero(''); setSaleQuadra('');
+                                    setSaleLote(''); setSaleComplemento('');
+                                    setSaleCidade(''); setSaleEstado(''); setSaleCep('');
+                                    setIsOrcamentoMode(true);
+                                    setActiveTab('VENDAS');
+                                }}
+                                className="bg-[#39FF14] text-black px-6 py-3 rounded-xl font-black uppercase text-sm hover:scale-105 transition-all flex items-center gap-2 shrink-0"
+                            >
+                                <Plus size={16} /> Novo Orçamento
+                            </button>
+                        </div>
+
+                        {orcamentos.length === 0 ? (
+                            <div className="bg-zinc-950 rounded-3xl border border-zinc-900 p-8 text-center border-dashed">
+                                <FileText size={40} className="text-zinc-800 mx-auto mb-4" />
+                                <p className="text-white font-bold uppercase text-sm tracking-widest mb-2">Nenhum orçamento cadastrado.</p>
+                                <p className="text-white/50 text-xs">Clique em "Novo Orçamento" para criar sua primeira proposta.</p>
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {orcamentos.map(orc => {
+                                    const status = orc.status || 'PENDENTE';
+                                    const statusColors: Record<string, string> = {
+                                        'PENDENTE': 'bg-yellow-500/10 text-yellow-400 border-yellow-500/30',
+                                        'APROVADO': 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30',
+                                        'ALTERAÇÃO SOLICITADA': 'bg-blue-500/10 text-blue-400 border-blue-500/30',
+                                        'RECUSADO': 'bg-red-500/10 text-red-400 border-red-500/30',
+                                        'CONVERTIDO': 'bg-purple-500/10 text-purple-400 border-purple-500/30',
+                                    };
+                                    const statusColor = statusColors[status] || statusColors['PENDENTE'];
+                                    return (
+                                        <div key={orc.id} className="bg-zinc-900/50 border border-zinc-800 p-5 rounded-[32px] hover:border-[#39FF14]/30 transition-all">
+                                            <div className="flex items-start justify-between gap-2 mb-3">
+                                                <div>
+                                                    <p className="text-xs font-bold text-white/50 uppercase tracking-wider">{orc.orcamento_number}</p>
+                                                    <h3 className="text-base font-black italic uppercase text-white leading-tight mt-0.5">{orc.client}</h3>
+                                                    {orc.client_whatsapp && <p className="text-xs text-white/40 mt-0.5">{orc.client_whatsapp}</p>}
+                                                </div>
+                                                <span className={`text-[10px] font-black uppercase px-2 py-1 rounded-lg border ${statusColor} shrink-0`}>{status}</span>
+                                            </div>
+
+                                            <div className="bg-zinc-950 rounded-xl p-3 mb-3">
+                                                <p className="text-xs text-white/50 font-bold uppercase mb-1">Valor</p>
+                                                <p className="text-2xl font-black text-[#39FF14]">R$ {(orc.total || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                                                <p className="text-[11px] text-white/40 mt-0.5">{(orc.items || []).length} {(orc.items || []).length === 1 ? 'item' : 'itens'}</p>
+                                            </div>
+
+                                            {orc.client_comments && (
+                                                <div className="bg-blue-500/5 border border-blue-500/20 rounded-xl p-3 mb-3">
+                                                    <p className="text-[10px] font-black uppercase text-blue-400 mb-1">💬 Comentário do Cliente</p>
+                                                    <p className="text-xs text-white/80">{orc.client_comments}</p>
+                                                </div>
+                                            )}
+
+                                            <div className="grid grid-cols-2 gap-2 mb-3">
+                                                <button onClick={() => setOrcamentoViewId(orc.id)}
+                                                    className="bg-zinc-800 text-white/70 hover:text-white px-3 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5">
+                                                    <Eye size={12} /> Detalhes
+                                                </button>
+                                                <button onClick={() => copyOrcamentoLink(orc)}
+                                                    className="bg-zinc-800 text-white/70 hover:text-[#39FF14] px-3 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5">
+                                                    <Copy size={12} /> Copiar Link
+                                                </button>
+                                                <button onClick={() => shareOrcamentoWhatsapp(orc)}
+                                                    className="bg-green-500/10 text-green-500 hover:bg-green-500 hover:text-[#fff] px-3 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5">
+                                                    <MessageCircle size={12} /> WhatsApp
+                                                </button>
+                                                <button onClick={() => handleEditOrcamento(orc)}
+                                                    disabled={status === 'CONVERTIDO'}
+                                                    className="bg-zinc-800 text-white/70 hover:text-[#39FF14] px-3 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed">
+                                                    <Pencil size={12} /> Editar
+                                                </button>
+                                            </div>
+
+                                            <div className="flex gap-2">
+                                                {status !== 'CONVERTIDO' && (
+                                                    <button onClick={() => handleConvertOrcamentoToVenda(orc)}
+                                                        className="flex-1 bg-[#39FF14] text-black hover:scale-[1.02] px-3 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5">
+                                                        <ShoppingCart size={12} /> Virar Venda
+                                                    </button>
+                                                )}
+                                                <button onClick={() => handleDeleteOrcamento(orc.id)}
+                                                    className="bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-[#fff] px-3 py-2.5 rounded-xl transition-all">
+                                                    <Trash2 size={14} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {/* Modal de Detalhes do Orçamento */}
+                {orcamentoViewId && (() => {
+                    const orc = orcamentos.find(o => o.id === orcamentoViewId);
+                    if (!orc) return null;
+                    return (
+                        <div className="fixed inset-0 bg-black/95 z-[700] flex items-center justify-center p-4 backdrop-blur-xl" onClick={() => setOrcamentoViewId(null)}>
+                            <div className="bg-zinc-900 w-full max-w-2xl max-h-[90vh] rounded-[32px] border border-zinc-800 shadow-2xl text-white flex flex-col" onClick={e => e.stopPropagation()}>
+                                <div className="p-6 border-b border-zinc-800 flex justify-between items-start shrink-0">
+                                    <div>
+                                        <p className="text-xs font-bold text-white/50 uppercase tracking-wider">{orc.orcamento_number}</p>
+                                        <h3 className="text-2xl font-black italic uppercase text-[#39FF14] mt-1">{orc.client}</h3>
+                                        {orc.client_whatsapp && <p className="text-sm text-white/60 mt-0.5">{orc.client_whatsapp}</p>}
+                                    </div>
+                                    <button onClick={() => setOrcamentoViewId(null)} className="text-white/50 hover:text-white">
+                                        <X size={22} />
+                                    </button>
+                                </div>
+                                <div className="p-6 overflow-y-auto space-y-4">
+                                    <div>
+                                        <p className="text-xs font-black uppercase text-white/50 mb-2">Itens</p>
+                                        <div className="space-y-1">
+                                            {(orc.items || []).map((i: any, idx: number) => (
+                                                <div key={idx} className="flex justify-between bg-zinc-950 rounded-xl px-3 py-2 text-sm">
+                                                    <span className="font-bold">{i.quantity}x {i.name}</span>
+                                                    <span className="font-bold text-white/70 tabular-nums">R$ {((i.sale_price || 0) * i.quantity).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <div className="bg-zinc-950 rounded-xl p-4 space-y-2">
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-white/60">Subtotal</span>
+                                            <span className="font-bold tabular-nums">R$ {(orc.subtotal || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                                        </div>
+                                        {orc.touca_discount > 0 && (
+                                            <div className="flex justify-between text-sm text-emerald-400">
+                                                <span>Desconto Atacado Toucas {orc.touca_qty ? `(${orc.touca_qty} un × R$ ${(orc.touca_wholesale_unit || 0).toFixed(2).replace('.', ',')})` : ''}</span>
+                                                <span className="font-black tabular-nums">- R$ {orc.touca_discount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                                            </div>
+                                        )}
+                                        {orc.special_discount > 0 && (
+                                            <div className="flex justify-between text-sm text-purple-300">
+                                                <span>Desconto Especial{orc.special_discount_reason ? ` • ${orc.special_discount_reason}` : ''}</span>
+                                                <span className="font-black tabular-nums">- R$ {orc.special_discount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                                            </div>
+                                        )}
+                                        <div className="flex justify-between text-lg pt-2 border-t border-zinc-800">
+                                            <span className="font-black uppercase">Total</span>
+                                            <span className="font-black text-[#39FF14] tabular-nums">R$ {(orc.total || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                                        </div>
+                                    </div>
+                                    {orc.description && (
+                                        <div>
+                                            <p className="text-xs font-black uppercase text-white/50 mb-1">Observações</p>
+                                            <p className="text-sm text-white/80 bg-zinc-950 rounded-xl p-3 whitespace-pre-wrap">{orc.description}</p>
+                                        </div>
+                                    )}
+                                    {orc.client_comments && (
+                                        <div>
+                                            <p className="text-xs font-black uppercase text-blue-400 mb-1">💬 Comentário do Cliente</p>
+                                            <p className="text-sm text-white/80 bg-blue-500/5 border border-blue-500/20 rounded-xl p-3 whitespace-pre-wrap">{orc.client_comments}</p>
+                                        </div>
+                                    )}
+                                    <div className="grid grid-cols-2 gap-3 text-xs">
+                                        <div className="bg-zinc-950 rounded-xl p-3">
+                                            <p className="text-white/50 uppercase font-black mb-1">Status</p>
+                                            <p className="font-bold text-white">{orc.status || 'PENDENTE'}</p>
+                                        </div>
+                                        <div className="bg-zinc-950 rounded-xl p-3">
+                                            <p className="text-white/50 uppercase font-black mb-1">Criado em</p>
+                                            <p className="font-bold text-white">{orc.created_at ? new Date(orc.created_at).toLocaleDateString('pt-BR') : '—'}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="p-6 border-t border-zinc-800 flex flex-wrap gap-2 shrink-0">
+                                    <button onClick={() => copyOrcamentoLink(orc)} className="flex-1 bg-zinc-800 text-white/70 hover:text-white px-4 py-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 min-w-[140px]">
+                                        <Copy size={12} /> Copiar Link
+                                    </button>
+                                    <button onClick={() => shareOrcamentoWhatsapp(orc)} className="flex-1 bg-green-500/10 text-green-500 hover:bg-green-500 hover:text-[#fff] px-4 py-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 min-w-[140px]">
+                                        <MessageCircle size={12} /> WhatsApp
+                                    </button>
+                                    {orc.status !== 'CONVERTIDO' && (
+                                        <button onClick={() => handleConvertOrcamentoToVenda(orc)} className="flex-1 bg-[#39FF14] text-black px-4 py-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all hover:scale-[1.02] flex items-center justify-center gap-1.5 min-w-[140px]">
+                                            <ShoppingCart size={12} /> Virar Venda
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    );
+                })()}
+
+                {activeTab === 'VENDAS' && (
+                    <div className="space-y-6">
+                        {isOrcamentoMode && (
+                            <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-2xl p-4 flex items-center justify-between gap-4">
+                                <div className="flex items-center gap-3">
+                                    <FileText size={24} className="text-yellow-400 shrink-0" />
+                                    <div>
+                                        <p className="text-yellow-400 font-black uppercase text-sm tracking-wider">Modo Orçamento</p>
+                                        <p className="text-white/70 text-xs mt-0.5">{editingOrcamentoId ? 'Editando orçamento existente' : 'Criando novo orçamento'} — não vai para produção nem financeiro</p>
+                                    </div>
+                                </div>
+                                <button onClick={() => { setIsOrcamentoMode(false); setEditingOrcamentoId(null); setActiveTab('ORÇAMENTOS'); }}
+                                    className="text-white/50 hover:text-white shrink-0 text-xs font-black uppercase tracking-wider px-3 py-2 rounded-lg hover:bg-zinc-900 transition-all">
+                                    Cancelar
+                                </button>
+                            </div>
+                        )}
+                        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 gap-4">
+                            <div className="pl-1">
+                                <h1 className="text-2xl md:text-4xl font-black italic uppercase tracking-tighter">{isOrcamentoMode ? (editingOrcamentoId ? 'EDITAR ORÇAMENTO' : 'NOVO ORÇAMENTO') : 'CHECKOUT'}</h1>
+                                <p className="text-white text-sm mt-1">{isOrcamentoMode ? 'Monte a proposta que será enviada ao cliente' : 'Registro rápido de vendas'}</p>
                             </div>
                             <button
                                 onClick={() => { setCadastroFilter('CLIENTE'); setShowCadastros(true); }}
@@ -3974,11 +4467,15 @@ export default function DashboardPage() {
                                         })()}</p>
                                     </div>
                                     <button
-                                        onClick={handleCheckout}
+                                        onClick={isOrcamentoMode ? handleSaveOrcamento : handleCheckout}
                                         disabled={(cart.length === 0 && !saleManualValue) || loading}
-                                        className="w-full bg-[#39FF14] text-black py-4 rounded-2xl font-black uppercase text-sm tracking-widest hover:scale-105 transition-all shadow-xl shadow-[#39FF14]/10 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        className={`w-full py-4 rounded-2xl font-black uppercase text-sm tracking-widest hover:scale-105 transition-all shadow-xl disabled:opacity-50 disabled:cursor-not-allowed ${isOrcamentoMode ? 'bg-yellow-400 text-black shadow-yellow-400/10' : 'bg-[#39FF14] text-black shadow-[#39FF14]/10'}`}
                                     >
-                                        {loading ? 'Processando...' : saleEntersProduction ? 'Cadastrar Venda + Produção' : 'Finalizar Venda'}
+                                        {loading
+                                            ? 'Processando...'
+                                            : isOrcamentoMode
+                                                ? (editingOrcamentoId ? 'Atualizar Orçamento' : 'Salvar Orçamento')
+                                                : saleEntersProduction ? 'Cadastrar Venda + Produção' : 'Finalizar Venda'}
                                     </button>
                                 </div>
                             </div>
