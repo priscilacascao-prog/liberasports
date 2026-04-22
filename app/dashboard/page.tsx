@@ -239,6 +239,8 @@ export default function DashboardPage() {
     const [showDescription, setShowDescription] = useState(false);
     const [saleEntersProduction, setSaleEntersProduction] = useState(true);
     const [saleManualValue, setSaleManualValue] = useState('');
+    const [saleSpecialDiscount, setSaleSpecialDiscount] = useState('');
+    const [saleSpecialDiscountReason, setSaleSpecialDiscountReason] = useState('');
     const [productSearch, setProductSearch] = useState('');
 
     // Form Estado - Produtos
@@ -685,11 +687,14 @@ export default function DashboardPage() {
             if (discount < 0) discount = 0;
         }
 
+        // Desconto especial (negociação manual)
+        const specialDisc = parseBRL(saleSpecialDiscount) || 0;
+
         setToucaTotalQty(totalToucas);
         setToucaWholesaleUnit(wholesalePrice);
         setToucaDiscount(discount);
-        setCartTotal(totalBruto - discount);
-    }, [cart]);
+        setCartTotal(Math.max(0, totalBruto - discount - specialDisc));
+    }, [cart, saleSpecialDiscount]);
 
     const buildDeliveryAddress = () => {
         const endereco = saleEndereco.trim();
@@ -754,10 +759,17 @@ export default function DashboardPage() {
                 cost_price: item.cost_price,
                 stock: item.stock,
             }));
+            // Capturar dados de desconto para persistir no pedido
+            const subtotalBruto = cart.length > 0
+                ? cart.reduce((acc, item) => acc + (item.sale_price * item.quantity), 0)
+                : parseBRL(saleManualValue);
+            const specialDiscValue = parseBRL(saleSpecialDiscount) || 0;
+
             const saleData: any = {
                 order_number: newOrderNumber,
                 sale_number: newOrderNumber,
                 items: cart.length > 0 ? cleanCartItems : [],
+                subtotal: subtotalBruto,
                 total: finalTotal,
                 value: finalTotal,
                 client: saleClient.trim().toUpperCase() || '',
@@ -773,6 +785,15 @@ export default function DashboardPage() {
                 created_at: new Date().toISOString(),
                 user_id: userId,
                 operator_name: operatorName,
+                ...(toucaDiscount > 0 ? {
+                    touca_discount: toucaDiscount,
+                    touca_wholesale_unit: toucaWholesaleUnit,
+                    touca_qty: toucaTotalQty,
+                } : {}),
+                ...(specialDiscValue > 0 ? {
+                    special_discount: specialDiscValue,
+                    special_discount_reason: saleSpecialDiscountReason.trim(),
+                } : {}),
             };
 
             // Se entra em produção, adicionar workflow
@@ -921,6 +942,8 @@ export default function DashboardPage() {
             setSaleBoletoFirstDate('');
             setSaleEntersProduction(true);
             setSaleManualValue('');
+            setSaleSpecialDiscount('');
+            setSaleSpecialDiscountReason('');
             setPaymentMethod('PIX');
             setPixSplit(false);
             setTransactionDate(new Date().toISOString().split('T')[0]);
@@ -1744,11 +1767,36 @@ export default function DashboardPage() {
         const apiOrigin = typeof window !== 'undefined' ? window.location.origin : '';
         const sendEmailTo = reportEmail || '';
         const emailSubject = `Ordem de Serviço - ${order.order_number || ''} - ${order.client || 'Sem cliente'}`;
+        // Calcula subtotal, descontos e total (infere retroativamente se os campos não foram salvos)
+        const fmtBRL = (v: number) => 'R$ ' + v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        const orderSubtotal = order.subtotal || (order.items || []).reduce((a: number, i: any) => a + ((i.sale_price || i.price || 0) * i.quantity), 0);
+        const savedToucaDisc = order.touca_discount || 0;
+        const savedSpecialDisc = order.special_discount || 0;
+        const orderTotal = order.total || 0;
+        const gapTotal = orderSubtotal - orderTotal - savedToucaDisc - savedSpecialDisc;
+        const inferredDisc = (!savedToucaDisc && !savedSpecialDisc && gapTotal > 0.01) ? gapTotal : 0;
+        const hasAnyDiscount = savedToucaDisc > 0 || savedSpecialDisc > 0 || inferredDisc > 0;
+
         let itemsHtml = '';
         if (order.items && order.items.length > 0) {
             itemsHtml = '<div style="background: #f0f0f0; padding: 10px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 6px;">' +
                 '<div style="font-size: 13px; font-weight: 900; text-transform: uppercase; color: #555; margin-bottom: 6px;">Produtos do Pedido</div>' +
-                order.items.map((i: any) => '<div style="font-size: 18px; padding: 4px 0; border-bottom: 1px solid #e5e5e5;"><span class="editable" style="font-weight: 900;"' + editAttr + '>' + i.quantity + 'x ' + i.name + '</span></div>').join('') +
+                order.items.map((i: any) => {
+                    const lineTotal = (i.sale_price || i.price || 0) * i.quantity;
+                    const priceStr = lineTotal > 0 ? '<span style="color: #666; font-weight: 700; margin-left: 8px;">' + fmtBRL(lineTotal) + '</span>' : '';
+                    return '<div style="font-size: 18px; padding: 4px 0; border-bottom: 1px solid #e5e5e5; display: flex; justify-content: space-between; align-items: center;"><span class="editable" style="font-weight: 900;"' + editAttr + '>' + i.quantity + 'x ' + i.name + '</span>' + priceStr + '</div>';
+                }).join('') +
+                (hasAnyDiscount || orderTotal > 0 ? (
+                    '<div style="margin-top: 8px; padding-top: 8px; border-top: 2px solid #ccc;">' +
+                    (hasAnyDiscount ? (
+                        '<div style="font-size: 14px; padding: 2px 0; display: flex; justify-content: space-between;"><span style="color: #555; font-weight: 700;">Subtotal</span><span style="color: #555; font-weight: 700;">' + fmtBRL(orderSubtotal) + '</span></div>' +
+                        (savedToucaDisc > 0 ? '<div style="font-size: 14px; padding: 2px 0; display: flex; justify-content: space-between; color: #047857;"><span style="font-weight: 700;">Desconto Atacado Toucas' + (order.touca_qty ? ' (' + order.touca_qty + ' un × ' + fmtBRL(order.touca_wholesale_unit || 0) + ')' : '') + '</span><span style="font-weight: 900;">- ' + fmtBRL(savedToucaDisc) + '</span></div>' : '') +
+                        (savedSpecialDisc > 0 ? '<div style="font-size: 14px; padding: 2px 0; display: flex; justify-content: space-between; color: #7c3aed;"><span style="font-weight: 700;">Desconto Especial' + (order.special_discount_reason ? ' • ' + order.special_discount_reason : '') + '</span><span style="font-weight: 900;">- ' + fmtBRL(savedSpecialDisc) + '</span></div>' : '') +
+                        (inferredDisc > 0 ? '<div style="font-size: 14px; padding: 2px 0; display: flex; justify-content: space-between; color: #d97706;"><span style="font-weight: 700;">Desconto Aplicado</span><span style="font-weight: 900;">- ' + fmtBRL(inferredDisc) + '</span></div>' : '')
+                    ) : '') +
+                    '<div style="font-size: 18px; padding: 4px 0; display: flex; justify-content: space-between; border-top: 1px solid #ccc; margin-top: 4px;"><span style="color: #111; font-weight: 900;">TOTAL</span><span style="color: #111; font-weight: 900;">' + fmtBRL(orderTotal) + '</span></div>' +
+                    '</div>'
+                ) : '') +
             '</div>';
         }
         let linkedHtml = '';
@@ -3872,6 +3920,18 @@ export default function DashboardPage() {
                                 </div>
 
                                 <div className="pt-4">
+                                    {/* Desconto Especial (negociação manual) */}
+                                    <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-3 mb-3">
+                                        <label className="block text-xs font-black uppercase tracking-widest mb-2 text-white">🎁 Desconto Especial (opcional)</label>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <input type="text" value={saleSpecialDiscount} onChange={e => setSaleSpecialDiscount(formatCurrency(e.target.value))}
+                                                placeholder="R$ 0,00"
+                                                className="w-full bg-zinc-800 border-transparent rounded-lg p-2 text-white outline-none focus:ring-1 focus:ring-[#39FF14] text-sm font-bold placeholder:text-zinc-600" />
+                                            <input type="text" value={saleSpecialDiscountReason} onChange={e => setSaleSpecialDiscountReason(e.target.value)}
+                                                placeholder="Motivo (ex: Cliente fiel)"
+                                                className="w-full bg-zinc-800 border-transparent rounded-lg p-2 text-white outline-none focus:ring-1 focus:ring-[#39FF14] text-sm placeholder:text-zinc-600" />
+                                        </div>
+                                    </div>
                                     {toucaDiscount > 0 && (
                                         <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-3 mb-3">
                                             <div className="flex justify-between items-center mb-1">
@@ -3879,8 +3939,16 @@ export default function DashboardPage() {
                                                 <span className="text-emerald-400 text-xs font-bold">R$ {toucaWholesaleUnit?.toFixed(2).replace('.', ',')} /un.</span>
                                             </div>
                                             <div className="flex justify-between items-center">
-                                                <span className="text-white/50 text-xs line-through">R$ {(cartTotal + toucaDiscount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                                                <span className="text-white/50 text-xs">Desconto atacado</span>
                                                 <span className="text-emerald-400 text-sm font-black">- R$ {toucaDiscount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                                            </div>
+                                        </div>
+                                    )}
+                                    {(parseBRL(saleSpecialDiscount) || 0) > 0 && (
+                                        <div className="bg-purple-500/10 border border-purple-500/30 rounded-xl p-3 mb-3">
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-purple-300 text-xs font-black uppercase tracking-widest">Desconto Especial{saleSpecialDiscountReason ? ` (${saleSpecialDiscountReason})` : ''}</span>
+                                                <span className="text-purple-300 text-sm font-black">- R$ {(parseBRL(saleSpecialDiscount) || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                                             </div>
                                         </div>
                                     )}
@@ -4057,6 +4125,44 @@ export default function DashboardPage() {
                                                                             <span className="font-bold text-white/70 ml-auto">R$ {((item.sale_price || item.price || 0) * item.quantity).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                                                                         </div>
                                                                     ))}
+                                                                    {hasItems && (() => {
+                                                                        // Calcula subtotal e descontos (infere retroativamente se não salvos)
+                                                                        const subtotal = sale.subtotal || sale.items.reduce((a: number, i: any) => a + ((i.sale_price || i.price || 0) * i.quantity), 0);
+                                                                        const savedToucaDisc = sale.touca_discount || 0;
+                                                                        const savedSpecialDisc = sale.special_discount || 0;
+                                                                        const total = sale.total || 0;
+                                                                        const gapTotal = subtotal - total - savedToucaDisc - savedSpecialDisc;
+                                                                        // Se diferença positiva não coberta, é desconto inferido (pedido antigo sem campos salvos)
+                                                                        const inferredDisc = (!savedToucaDisc && !savedSpecialDisc && gapTotal > 0.01) ? gapTotal : 0;
+                                                                        const totalDisc = savedToucaDisc + savedSpecialDisc + inferredDisc;
+                                                                        if (totalDisc <= 0.01) return null;
+                                                                        return (
+                                                                            <>
+                                                                                <div className="flex justify-between text-sm bg-zinc-900/30 rounded-xl px-3 py-2 gap-x-4">
+                                                                                    <span className="text-white/60 font-bold">Subtotal</span>
+                                                                                    <span className="text-white/60 font-bold tabular-nums">R$ {subtotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                                                                                </div>
+                                                                                {savedToucaDisc > 0 && (
+                                                                                    <div className="flex justify-between text-sm bg-emerald-500/10 rounded-xl px-3 py-2 gap-x-4">
+                                                                                        <span className="text-emerald-400 font-bold">Desconto Atacado Toucas {sale.touca_qty ? `(${sale.touca_qty} un × R$ ${(sale.touca_wholesale_unit || 0).toFixed(2).replace('.', ',')})` : ''}</span>
+                                                                                        <span className="text-emerald-400 font-black tabular-nums">- R$ {savedToucaDisc.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                                                                                    </div>
+                                                                                )}
+                                                                                {savedSpecialDisc > 0 && (
+                                                                                    <div className="flex justify-between text-sm bg-purple-500/10 rounded-xl px-3 py-2 gap-x-4">
+                                                                                        <span className="text-purple-300 font-bold">Desconto Especial{sale.special_discount_reason ? ` • ${sale.special_discount_reason}` : ''}</span>
+                                                                                        <span className="text-purple-300 font-black tabular-nums">- R$ {savedSpecialDisc.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                                                                                    </div>
+                                                                                )}
+                                                                                {inferredDisc > 0 && (
+                                                                                    <div className="flex justify-between text-sm bg-amber-500/10 rounded-xl px-3 py-2 gap-x-4">
+                                                                                        <span className="text-amber-400 font-bold" title="Pedido antigo - desconto calculado automaticamente pela diferença entre subtotal e total">Desconto aplicado (pedido antigo)</span>
+                                                                                        <span className="text-amber-400 font-black tabular-nums">- R$ {inferredDisc.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                                                                                    </div>
+                                                                                )}
+                                                                            </>
+                                                                        );
+                                                                    })()}
                                                                 </div>
                                                             )}
                                                             <p className="text-sm text-white/70 mt-1">
