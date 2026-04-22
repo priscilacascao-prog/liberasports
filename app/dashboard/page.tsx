@@ -1887,9 +1887,8 @@ export default function DashboardPage() {
                 }
             </style></head><body>
             ${!forEmail ? `<div class="toolbar">
-                <div class="info">💡 Clique em qualquer texto destacado para editar antes de imprimir ou enviar</div>
+                <div class="info">💡 Clique em qualquer texto destacado para editar antes de imprimir</div>
                 <div class="toolbar-actions">
-                    <button class="btn-send" onclick="enviarRelatorioEmail()">📧 Enviar</button>
                     <button class="btn-print" onclick="imprimirRelatorio()">Imprimir / Salvar PDF</button>
                 </div>
             </div>
