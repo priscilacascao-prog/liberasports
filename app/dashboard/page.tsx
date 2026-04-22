@@ -2342,6 +2342,144 @@ export default function DashboardPage() {
         printWindow.focus();
     };
 
+    // Relatório simplificado para envio à Gráfica
+    // Mostra SOMENTE: número do pedido, descrição/produtos e fotos de produção
+    // NÃO mostra: cliente, contato, preços, datas, endereços, status
+    const generateGraficaReportHtml = (order: any) => {
+        const imgs = [
+            ...(order.production_images || []),
+            ...(order.production_image && !order.production_images?.length ? [order.production_image] : [])
+        ];
+        const hasImages = imgs.length > 0;
+
+        let itemsHtml = '';
+        if (order.items && order.items.length > 0) {
+            itemsHtml = '<div class="card">' +
+                '<div class="card-title">Produtos do Pedido</div>' +
+                order.items.map((i: any) => (
+                    '<div class="item-row"><span class="editable" contenteditable="true" spellcheck="false">' +
+                    i.quantity + 'x ' + i.name +
+                    '</span></div>'
+                )).join('') +
+                '</div>';
+        }
+
+        const descriptionHtml = order.description
+            ? '<div class="card">' +
+                '<div class="card-title">Observações / Arte / Descrição</div>' +
+                '<div class="description editable" contenteditable="true" spellcheck="false">' + order.description + '</div>' +
+              '</div>'
+            : '<div class="card">' +
+                '<div class="card-title">Observações / Arte / Descrição</div>' +
+                '<div class="description editable" contenteditable="true" spellcheck="false" style="color:#999;">Clique aqui para adicionar observações para a gráfica...</div>' +
+              '</div>';
+
+        const imagesHtml = hasImages
+            ? '<div class="card">' +
+                '<div class="card-title">Fotos / Artes</div>' +
+                '<div class="img-grid">' +
+                imgs.map((src: string) => '<div class="img-wrap"><img src="' + src + '" alt="Arte"/></div>').join('') +
+                '</div>' +
+              '</div>'
+            : '';
+
+        return `<!DOCTYPE html><html lang="pt-BR"><head>
+            <meta charset="utf-8">
+            <title>Gráfica - ${order.order_number || ''}</title>
+            <style>
+                @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+                * { margin: 0; padding: 0; box-sizing: border-box; }
+                html, body { width: 100%; }
+                body { font-family: 'Inter', Arial, sans-serif; padding: 16px; color: #111; background: white; }
+                .page { display: flex; flex-direction: column; gap: 10px; }
+                .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #111; padding-bottom: 10px; }
+                .logo { font-size: 28px; font-weight: 900; font-style: italic; letter-spacing: -0.5px; }
+                .logo-tag { font-size: 9px; font-weight: 700; color: #666; text-transform: uppercase; letter-spacing: 0.2em; margin-top: 2px; }
+                .order-badge { text-align: right; }
+                .order-badge .label { font-size: 11px; font-weight: 700; color: #666; text-transform: uppercase; letter-spacing: 0.15em; }
+                .order-badge .number { font-size: 26px; font-weight: 900; color: #111; margin-top: 2px; }
+                .type-badge { display: inline-block; background: #111; color: #fff; padding: 4px 10px; border-radius: 6px; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.18em; margin-top: 4px; }
+                .card { background: #fafafa; border: 1px solid #e5e5e5; border-radius: 10px; padding: 12px; page-break-inside: avoid; }
+                .card-title { font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.15em; color: #666; margin-bottom: 8px; border-bottom: 1px solid #e5e5e5; padding-bottom: 4px; }
+                .item-row { font-size: 18px; font-weight: 900; padding: 6px 0; border-bottom: 1px solid #ececec; }
+                .item-row:last-child { border-bottom: none; }
+                .description { font-size: 15px; font-weight: 700; line-height: 1.4; white-space: pre-wrap; min-height: 40px; }
+                .img-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+                .img-wrap { border: 1px solid #e5e5e5; border-radius: 8px; overflow: hidden; background: #fff; }
+                .img-wrap img { width: 100%; height: auto; display: block; max-height: 400px; object-fit: contain; }
+                .footer { margin-top: 12px; padding-top: 8px; border-top: 1px solid #e5e5e5; font-size: 10px; color: #888; text-align: center; text-transform: uppercase; letter-spacing: 0.15em; }
+                .toolbar { position: sticky; top: 0; background: #111; color: #fff; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: -16px -16px 14px -16px; z-index: 10; }
+                .toolbar .info { font-size: 12px; font-weight: 600; }
+                .toolbar button { border: none; padding: 9px 16px; font-weight: 900; font-size: 13px; border-radius: 6px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.05em; background: #39FF14; color: #111; }
+                .toolbar button:hover { background: #4fff2a; }
+                .editable { outline: none; border-radius: 3px; padding: 1px 3px; transition: background 0.15s; }
+                .editable:hover { background: #fff3cd; cursor: text; }
+                .editable:focus { background: #fff3cd; box-shadow: 0 0 0 2px #f97316; }
+                @page { margin: 10mm; size: A4; }
+                @media print {
+                    html, body { margin: 0 !important; padding: 0 !important; background: white !important; }
+                    body { padding: 0 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                    button, .toolbar { display: none !important; }
+                    .card { page-break-inside: avoid; break-inside: avoid; }
+                    .img-wrap { page-break-inside: avoid; break-inside: avoid; }
+                    .editable:hover, .editable:focus { background: transparent !important; box-shadow: none !important; }
+                }
+            </style></head><body>
+            <div class="toolbar">
+                <div class="info">💡 Clique em produtos ou observações para editar antes de imprimir</div>
+                <button onclick="imprimirGrafica()">Imprimir / Salvar PDF</button>
+            </div>
+            <script>
+                function imprimirGrafica() {
+                    var els = document.querySelectorAll('[contenteditable]');
+                    els.forEach(function(e) {
+                        e.setAttribute('data-ce', e.getAttribute('contenteditable'));
+                        e.removeAttribute('contenteditable');
+                    });
+                    window.focus();
+                    setTimeout(function() {
+                        window.print();
+                        setTimeout(function() {
+                            els.forEach(function(e) {
+                                e.setAttribute('contenteditable', e.getAttribute('data-ce') || 'true');
+                                e.removeAttribute('data-ce');
+                            });
+                        }, 200);
+                    }, 50);
+                }
+            </script>
+            <div class="page">
+                <div class="header">
+                    <div>
+                        <div class="logo">LIBERA SPORTS</div>
+                        <div class="logo-tag">Ordem para Produção</div>
+                    </div>
+                    <div class="order-badge">
+                        <div class="label">Pedido</div>
+                        <div class="number">${order.order_number || '—'}</div>
+                        <span class="type-badge">Via Gráfica</span>
+                    </div>
+                </div>
+                ${itemsHtml}
+                ${descriptionHtml}
+                ${imagesHtml}
+                <div class="footer">Libera Sports • Documento para produção gráfica</div>
+            </div>
+        </body></html>`;
+    };
+
+    const handlePrintGrafica = (order: any) => {
+        const uniqueName = `libera_grafica_${order.order_number || 'report'}_${Date.now()}`;
+        const printWindow = window.open('about:blank', uniqueName);
+        if (!printWindow) return;
+
+        const html = generateGraficaReportHtml(order);
+        printWindow.document.open();
+        printWindow.document.write(html);
+        printWindow.document.close();
+        printWindow.focus();
+    };
+
     const handleDeleteOrder = async (id: string, number: string) => {
         if (!window.confirm(`Tem certeza que deseja EXCLUIR o pedido ${number}? A venda e as contas financeiras vinculadas serão excluídas.`)) return;
 
@@ -3113,8 +3251,12 @@ export default function DashboardPage() {
                                                                 <Eye size={22} />
                                                             </button>
                                                             <button onClick={() => handlePrintOrder(order)}
-                                                                className="p-4 rounded-xl bg-zinc-950 border border-zinc-900 text-white/70 hover:text-[#39FF14] transition-all" title="PDF">
+                                                                className="p-4 rounded-xl bg-zinc-950 border border-zinc-900 text-white/70 hover:text-[#39FF14] transition-all" title="PDF Completo">
                                                                 <FileText size={22} />
+                                                            </button>
+                                                            <button onClick={() => handlePrintGrafica(order)}
+                                                                className="p-4 rounded-xl bg-zinc-950 border border-zinc-900 text-white/70 hover:text-orange-400 transition-all" title="Relatório para Gráfica (sem cliente)">
+                                                                <Layers size={22} />
                                                             </button>
                                                             <button onClick={() => handleDeleteOrder(order.id, order.order_number)}
                                                                 className="p-4 rounded-xl bg-zinc-950 border border-zinc-900 text-white/70 hover:text-[#FF3D00] transition-all" title="Excluir">
