@@ -4623,7 +4623,8 @@ export default function DashboardPage() {
                             </div>
                         </div>
 
-                        {/* Histórico de Vendas */}
+                        {/* Histórico de Vendas (só aparece no modo VENDA, não no modo ORÇAMENTO) */}
+                        {!isOrcamentoMode && (
                         <div className="mt-12 space-y-4">
                             <div className="flex justify-between items-center">
                                 <h3 className="text-white text-sm font-black uppercase tracking-widest flex items-center gap-2">
@@ -4855,6 +4856,60 @@ export default function DashboardPage() {
                                 )}
                             </div>
                         </div>
+                        )}
+
+                        {/* Histórico Recente de Orçamentos (só no modo ORÇAMENTO) */}
+                        {isOrcamentoMode && (
+                            <div className="mt-12 space-y-4">
+                                <div className="flex justify-between items-center">
+                                    <h3 className="text-white text-sm font-black uppercase tracking-widest flex items-center gap-2">
+                                        <History size={12} className="text-yellow-400" /> Histórico Recente de Orçamentos
+                                    </h3>
+                                </div>
+                                {orcamentos.length === 0 ? (
+                                    <div className="bg-zinc-950 rounded-3xl border border-zinc-900 p-6 text-center border-dashed">
+                                        <FileText size={28} className="text-zinc-800 mx-auto mb-3" />
+                                        <p className="text-white/50 font-bold uppercase text-xs tracking-widest">Nenhum orçamento registrado ainda.</p>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-2">
+                                        {orcamentos.slice(0, 8).map(orc => {
+                                            const statusColors: Record<string, string> = {
+                                                'PENDENTE': 'bg-yellow-500/10 text-yellow-400',
+                                                'APROVADO': 'bg-emerald-500/10 text-emerald-400',
+                                                'ALTERAÇÃO SOLICITADA': 'bg-blue-500/10 text-blue-400',
+                                                'RECUSADO': 'bg-red-500/10 text-red-400',
+                                                'CONVERTIDO': 'bg-purple-500/10 text-purple-400',
+                                            };
+                                            const status = orc.status || 'PENDENTE';
+                                            const statusColor = statusColors[status] || statusColors['PENDENTE'];
+                                            return (
+                                                <div key={orc.id} className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-4 flex items-center gap-3">
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="flex items-center gap-2 flex-wrap">
+                                                            <p className="text-xs font-bold text-white/50 uppercase tracking-wider">{orc.orcamento_number}</p>
+                                                            <span className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded ${statusColor}`}>{status}</span>
+                                                        </div>
+                                                        <p className="text-sm font-black text-white truncate mt-0.5">{orc.client}</p>
+                                                        <p className="text-[11px] text-white/40 mt-0.5">{(orc.items || []).length} {(orc.items || []).length === 1 ? 'item' : 'itens'} • {orc.created_at ? new Date(orc.created_at).toLocaleDateString('pt-BR') : '—'}</p>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 shrink-0">
+                                                        <p className="text-base font-black text-white tabular-nums">R$ {(orc.total || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                                                        <button
+                                                            onClick={() => setOrcamentoViewId(orc.id)}
+                                                            className="p-2 rounded-xl bg-zinc-950 text-white/50 hover:text-[#39FF14] transition-all"
+                                                            title="Ver detalhes"
+                                                        >
+                                                            <Eye size={14} />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+                        )}
 
                     </div>
                 )}
