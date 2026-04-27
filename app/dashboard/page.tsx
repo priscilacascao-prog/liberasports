@@ -135,7 +135,7 @@ export default function DashboardPage() {
     const [orders, setOrders] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [authChecking, setAuthChecking] = useState(true);
-    const [activeTab, setActiveTabState] = useState<'HOME' | 'PRODUÇÃO' | 'VENDAS' | 'ORÇAMENTOS' | 'ESTOQUE' | 'FINANCEIRO' | 'CAIXA'>(() => {
+    const [activeTab, setActiveTabState] = useState<'HOME' | 'PRODUÇÃO' | 'VENDAS' | 'ORÇAMENTOS' | 'ESTOQUE' | 'VITRINE' | 'FINANCEIRO' | 'CAIXA'>(() => {
         if (typeof window !== 'undefined') {
             return (localStorage.getItem('libera_active_tab') as any) || 'HOME';
         }
@@ -186,6 +186,11 @@ export default function DashboardPage() {
 
     const [showPaymentReminder, setShowPaymentReminder] = useState(false);
     const [reminderItems, setReminderItems] = useState<any[]>([]);
+
+    // Vitrine - drag and drop
+    const [vitrineDraggedKey, setVitrineDraggedKey] = useState<string | null>(null);
+    const [vitrineDragOverKey, setVitrineDragOverKey] = useState<string | null>(null);
+    const [vitrineSavingKey, setVitrineSavingKey] = useState<string | null>(null);
 
     // Orçamentos
     const [orcamentos, setOrcamentos] = useState<any[]>([]);
@@ -407,7 +412,7 @@ export default function DashboardPage() {
     const productsUnsubRef = React.useRef<null | (() => void)>(null);
     useEffect(() => {
         if (authChecking || productsUnsubRef.current) return;
-        if (activeTab !== 'VENDAS' && activeTab !== 'ESTOQUE') return;
+        if (activeTab !== 'VENDAS' && activeTab !== 'ESTOQUE' && activeTab !== 'VITRINE') return;
         const q = query(collection(db, productsCollectionPath));
         const unsubscribe = onSnapshot(q, (snapshot: any) => {
             const data = snapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));
@@ -1039,6 +1044,49 @@ export default function DashboardPage() {
         }
     };
 
+    // =================== HANDLERS DA VITRINE (ORDENAÇÃO MANUAL) ===================
+
+    // Persiste uma nova ordem dos grupos (key = baseName upper). Atualiza display_order
+    // em TODOS os variants do grupo via batch (1 commit só).
+    const persistVitrineOrder = async (newOrderedKeys: string[]) => {
+        try {
+            const batch = writeBatch(db);
+            newOrderedKeys.forEach((key, idx) => {
+                // key é o baseName.toUpperCase() — pega todos os variants desse grupo
+                const variants = products.filter(p => {
+                    const { baseName } = extractProductInfo(p.name || '');
+                    return baseName.toUpperCase() === key;
+                });
+                variants.forEach(v => {
+                    batch.update(doc(db, productsCollectionPath, v.id), { display_order: idx + 1 });
+                });
+            });
+            await batch.commit();
+        } catch (err) {
+            console.error('Erro ao salvar ordem:', err);
+            toast.error('Erro ao salvar a ordem. Tente novamente.');
+        }
+    };
+
+    // Move um grupo de uma posição para outra na lista atual e persiste
+    const moveVitrineItem = async (currentKeys: string[], fromIdx: number, toIdx: number) => {
+        if (fromIdx === toIdx || fromIdx < 0 || toIdx < 0 || fromIdx >= currentKeys.length || toIdx >= currentKeys.length) return;
+        const reordered = [...currentKeys];
+        const [moved] = reordered.splice(fromIdx, 1);
+        reordered.splice(toIdx, 0, moved);
+        setVitrineSavingKey(moved);
+        await persistVitrineOrder(reordered);
+        setVitrineSavingKey(null);
+    };
+
+    // Atualiza apenas a posição de UM grupo via campo numérico (preserva ordem dos outros)
+    const setVitrineItemPosition = async (currentKeys: string[], key: string, newPosition: number) => {
+        const fromIdx = currentKeys.indexOf(key);
+        if (fromIdx === -1) return;
+        const targetIdx = Math.max(0, Math.min(currentKeys.length - 1, newPosition - 1));
+        await moveVitrineItem(currentKeys, fromIdx, targetIdx);
+    };
+
     // =================== HANDLERS DE ORÇAMENTO ===================
 
     const generateShareToken = () => {
@@ -1495,7 +1543,7 @@ export default function DashboardPage() {
 
     // Agrupa produtos por nome base para mostrar tamanhos como quadradinhos
     const groupedProducts = useMemo(() => {
-        const groups: Record<string, { baseName: string; image: string; images: string[]; details: string; minPrice: number; maxPrice: number; prontaEntrega: boolean; showInStore: boolean; totalStock: number; variants: any[] }> = {};
+        const groups: Record<string, { baseName: string; image: string; images: string[]; details: string; minPrice: number; maxPrice: number; prontaEntrega: boolean; showInStore: boolean; totalStock: number; displayOrder: number; variants: any[] }> = {};
 
         products.forEach((p: any) => {
             const { baseName, size } = extractProductInfo(p.name || '');
@@ -1511,6 +1559,7 @@ export default function DashboardPage() {
                     prontaEntrega: false,
                     showInStore: false,
                     totalStock: 0,
+                    displayOrder: Number.MAX_SAFE_INTEGER,
                     variants: [],
                 };
             }
@@ -1524,13 +1573,24 @@ export default function DashboardPage() {
             if (p.pronta_entrega) g.prontaEntrega = true;
             if (p.show_in_store) g.showInStore = true;
             g.totalStock += (p.stock || 0);
+            // Pega o menor display_order entre os variants (todos deveriam ter o mesmo)
+            if (typeof p.display_order === 'number' && p.display_order < g.displayOrder) {
+                g.displayOrder = p.display_order;
+            }
         });
 
         Object.values(groups).forEach(g => {
             g.variants.sort((a, b) => getSizeWeight(a.extractedSize) - getSizeWeight(b.extractedSize));
         });
 
-        return Object.entries(groups).sort((a, b) => a[1].baseName.localeCompare(b[1].baseName, 'pt-BR', { numeric: true }));
+        // Ordenação: primeiro pelos que têm display_order definido (ascendente),
+        // depois os sem ordem manual (alfabético) — produtos novos vão pro fim por padrão
+        return Object.entries(groups).sort((a, b) => {
+            const orderA = a[1].displayOrder;
+            const orderB = b[1].displayOrder;
+            if (orderA !== orderB) return orderA - orderB;
+            return a[1].baseName.localeCompare(b[1].baseName, 'pt-BR', { numeric: true });
+        });
     }, [products]);
 
     // Filtros e Agrupamentos Financeiros
@@ -2962,6 +3022,7 @@ export default function DashboardPage() {
                                     { id: 'VENDAS', icon: ShoppingCart, label: 'Vendas', color: 'group-hover:text-blue-400' },
                                     { id: 'PRODUÇÃO', icon: Layers, label: 'Fábrica', color: 'group-hover:text-[#39FF14]' },
                                     { id: 'ESTOQUE', icon: Box, label: 'Estoque', color: 'group-hover:text-purple-400' },
+                                    { id: 'VITRINE', icon: Store, label: 'Vitrine', color: 'group-hover:text-pink-400' },
                                     ...(!isRestricted ? [
                                         { id: 'FINANCEIRO', icon: Wallet, label: 'Financeiro', color: 'group-hover:text-orange-400' },
                                         { id: 'CAIXA', icon: DollarSign, label: 'Caixa', color: 'group-hover:text-emerald-400' },
@@ -3011,6 +3072,7 @@ export default function DashboardPage() {
                             { id: 'VENDAS', icon: ShoppingCart, label: 'Vendas' },
                             { id: 'PRODUÇÃO', icon: Layers, label: 'Fábrica' },
                             { id: 'ESTOQUE', icon: Box, label: 'Estoque' },
+                            { id: 'VITRINE', icon: Store, label: 'Vitrine' },
                             ...(!isRestricted ? [
                                 { id: 'FINANCEIRO', icon: Wallet, label: 'Financeiro' },
                                 { id: 'CAIXA', icon: DollarSign, label: 'Caixa' }
@@ -3499,6 +3561,150 @@ export default function DashboardPage() {
                         </div>
                     </>
                 )}
+
+                {activeTab === 'VITRINE' && (() => {
+                    // Filtra só produtos visíveis na loja (show_in_store = true)
+                    // e mostra eles na ordem atual; tela permite reorganizar.
+                    const vitrineGroups = groupedProducts.filter(([, g]) => g.showInStore);
+                    const currentKeys = vitrineGroups.map(([key]) => key);
+                    return (
+                        <div className="space-y-6">
+                            <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 gap-4">
+                                <div className="pl-1">
+                                    <h1 className="text-2xl md:text-4xl font-black italic uppercase tracking-tighter">VITRINE DA LOJA</h1>
+                                    <p className="text-white text-sm mt-1">Organize a ordem que os produtos aparecem na loja pública</p>
+                                </div>
+                                <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl px-4 py-2.5 flex items-center gap-2">
+                                    <Store size={14} className="text-pink-400" />
+                                    <span className="text-xs font-black uppercase tracking-wider text-white">{vitrineGroups.length} produto{vitrineGroups.length !== 1 ? 's' : ''} na vitrine</span>
+                                </div>
+                            </div>
+
+                            <div className="bg-blue-500/10 border border-blue-500/30 rounded-2xl p-4 flex items-start gap-3">
+                                <Info size={20} className="text-blue-400 shrink-0 mt-0.5" />
+                                <div className="text-sm text-white/80">
+                                    <p className="font-bold text-blue-400 mb-1">Como reorganizar</p>
+                                    <ul className="space-y-0.5 text-xs">
+                                        <li>• <strong>Computador:</strong> arraste o card pelo ícone de pegada (≡) e solte na nova posição</li>
+                                        <li>• <strong>Celular ou rápido:</strong> use as setas ↑ ↓ pra mover um por um</li>
+                                        <li>• <strong>Ir direto pra posição:</strong> digite o número no campo "Posição" do card</li>
+                                        <li>• <strong>Produtos novos</strong> entram automaticamente no final da lista</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            {vitrineGroups.length === 0 ? (
+                                <div className="bg-zinc-950 rounded-3xl border border-zinc-900 p-8 text-center border-dashed">
+                                    <Store size={40} className="text-zinc-800 mx-auto mb-4" />
+                                    <p className="text-white font-bold uppercase text-sm tracking-widest mb-2">Nenhum produto visível na loja.</p>
+                                    <p className="text-white/50 text-xs">Vá no Estoque e marque "Visível na Loja" nos produtos que devem aparecer.</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-2">
+                                    {vitrineGroups.map(([key, group], idx) => {
+                                        const isDragging = vitrineDraggedKey === key;
+                                        const isDragOver = vitrineDragOverKey === key && vitrineDraggedKey !== key;
+                                        const isSaving = vitrineSavingKey === key;
+                                        return (
+                                            <div
+                                                key={key}
+                                                draggable
+                                                onDragStart={() => setVitrineDraggedKey(key)}
+                                                onDragOver={(e) => { e.preventDefault(); if (vitrineDragOverKey !== key) setVitrineDragOverKey(key); }}
+                                                onDragLeave={() => { if (vitrineDragOverKey === key) setVitrineDragOverKey(null); }}
+                                                onDrop={async (e) => {
+                                                    e.preventDefault();
+                                                    if (!vitrineDraggedKey || vitrineDraggedKey === key) {
+                                                        setVitrineDraggedKey(null);
+                                                        setVitrineDragOverKey(null);
+                                                        return;
+                                                    }
+                                                    const fromIdx = currentKeys.indexOf(vitrineDraggedKey);
+                                                    const toIdx = currentKeys.indexOf(key);
+                                                    setVitrineDraggedKey(null);
+                                                    setVitrineDragOverKey(null);
+                                                    await moveVitrineItem(currentKeys, fromIdx, toIdx);
+                                                }}
+                                                onDragEnd={() => { setVitrineDraggedKey(null); setVitrineDragOverKey(null); }}
+                                                className={`bg-zinc-900/50 border rounded-2xl p-3 md:p-4 flex items-center gap-3 transition-all ${
+                                                    isDragging ? 'opacity-40 border-pink-500' :
+                                                    isDragOver ? 'border-pink-500 bg-pink-500/5 scale-[1.01]' :
+                                                    'border-zinc-800 hover:border-pink-500/30'
+                                                }`}
+                                            >
+                                                {/* Handle de drag */}
+                                                <div className="cursor-grab active:cursor-grabbing text-white/30 hover:text-white/70 shrink-0 px-1" title="Arraste para reordenar">
+                                                    <div className="flex flex-col gap-0.5 leading-none">
+                                                        <span className="text-xs">≡</span>
+                                                        <span className="text-xs">≡</span>
+                                                    </div>
+                                                </div>
+
+                                                {/* Imagem */}
+                                                {group.image ? (
+                                                    <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl overflow-hidden border border-zinc-800 shrink-0">
+                                                        <img src={group.image} alt={group.baseName} className="w-full h-full object-cover" />
+                                                    </div>
+                                                ) : (
+                                                    <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl bg-zinc-950 border border-zinc-800 flex items-center justify-center shrink-0">
+                                                        <Box size={20} className="text-pink-400/50" />
+                                                    </div>
+                                                )}
+
+                                                {/* Info */}
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-sm md:text-base font-black italic uppercase text-white leading-tight truncate">{group.baseName}</p>
+                                                    <p className="text-[11px] text-white/40 mt-0.5">
+                                                        {group.minPrice === group.maxPrice
+                                                            ? `R$ ${group.minPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
+                                                            : `R$ ${group.minPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} - ${group.maxPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
+                                                        {' • '}{group.totalStock} un
+                                                    </p>
+                                                </div>
+
+                                                {/* Setas + posição numérica */}
+                                                <div className="flex items-center gap-1.5 shrink-0">
+                                                    <button
+                                                        onClick={() => moveVitrineItem(currentKeys, idx, idx - 1)}
+                                                        disabled={idx === 0 || isSaving}
+                                                        className="w-9 h-9 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-white/70 hover:text-pink-400 transition-all disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center"
+                                                        title="Subir"
+                                                    >
+                                                        <ChevronUp size={16} />
+                                                    </button>
+                                                    <input
+                                                        type="number"
+                                                        min={1}
+                                                        max={vitrineGroups.length}
+                                                        value={idx + 1}
+                                                        onChange={(e) => {
+                                                            const v = parseInt(e.target.value);
+                                                            if (!isNaN(v) && v >= 1 && v <= vitrineGroups.length) {
+                                                                setVitrineItemPosition(currentKeys, key, v);
+                                                            }
+                                                        }}
+                                                        disabled={isSaving}
+                                                        className="w-14 h-9 rounded-lg bg-zinc-950 border border-zinc-800 text-white text-center text-sm font-black outline-none focus:border-pink-500 disabled:opacity-50"
+                                                        title="Posição"
+                                                    />
+                                                    <button
+                                                        onClick={() => moveVitrineItem(currentKeys, idx, idx + 1)}
+                                                        disabled={idx === vitrineGroups.length - 1 || isSaving}
+                                                        className="w-9 h-9 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-white/70 hover:text-pink-400 transition-all disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center"
+                                                        title="Descer"
+                                                    >
+                                                        <ChevronDown size={16} />
+                                                    </button>
+                                                    {isSaving && <Loader2 size={14} className="animate-spin text-pink-400 ml-1" />}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
+                    );
+                })()}
 
                 {activeTab === 'ESTOQUE' && (
                     <div className="space-y-6">

@@ -133,7 +133,7 @@ export default function LojaPage() {
 
     // Agrupar produtos por nome base
     const groupedProducts = useMemo(() => {
-        const groups: Record<string, { baseName: string; image: string; minPrice: number; prontaEntrega: boolean; variants: any[] }> = {};
+        const groups: Record<string, { baseName: string; image: string; minPrice: number; prontaEntrega: boolean; displayOrder: number; variants: any[] }> = {};
 
         products.forEach((p: any) => {
             const { baseName, size } = extractInfo(p.name);
@@ -145,6 +145,7 @@ export default function LojaPage() {
                     image: p.image || '',
                     minPrice: p.sale_price,
                     prontaEntrega: false,
+                    displayOrder: Number.MAX_SAFE_INTEGER,
                     variants: [],
                 };
             }
@@ -153,6 +154,10 @@ export default function LojaPage() {
             if (p.image && !groups[key].image) groups[key].image = p.image;
             if (p.sale_price < groups[key].minPrice) groups[key].minPrice = p.sale_price;
             if (p.pronta_entrega) groups[key].prontaEntrega = true;
+            // Pega o menor display_order entre os variants do grupo
+            if (typeof p.display_order === 'number' && p.display_order < groups[key].displayOrder) {
+                groups[key].displayOrder = p.display_order;
+            }
         });
 
         // Ordenar variantes por tamanho
@@ -160,8 +165,13 @@ export default function LojaPage() {
             g.variants.sort((a, b) => getSizeWeight(a.extractedSize) - getSizeWeight(b.extractedSize));
         });
 
-        // Ordenar: pronta entrega primeiro, depois sob encomenda, alfabético dentro de cada grupo
+        // Ordenação: 1) ordem manual da Vitrine (display_order ascendente),
+        // 2) pronta entrega primeiro entre os sem ordem definida,
+        // 3) alfabético como desempate
         return Object.entries(groups).sort((a, b) => {
+            const orderA = a[1].displayOrder;
+            const orderB = b[1].displayOrder;
+            if (orderA !== orderB) return orderA - orderB;
             if (a[1].prontaEntrega !== b[1].prontaEntrega) return a[1].prontaEntrega ? -1 : 1;
             return a[0].localeCompare(b[0], 'pt-BR', { numeric: true });
         });
