@@ -16,6 +16,7 @@ const salesPath = `artifacts/${appId}/public/data/vendas`;
 const financePath = `artifacts/${appId}/public/data/financeiro`;
 const clientesPath = `artifacts/${appId}/public/data/clientes`;
 const fornecedoresPath = `artifacts/${appId}/public/data/fornecedores`;
+const notificacoesPath = `artifacts/${appId}/public/data/notificacoes`;
 
 const addBusinessDays = (startDate: Date, days: number) => {
     let date = new Date(startDate);
@@ -373,6 +374,28 @@ export default function LojaPage() {
                     });
                 }
             } catch (e) { console.error('Erro ao cadastrar cliente:', e); }
+
+            // Cria notificação para as vendedoras (caixa de entrada do dashboard)
+            try {
+                const itemsSummary = cart.length > 0
+                    ? cart.map(i => `${i.quantity}x ${i.name}`).join(' • ')
+                    : observations || '';
+                await addDoc(collection(db, notificacoesPath), {
+                    type: 'NOVA_VENDA_LOJA',
+                    title: 'Nova venda na loja',
+                    message: `${orderNumber} • ${clientData.name} • R$ ${cartTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+                    items_summary: itemsSummary,
+                    sale_id: docRef.id,
+                    sale_number: orderNumber,
+                    client_name: clientData.name,
+                    client_whatsapp: clientData.whatsapp || '',
+                    value: cartTotal,
+                    payment_method: pixSplit && paymentMethod === 'PIX' ? 'PIX 50/50' : paymentMethod,
+                    source: 'LOJA',
+                    read_by: [],
+                    created_at: new Date().toISOString(),
+                });
+            } catch (e) { console.error('Erro ao criar notificação:', e); }
 
             toast.success('Pedido realizado com sucesso!');
             setCart([]); setShowCart(false); setShowCheckout(false); setObservations(''); setPixSplit(false);

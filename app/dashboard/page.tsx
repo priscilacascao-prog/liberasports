@@ -7,7 +7,7 @@ import {
     TrendingUp, Truck, User, History, MessageSquare, Info, Filter,
     Loader2, ChevronDown, ChevronUp, MessageCircle, Pencil, FileText, Trash2,
     Store, ShoppingCart, Wallet, BarChart3, Settings, Layers, Box, DollarSign,
-    ArrowUpCircle, ArrowDownCircle, ArrowUpRight, ArrowDownLeft, PlusCircle, Home, Copy, Sun, Moon, Eye, Paperclip, Mail, RefreshCw
+    ArrowUpCircle, ArrowDownCircle, ArrowUpRight, ArrowDownLeft, PlusCircle, Home, Copy, Sun, Moon, Eye, Paperclip, Mail, RefreshCw, Bell, CheckCheck
 } from 'lucide-react';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
@@ -169,6 +169,7 @@ export default function DashboardPage() {
     const financeCollectionPath = `artifacts/${appId}/public/data/financeiro`;
     const fornecedoresCollectionPath = `artifacts/${appId}/public/data/fornecedores`;
     const orcamentosCollectionPath = `artifacts/${appId}/public/data/orcamentos`;
+    const notificacoesCollectionPath = `artifacts/${appId}/public/data/notificacoes`;
     const settingsDocPath = `artifacts/${appId}/public/data/settings/general`;
 
     // Fornecedores state
@@ -186,6 +187,10 @@ export default function DashboardPage() {
 
     const [showPaymentReminder, setShowPaymentReminder] = useState(false);
     const [reminderItems, setReminderItems] = useState<any[]>([]);
+
+    // Caixa de entrada de notificações
+    const [notificacoes, setNotificacoes] = useState<any[]>([]);
+    const [showNotificacoes, setShowNotificacoes] = useState(false);
 
     // Vitrine - drag and drop
     const [vitrineDraggedKey, setVitrineDraggedKey] = useState<string | null>(null);
@@ -531,6 +536,18 @@ export default function DashboardPage() {
         fornecedoresUnsubRef.current = unsubscribe;
     }, [authChecking, activeTab]);
 
+    // Notificações - SEMPRE ativo (qualquer aba), assinatura única que sobrevive a trocas de tab
+    const notificacoesUnsubRef = React.useRef<null | (() => void)>(null);
+    useEffect(() => {
+        if (authChecking || notificacoesUnsubRef.current) return;
+        const q = query(collection(db, notificacoesCollectionPath), orderBy('created_at', 'desc'));
+        const unsubscribe = onSnapshot(q, (snapshot: any) => {
+            const data = snapshot.docs.map((d: any) => ({ id: d.id, ...d.data() }));
+            setNotificacoes(data);
+        });
+        notificacoesUnsubRef.current = unsubscribe;
+    }, [authChecking]);
+
     // Orçamentos - carrega sob demanda (ORÇAMENTOS) e mantém listener vivo
     const orcamentosUnsubRef = React.useRef<null | (() => void)>(null);
     useEffect(() => {
@@ -552,11 +569,13 @@ export default function DashboardPage() {
             contasUnsubRef.current?.();
             fornecedoresUnsubRef.current?.();
             orcamentosUnsubRef.current?.();
+            notificacoesUnsubRef.current?.();
             productsUnsubRef.current = null;
             financeUnsubRef.current = null;
             contasUnsubRef.current = null;
             fornecedoresUnsubRef.current = null;
             orcamentosUnsubRef.current = null;
+            notificacoesUnsubRef.current = null;
         };
     }, []);
 
@@ -1041,6 +1060,77 @@ export default function DashboardPage() {
             setSales(prevSales);
             setOrders(prevOrders);
             toast.error('Erro ao excluir venda.');
+        }
+    };
+
+    // =================== HANDLERS DE NOTIFICAÇÕES ===================
+
+    // "Não lidas" = não tem userId no array read_by da notificação
+    const isNotificacaoLida = (n: any): boolean => {
+        if (!userId) return false;
+        return Array.isArray(n.read_by) && n.read_by.includes(userId);
+    };
+    const unreadCount = notificacoes.filter(n => !isNotificacaoLida(n)).length;
+
+    const handleMarkNotificacaoRead = async (notif: any) => {
+        if (!userId || isNotificacaoLida(notif)) return;
+        // Update otimista
+        const prev = notificacoes;
+        setNotificacoes(list => list.map(n => n.id === notif.id ? { ...n, read_by: [...(n.read_by || []), userId] } : n));
+        try {
+            const current = Array.isArray(notif.read_by) ? notif.read_by : [];
+            if (!current.includes(userId)) {
+                await updateDoc(doc(db, notificacoesCollectionPath, notif.id), {
+                    read_by: [...current, userId],
+                });
+            }
+        } catch (err) {
+            console.error('Erro ao marcar notificação:', err);
+            setNotificacoes(prev);
+        }
+    };
+
+    const handleMarkAllNotificacoesRead = async () => {
+        if (!userId) return;
+        const unread = notificacoes.filter(n => !isNotificacaoLida(n));
+        if (unread.length === 0) return;
+        // Update otimista
+        const prev = notificacoes;
+        setNotificacoes(list => list.map(n => isNotificacaoLida(n) ? n : { ...n, read_by: [...(n.read_by || []), userId] }));
+        try {
+            const batch = writeBatch(db);
+            unread.forEach(n => {
+                const current = Array.isArray(n.read_by) ? n.read_by : [];
+                if (!current.includes(userId)) {
+                    batch.update(doc(db, notificacoesCollectionPath, n.id), {
+                        read_by: [...current, userId],
+                    });
+                }
+            });
+            await batch.commit();
+        } catch (err) {
+            console.error('Erro ao marcar todas como lidas:', err);
+            setNotificacoes(prev);
+        }
+    };
+
+    const handleNotificacaoClick = async (notif: any) => {
+        await handleMarkNotificacaoRead(notif);
+        // Navega pra aba relevante baseado no tipo
+        if (notif.type === 'NOVA_VENDA_LOJA') {
+            setActiveTab('VENDAS');
+        }
+        setShowNotificacoes(false);
+    };
+
+    const handleDeleteNotificacao = async (id: string) => {
+        const prev = notificacoes;
+        setNotificacoes(list => list.filter(n => n.id !== id));
+        try {
+            await deleteDoc(doc(db, notificacoesCollectionPath, id));
+        } catch (err) {
+            console.error('Erro ao excluir notificação:', err);
+            setNotificacoes(prev);
         }
     };
 
@@ -2893,6 +2983,18 @@ export default function DashboardPage() {
                         </button>
                     )}
                     <button
+                        onClick={() => setShowNotificacoes(true)}
+                        className={`relative p-2 rounded-xl transition-all hover:scale-110 ${isDark ? 'text-white/70 hover:text-[#39FF14]' : 'text-gray-500 hover:text-green-600'}`}
+                        title="Notificações"
+                    >
+                        <Bell size={18} />
+                        {unreadCount > 0 && (
+                            <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[10px] font-black rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 shadow-lg animate-pulse">
+                                {unreadCount > 9 ? '9+' : unreadCount}
+                            </span>
+                        )}
+                    </button>
+                    <button
                         onClick={toggleTheme}
                         className={`p-2 rounded-xl transition-all hover:scale-110 ${isDark ? 'text-yellow-400 hover:bg-yellow-400/10' : 'text-gray-600 hover:bg-gray-200'}`}
                         title={isDark ? 'Modo claro' : 'Modo escuro'}
@@ -4214,6 +4316,115 @@ export default function DashboardPage() {
                                 })}
                             </div>
                         )}
+                    </div>
+                )}
+
+                {/* Caixa de Entrada de Notificações (slide-in da direita) */}
+                {showNotificacoes && (
+                    <div className="fixed inset-0 z-[800] flex items-stretch justify-end" onClick={() => setShowNotificacoes(false)}>
+                        <div className="bg-black/70 absolute inset-0 backdrop-blur-sm" />
+                        <div
+                            className="relative bg-zinc-900 border-l border-zinc-800 w-full sm:max-w-md h-full flex flex-col shadow-2xl animate-slide-in-right"
+                            onClick={e => e.stopPropagation()}
+                        >
+                            <div className="p-5 border-b border-zinc-800 flex items-center justify-between shrink-0">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-2xl bg-[#39FF14]/10 flex items-center justify-center">
+                                        <Bell size={18} className="text-[#39FF14]" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-base font-black italic uppercase tracking-tight text-white">Notificações</h3>
+                                        <p className="text-[11px] text-white/40 mt-0.5">
+                                            {unreadCount > 0 ? `${unreadCount} não lida${unreadCount > 1 ? 's' : ''}` : 'Tudo em dia ✓'}
+                                        </p>
+                                    </div>
+                                </div>
+                                <button onClick={() => setShowNotificacoes(false)} className="text-white/50 hover:text-white p-1.5 rounded-lg hover:bg-zinc-800 transition-all">
+                                    <X size={20} />
+                                </button>
+                            </div>
+
+                            {unreadCount > 0 && (
+                                <button
+                                    onClick={handleMarkAllNotificacoesRead}
+                                    className="px-5 py-2.5 bg-[#39FF14]/5 hover:bg-[#39FF14]/10 text-[#39FF14] text-xs font-black uppercase tracking-widest transition-all border-b border-zinc-800 flex items-center justify-center gap-2"
+                                >
+                                    <CheckCheck size={14} /> Marcar todas como lidas
+                                </button>
+                            )}
+
+                            <div className="flex-1 overflow-y-auto">
+                                {notificacoes.length === 0 ? (
+                                    <div className="p-12 text-center">
+                                        <Bell size={40} className="text-zinc-800 mx-auto mb-4" />
+                                        <p className="text-white/40 text-sm font-bold uppercase tracking-widest mb-1">Caixa vazia</p>
+                                        <p className="text-white/30 text-xs">Quando rolar uma venda na loja, ela aparece aqui</p>
+                                    </div>
+                                ) : (
+                                    <div className="divide-y divide-zinc-800">
+                                        {notificacoes.map(n => {
+                                            const isRead = isNotificacaoLida(n);
+                                            const dt = n.created_at ? new Date(n.created_at) : null;
+                                            const dtStr = dt
+                                                ? `${dt.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })} • ${dt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`
+                                                : '';
+                                            return (
+                                                <div
+                                                    key={n.id}
+                                                    onClick={() => handleNotificacaoClick(n)}
+                                                    className={`p-4 cursor-pointer transition-all relative group ${
+                                                        isRead ? 'hover:bg-zinc-800/30' : 'bg-[#39FF14]/5 hover:bg-[#39FF14]/10'
+                                                    }`}
+                                                >
+                                                    {!isRead && (
+                                                        <div className="absolute left-1 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-[#39FF14] shadow-[0_0_8px_rgba(57,255,20,0.8)]" />
+                                                    )}
+                                                    <div className="flex items-start gap-3 pl-2">
+                                                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                                                            n.type === 'NOVA_VENDA_LOJA' ? 'bg-blue-500/10 text-blue-400' : 'bg-zinc-800 text-white/50'
+                                                        }`}>
+                                                            <ShoppingCart size={16} />
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <div className="flex items-start justify-between gap-2">
+                                                                <p className={`text-sm font-black uppercase tracking-tight leading-tight ${isRead ? 'text-white/60' : 'text-white'}`}>
+                                                                    {n.title}
+                                                                </p>
+                                                                <button
+                                                                    onClick={(e) => { e.stopPropagation(); handleDeleteNotificacao(n.id); }}
+                                                                    className="opacity-0 group-hover:opacity-100 text-white/30 hover:text-red-500 transition-all shrink-0"
+                                                                    title="Excluir"
+                                                                >
+                                                                    <X size={14} />
+                                                                </button>
+                                                            </div>
+                                                            <p className={`text-xs mt-1 font-bold ${isRead ? 'text-white/40' : 'text-white/80'}`}>
+                                                                {n.message}
+                                                            </p>
+                                                            {n.items_summary && (
+                                                                <p className="text-[11px] mt-1 text-white/40 line-clamp-2">
+                                                                    {n.items_summary}
+                                                                </p>
+                                                            )}
+                                                            <div className="flex items-center gap-2 mt-2">
+                                                                <span className={`text-[10px] uppercase tracking-widest ${isRead ? 'text-white/30' : 'text-[#39FF14]/70'}`}>
+                                                                    {dtStr}
+                                                                </span>
+                                                                {n.source === 'LOJA' && (
+                                                                    <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400 tracking-widest">
+                                                                        Loja online
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
                     </div>
                 )}
 
