@@ -83,3 +83,50 @@ self.addEventListener('fetch', (event) => {
       .catch(() => caches.match(event.request))
   );
 });
+
+// ============================================================
+// PUSH NOTIFICATIONS — recebe alertas do servidor e mostra no celular
+// (funciona mesmo se o navegador estiver fechado, app em background)
+// ============================================================
+self.addEventListener('push', (event) => {
+  let payload = {};
+  try {
+    payload = event.data ? event.data.json() : {};
+  } catch (e) {
+    payload = { title: 'Libera Sports', body: event.data ? event.data.text() : 'Nova notificação' };
+  }
+
+  const title = payload.title || 'Libera Sports';
+  const options = {
+    body: payload.body || '',
+    icon: payload.icon || '/logo.png',
+    badge: payload.badge || '/logo.png',
+    tag: payload.tag || 'libera-notif',
+    renotify: true,
+    requireInteraction: false,
+    data: {
+      url: payload.url || '/dashboard',
+      ...(payload.data || {}),
+    },
+    vibrate: [200, 100, 200],
+  };
+
+  event.waitUntil(self.registration.showNotification(title, options));
+});
+
+// Quando toca na notificação, abre/foca o dashboard
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const url = (event.notification.data && event.notification.data.url) || '/dashboard';
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      for (const client of clientList) {
+        if ('focus' in client && client.url.includes(url.split('?')[0])) {
+          return client.focus();
+        }
+      }
+      if (clients.openWindow) return clients.openWindow(url);
+    })
+  );
+});

@@ -10,6 +10,7 @@ import {
     ArrowUpCircle, ArrowDownCircle, ArrowUpRight, ArrowDownLeft, PlusCircle, Home, Copy, Sun, Moon, Eye, Paperclip, Mail, RefreshCw, Bell, CheckCheck
 } from 'lucide-react';
 import { auth, db } from '@/lib/firebase';
+import { isPushSupported, getCurrentPushPermission, getCurrentSubscription, enablePush, disablePush, ensureServiceWorker } from '@/lib/push';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import {
     collection, doc, addDoc, updateDoc, deleteDoc,
@@ -191,6 +192,11 @@ export default function DashboardPage() {
     // Caixa de entrada de notificações
     const [notificacoes, setNotificacoes] = useState<any[]>([]);
     const [showNotificacoes, setShowNotificacoes] = useState(false);
+    // Web Push (notificação no celular)
+    const [pushSupported, setPushSupported] = useState(false);
+    const [pushPermission, setPushPermission] = useState<NotificationPermission>('default');
+    const [pushSubscribed, setPushSubscribed] = useState(false);
+    const [pushBusy, setPushBusy] = useState(false);
 
     // Vitrine - drag and drop
     const [vitrineDraggedKey, setVitrineDraggedKey] = useState<string | null>(null);
@@ -535,6 +541,22 @@ export default function DashboardPage() {
         });
         fornecedoresUnsubRef.current = unsubscribe;
     }, [authChecking, activeTab]);
+
+    // Verifica estado das notificações push uma vez ao montar
+    useEffect(() => {
+        if (authChecking) return;
+        const check = async () => {
+            const supported = isPushSupported();
+            setPushSupported(supported);
+            if (!supported) return;
+            // Registra o service worker preventivamente (não pede permissão ainda)
+            await ensureServiceWorker();
+            setPushPermission(await getCurrentPushPermission());
+            const sub = await getCurrentSubscription();
+            setPushSubscribed(!!sub);
+        };
+        check();
+    }, [authChecking]);
 
     // Notificações - SEMPRE ativo (qualquer aba), assinatura única que sobrevive a trocas de tab
     const notificacoesUnsubRef = React.useRef<null | (() => void)>(null);
@@ -1121,6 +1143,32 @@ export default function DashboardPage() {
             setActiveTab('VENDAS');
         }
         setShowNotificacoes(false);
+    };
+
+    const handleEnablePush = async () => {
+        if (!userId) return;
+        setPushBusy(true);
+        const res = await enablePush({ userId, userEmail });
+        setPushBusy(false);
+        if (res.ok) {
+            setPushPermission('granted');
+            setPushSubscribed(true);
+            toast.success('Notificações ativadas! 📱 Você vai receber alertas no celular.');
+        } else {
+            toast.error(res.reason || 'Não foi possível ativar');
+        }
+    };
+
+    const handleDisablePush = async () => {
+        setPushBusy(true);
+        const res = await disablePush();
+        setPushBusy(false);
+        if (res.ok) {
+            setPushSubscribed(false);
+            toast.info('Notificações desativadas neste dispositivo.');
+        } else {
+            toast.error(res.reason || 'Erro ao desativar');
+        }
     };
 
     const handleDeleteNotificacao = async (id: string) => {
@@ -4342,6 +4390,36 @@ export default function DashboardPage() {
                                 <button onClick={() => setShowNotificacoes(false)} className="text-white/50 hover:text-white p-1.5 rounded-lg hover:bg-zinc-800 transition-all">
                                     <X size={20} />
                                 </button>
+                            </div>
+
+                            {/* Toggle de Notificações Push (alerta no celular) */}
+                            <div className="px-5 py-3 bg-zinc-950 border-b border-zinc-800">
+                                {!pushSupported ? (
+                                    <p className="text-[11px] text-white/40 text-center">
+                                        Este navegador não suporta notificações push.
+                                    </p>
+                                ) : pushPermission === 'denied' ? (
+                                    <div className="text-center">
+                                        <p className="text-[11px] text-red-400 font-bold mb-1">⚠️ Permissão bloqueada</p>
+                                        <p className="text-[10px] text-white/40">Habilite as notificações nas configurações do navegador/celular</p>
+                                    </div>
+                                ) : pushSubscribed ? (
+                                    <button
+                                        onClick={handleDisablePush}
+                                        disabled={pushBusy}
+                                        className="w-full bg-emerald-500/10 hover:bg-emerald-500/15 text-emerald-400 text-xs font-black uppercase tracking-widest py-2.5 px-4 rounded-xl border border-emerald-500/30 flex items-center justify-center gap-2 disabled:opacity-50 transition-all"
+                                    >
+                                        <Bell size={14} /> {pushBusy ? 'Aguarde...' : 'Notificações ATIVAS neste dispositivo'}
+                                    </button>
+                                ) : (
+                                    <button
+                                        onClick={handleEnablePush}
+                                        disabled={pushBusy}
+                                        className="w-full bg-[#39FF14]/10 hover:bg-[#39FF14]/15 text-[#39FF14] text-xs font-black uppercase tracking-widest py-2.5 px-4 rounded-xl border border-[#39FF14]/30 flex items-center justify-center gap-2 disabled:opacity-50 transition-all"
+                                    >
+                                        <Bell size={14} /> {pushBusy ? 'Aguarde...' : 'Ativar alertas no celular'}
+                                    </button>
+                                )}
                             </div>
 
                             {unreadCount > 0 && (

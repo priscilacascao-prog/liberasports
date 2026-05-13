@@ -380,10 +380,11 @@ export default function LojaPage() {
                 const itemsSummary = cart.length > 0
                     ? cart.map(i => `${i.quantity}x ${i.name}`).join(' • ')
                     : observations || '';
+                const notifMessage = `${orderNumber} • ${clientData.name} • R$ ${cartTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
                 await addDoc(collection(db, notificacoesPath), {
                     type: 'NOVA_VENDA_LOJA',
                     title: 'Nova venda na loja',
-                    message: `${orderNumber} • ${clientData.name} • R$ ${cartTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+                    message: notifMessage,
                     items_summary: itemsSummary,
                     sale_id: docRef.id,
                     sale_number: orderNumber,
@@ -395,6 +396,19 @@ export default function LojaPage() {
                     read_by: [],
                     created_at: new Date().toISOString(),
                 });
+
+                // Dispara push notification para os celulares das vendedoras (paralelo, sem bloquear)
+                fetch('/api/push/send', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        title: '🛒 Nova venda na loja!',
+                        body: notifMessage,
+                        url: '/dashboard',
+                        tag: `venda-${orderNumber}`,
+                        data: { sale_id: docRef.id, sale_number: orderNumber },
+                    }),
+                }).catch(err => console.error('Falha ao enviar push:', err));
             } catch (e) { console.error('Erro ao criar notificação:', e); }
 
             toast.success('Pedido realizado com sucesso!');
