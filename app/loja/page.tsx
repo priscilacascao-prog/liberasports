@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
-import { collection, query, getDocs, addDoc, doc, getDoc, updateDoc } from 'firebase/firestore';
+import { collection, query, getDocs, addDoc, doc, getDoc, updateDoc, onSnapshot } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { ShoppingCart, Plus, Minus, Trash2, X, Loader2, LogOut, Package, History, PackageSearch } from 'lucide-react';
@@ -149,11 +149,15 @@ export default function LojaPage() {
 
     useEffect(() => {
         const fetchProducts = async () => {
-            const snap = await getDocs(query(collection(db, productsPath)));
-            const data = snap.docs
-                .map(d => ({ id: d.id, ...d.data() }))
-                .filter((p: any) => p.show_in_store && p.stock > 0 && p.sale_price > 0);
-            setProducts(data);
+            try {
+                const snap = await getDocs(collection(db, productsPath));
+                const data = snap.docs
+                    .map(d => ({ id: d.id, ...d.data() } as any))
+                    .filter((p: any) => p.show_in_store && p.stock > 0 && p.sale_price > 0);
+                setProducts(data);
+            } catch (err: any) {
+                console.error('[loja] Erro ao buscar produtos:', err?.code, err?.message);
+            }
         };
         fetchProducts();
     }, []);
