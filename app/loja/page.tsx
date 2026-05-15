@@ -106,20 +106,46 @@ export default function LojaPage() {
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (u) => {
+            // Cliente pode navegar livremente, esteja logado ou não.
+            // Login só vai ser exigido no checkout.
             if (u) {
                 setUser(u);
-                const clientDoc = await getDoc(doc(db, clientesPath, u.uid));
-                if (clientDoc.exists()) {
-                    setClientData(clientDoc.data());
-                } else {
-                    router.push('/loja/login');
-                    return;
-                }
+                try {
+                    const clientDoc = await getDoc(doc(db, clientesPath, u.uid));
+                    if (clientDoc.exists()) {
+                        setClientData(clientDoc.data());
+                    }
+                    // Se logado mas sem doc de cliente (ex: vendedora), continua
+                    // navegando como visitante — vai ser pedido pra completar o
+                    // cadastro só se tentar finalizar uma compra.
+                } catch (e) { console.error('Erro ao buscar cliente:', e); }
             }
             setLoading(false);
         });
         return () => unsubscribe();
     }, [router]);
+
+    // Persiste o carrinho no localStorage pra não perder se cliente navegar pra
+    // fazer login. Restaura na primeira renderização.
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        const saved = localStorage.getItem('libera_loja_cart');
+        if (saved) {
+            try {
+                const parsed = JSON.parse(saved);
+                if (Array.isArray(parsed) && parsed.length > 0) setCart(parsed);
+            } catch {}
+        }
+    }, []);
+
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        if (cart.length === 0) {
+            localStorage.removeItem('libera_loja_cart');
+        } else {
+            localStorage.setItem('libera_loja_cart', JSON.stringify(cart));
+        }
+    }, [cart]);
 
     useEffect(() => {
         const fetchProducts = async () => {
@@ -691,11 +717,7 @@ export default function LojaPage() {
                                                 <span className="text-xl font-black">R$ {cartTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                                             </div>
                                         </div>
-                                        {user ? (
-                                            <button onClick={() => setShowCheckout(true)} className="w-full bg-black text-white py-3 rounded-xl font-bold uppercase text-sm hover:bg-gray-900">Finalizar Pedido</button>
-                                        ) : (
-                                            <Link href="/loja/login" className="block w-full bg-black text-white py-3 rounded-xl font-bold uppercase text-sm text-center hover:bg-gray-900">Faça login para comprar</Link>
-                                        )}
+                                        <button onClick={() => setShowCheckout(true)} className="w-full bg-black text-white py-3 rounded-xl font-bold uppercase text-sm hover:bg-gray-900">Finalizar Pedido</button>
                                     </>
                                 ) : (
                                     <div className="space-y-3">
@@ -870,10 +892,24 @@ export default function LojaPage() {
                                                 <span className="text-xl font-black text-black">R$ {cartTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                                             </div>
                                         </div>
-                                        <button onClick={handleCheckout} disabled={checkoutLoading}
-                                            className="w-full bg-black text-white py-3 rounded-xl font-bold uppercase text-sm hover:bg-gray-900 disabled:opacity-50">
-                                            {checkoutLoading ? 'Processando...' : 'Confirmar Pedido'}
-                                        </button>
+                                        {!user || !clientData ? (
+                                            <button
+                                                onClick={() => router.push('/loja/login?next=' + encodeURIComponent('/loja'))}
+                                                className="w-full bg-black text-white py-3 rounded-xl font-bold uppercase text-sm hover:bg-gray-900"
+                                            >
+                                                Entrar para finalizar
+                                            </button>
+                                        ) : (
+                                            <button onClick={handleCheckout} disabled={checkoutLoading}
+                                                className="w-full bg-black text-white py-3 rounded-xl font-bold uppercase text-sm hover:bg-gray-900 disabled:opacity-50">
+                                                {checkoutLoading ? 'Processando...' : 'Confirmar Pedido'}
+                                            </button>
+                                        )}
+                                        {(!user || !clientData) && (
+                                            <p className="text-xs text-gray-500 text-center mt-1">
+                                                Seu carrinho fica salvo enquanto você cadastra
+                                            </p>
+                                        )}
                                         <button onClick={() => setShowCheckout(false)} className="w-full py-2 text-sm font-bold text-gray-400 hover:text-black">Voltar</button>
                                     </div>
                                 )}

@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { auth, db } from '@/lib/firebase';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, sendPasswordResetEmail } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 import { Loader2, Eye, EyeOff } from 'lucide-react';
 import Image from 'next/image';
@@ -14,6 +14,9 @@ const clientesPath = `artifacts/${appId}/public/data/clientes`;
 
 export default function LojaLoginPage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    // Para onde voltar após login bem-sucedido (padrão: /loja)
+    const nextUrl = searchParams?.get('next') || '/loja';
     const [loading, setLoading] = useState(true);
     const [authLoading, setAuthLoading] = useState(false);
     const [isRegistering, setIsRegistering] = useState(false);
@@ -29,7 +32,7 @@ export default function LojaLoginPage() {
             if (user) {
                 const clientDoc = await getDoc(doc(db, clientesPath, user.uid));
                 if (clientDoc.exists()) {
-                    router.push('/loja');
+                    router.push(nextUrl);
                 }
             }
             setLoading(false);
@@ -54,11 +57,11 @@ export default function LojaLoginPage() {
                     created_at: new Date().toISOString(),
                 });
                 toast.success('Conta criada com sucesso!');
-                router.push('/loja');
+                router.push(nextUrl);
             } else {
                 await signInWithEmailAndPassword(auth, email.trim(), password);
                 toast.success('Login realizado!');
-                router.push('/loja');
+                router.push(nextUrl);
             }
         } catch (error: any) {
             let message = 'Erro na autenticação.';
