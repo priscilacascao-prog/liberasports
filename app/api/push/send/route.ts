@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/firebase';
-import { collection, getDocs, deleteDoc, doc } from 'firebase/firestore';
+import { collection, getDocs } from 'firebase/firestore';
 import webpush from 'web-push';
 
 const appId = 'libera-sports-v1';
@@ -49,12 +49,11 @@ export async function POST(request: NextRequest) {
                     sent++;
                 } catch (err: any) {
                     failed++;
-                    // 404 ou 410 = subscription expirada/inválida → remover do banco
-                    if (err?.statusCode === 404 || err?.statusCode === 410) {
-                        try { await deleteDoc(doc(db, subsPath, d.id)); } catch {}
-                    } else {
-                        console.error('Erro ao enviar push:', err?.statusCode, err?.body || err?.message);
-                    }
+                    // 404/410 = subscription expirada. Não removo daqui pra não ter
+                    // problema com as Security Rules (servidor não tem auth do Firebase).
+                    // A limpeza acontece na hora que o usuário reativa pelo browser
+                    // (enablePush remove duplicatas do mesmo endpoint).
+                    console.error('Erro ao enviar push:', err?.statusCode, err?.body || err?.message);
                 }
             })
         );

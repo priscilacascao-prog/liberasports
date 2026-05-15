@@ -1,4 +1,9 @@
 // Helpers de Web Push usados no dashboard
+import { db } from '@/lib/firebase';
+import { collection, addDoc, deleteDoc, doc, getDocs, query, where } from 'firebase/firestore';
+
+const appId = 'libera-sports-v1';
+const subsPath = `artifacts/${appId}/public/data/push_subscriptions`;
 
 function urlBase64ToUint8Array(base64String: string): Uint8Array {
     const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
@@ -65,24 +70,26 @@ export async function enablePush(opts: { userId: string; userEmail: string }): P
         }
     }
 
+    // Salva direto do navegador (com auth do Firebase) — a rota /api/push/subscribe
+    // não funcionaria porque server-side não tem sessão do usuário
     try {
-        const res = await fetch('/api/push/subscribe', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                subscription: subscription.toJSON(),
-                user_id: opts.userId,
-                user_email: opts.userEmail,
-                user_agent: navigator.userAgent,
-            }),
-        });
-        if (!res.ok) {
-            const err = await res.json().catch(() => ({}));
-            return { ok: false, reason: err?.error || 'Erro ao salvar inscrição' };
+        const subJson: any = subscription.toJSON();
+        // Remove inscrições anteriores do mesmo endpoint (re-registro)
+        const existing = await getDocs(query(collection(db, subsPath), where('endpoint', '==', subJson.endpoint)));
+        for (const d of existing.docs) {
+            await deleteDoc(doc(db, subsPath, d.id));
         }
+        await addDoc(collection(db, subsPath), {
+            endpoint: subJson.endpoint,
+            keys: subJson.keys || {},
+            user_id: opts.userId,
+            user_email: opts.userEmail,
+            user_agent: navigator.userAgent,
+            created_at: new Date().toISOString(),
+        });
         return { ok: true };
     } catch (err: any) {
-        return { ok: false, reason: err?.message || 'Erro ao conectar' };
+        return { ok: false, reason: err?.message || 'Erro ao salvar inscrição no banco' };
     }
 }
 
@@ -91,11 +98,11 @@ export async function disablePush(): Promise<{ ok: boolean; reason?: string }> {
     const subscription = await getCurrentSubscription();
     if (!subscription) return { ok: true };
     try {
-        await fetch('/api/push/unsubscribe', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ endpoint: subscription.endpoint }),
-        });
+        // Remove do Firestore direto pelo navegador
+        const snap = await getDocs(query(collection(db, subsPath), where('endpoint', '==', subscription.endpoint)));
+        for (const d of snap.docs) {
+            await deleteDoc(doc(db, subsPath, d.id));
+        }
         await subscription.unsubscribe();
         return { ok: true };
     } catch (err: any) {
