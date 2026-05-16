@@ -148,15 +148,17 @@ export default function LojaPage() {
     }, [cart]);
 
     useEffect(() => {
+        // Busca produtos via endpoint server-side em vez de SDK do Firebase.
+        // Isso faz a loja funcionar no Instagram/TikTok WebView, onde o SDK
+        // do Firebase falha por restrições do navegador interno.
         const fetchProducts = async () => {
             try {
-                const snap = await getDocs(collection(db, productsPath));
-                const data = snap.docs
-                    .map(d => ({ id: d.id, ...d.data() } as any))
-                    .filter((p: any) => p.show_in_store && p.stock > 0 && p.sale_price > 0);
-                setProducts(data);
+                const res = await fetch('/api/loja/produtos', { cache: 'no-store' });
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const data = await res.json();
+                setProducts(Array.isArray(data.products) ? data.products : []);
             } catch (err: any) {
-                console.error('[loja] Erro ao buscar produtos:', err?.code, err?.message);
+                console.error('[loja] Erro ao buscar produtos:', err?.message);
             }
         };
         fetchProducts();
