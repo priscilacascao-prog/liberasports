@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { auth, db } from '@/lib/firebase';
-import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { onAuthStateChanged, signOut, signInAnonymously } from 'firebase/auth';
 import { collection, query, getDocs, addDoc, doc, getDoc, updateDoc, onSnapshot } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
@@ -103,22 +103,31 @@ export default function LojaPage() {
     const [selectedImageIdx, setSelectedImageIdx] = useState(0);
     const [selectedSize, setSelectedSize] = useState('');
     const [selectedQty, setSelectedQty] = useState(1);
+    // Campos de cliente convidado (quando não tem clientData salvo)
+    const [guestName, setGuestName] = useState('');
+    const [guestEmail, setGuestEmail] = useState('');
+    const [guestWhatsapp, setGuestWhatsapp] = useState('');
+    const [guestCpfCnpj, setGuestCpfCnpj] = useState('');
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (u) => {
-            // Cliente pode navegar livremente, esteja logado ou não.
-            // Login só vai ser exigido no checkout.
             if (u) {
                 setUser(u);
-                try {
-                    const clientDoc = await getDoc(doc(db, clientesPath, u.uid));
-                    if (clientDoc.exists()) {
-                        setClientData(clientDoc.data());
-                    }
-                    // Se logado mas sem doc de cliente (ex: vendedora), continua
-                    // navegando como visitante — vai ser pedido pra completar o
-                    // cadastro só se tentar finalizar uma compra.
-                } catch (e) { console.error('Erro ao buscar cliente:', e); }
+                // Se NÃO é anônimo, busca dados de cliente cadastrado
+                if (!u.isAnonymous) {
+                    try {
+                        const clientDoc = await getDoc(doc(db, clientesPath, u.uid));
+                        if (clientDoc.exists()) {
+                            setClientData(clientDoc.data());
+                        }
+                    } catch (e) { console.error('Erro ao buscar cliente:', e); }
+                }
+            } else {
+                // Faz login anônimo automaticamente — cliente nem percebe.
+                // Isso dá um uid pro Firebase Auth, que satisfaz as
+                // Security Rules (allow write: if request.auth != null)
+                // sem forçar o cliente a criar conta antes de comprar.
+                try { await signInAnonymously(auth); } catch (e) { console.error('Erro no anon auth:', e); }
             }
             setLoading(false);
         });
@@ -134,6 +143,17 @@ export default function LojaPage() {
             try {
                 const parsed = JSON.parse(saved);
                 if (Array.isArray(parsed) && parsed.length > 0) setCart(parsed);
+            } catch {}
+        }
+        // Restaura também os dados do convidado da última compra (auto-fill)
+        const guest = localStorage.getItem('libera_guest_info');
+        if (guest) {
+            try {
+                const g = JSON.parse(guest);
+                if (g.name) setGuestName(g.name);
+                if (g.email) setGuestEmail(g.email);
+                if (g.whatsapp) setGuestWhatsapp(g.whatsapp);
+                if (g.cpf_cnpj) setGuestCpfCnpj(g.cpf_cnpj);
             } catch {}
         }
     }, []);
@@ -286,7 +306,20 @@ export default function LojaPage() {
     };
 
     const handleCheckout = async () => {
-        if (!user || !clientData || cart.length === 0) return;
+        if (!user || cart.length === 0) return;
+
+        // Determina os dados efetivos do cliente:
+        // - Se logado (clientData existe): usa o cadastro
+        // - Se convidado (anônimo): usa os campos do form
+        const effectiveName = (clientData?.name || guestName).trim();
+        const effectiveEmail = (clientData?.email || guestEmail || user.email || '').trim();
+        const effectiveWhatsapp = (clientData?.whatsapp || guestWhatsapp).trim();
+        const effectiveCpfCnpj = clientData?.cpf_cnpj || guestCpfCnpj.replace(/\D/g, '');
+
+        // Validações dos dados do cliente (modo convidado)
+        if (!effectiveName) { toast.error('Informe seu nome'); return; }
+        if (!effectiveWhatsapp) { toast.error('Informe seu WhatsApp'); return; }
+
         const cepDigits = deliveryCep.replace(/\D/g, '');
         if (deliveryMethod !== 'RETIRADA') {
             if (cepDigits.length !== 8) { toast.error('Informe um CEP válido'); return; }
@@ -310,9 +343,10 @@ export default function LojaPage() {
                 items: cart.map(i => ({ id: i.id, name: i.name, quantity: i.quantity, sale_price: i.sale_price, stock: i.stock })),
                 total: saleTotal, value: saleTotal,
                 ...(toucaDiscount > 0 ? { touca_discount: toucaDiscount, touca_wholesale_unit: toucaWholesaleUnit, touca_qty: toucaTotalQty } : {}),
-                client: clientData.name, client_whatsapp: clientData.whatsapp || '',
-                cpf_cnpj: clientData.cpf_cnpj || '', client_email: clientData.email || user.email,
-                client_uid: user.uid, delivery_method: deliveryMethod, delivery_cep: cepDigits,
+                client: effectiveName.toUpperCase(), client_whatsapp: effectiveWhatsapp,
+                cpf_cnpj: effectiveCpfCnpj, client_email: effectiveEmail,
+                client_uid: user.uid, is_guest: !clientData,
+                delivery_method: deliveryMethod, delivery_cep: cepDigits,
                 delivery_address: `${deliveryAddress.trim()}, Nº ${deliveryNumero.trim()}, Qd ${deliveryQuadra.trim()}, Lt ${deliveryLote.trim()} - ${deliveryCidade.trim()}/${deliveryEstado.trim()}${deliveryComplemento.trim() ? ' - ' + deliveryComplemento.trim() : ''}`,
                 delivery_numero: deliveryNumero.trim(), delivery_quadra: deliveryQuadra.trim(), delivery_lote: deliveryLote.trim(), delivery_cidade: deliveryCidade.trim(), delivery_estado: deliveryEstado.trim(), delivery_complemento: deliveryComplemento.trim(),
                 payment_method: pixSplit && paymentMethod === 'PIX' ? 'PIX 50/50' : paymentMethod,
@@ -321,8 +355,8 @@ export default function LojaPage() {
                 description: observations || cart.map(i => `${i.quantity}x ${i.name}`).join(', '),
                 deadline: addBusinessDays(new Date(), 20),
                 has_production: true, status: 'AGUARDANDO APROVAÇÃO', source: 'LOJA',
-                created_at: new Date().toISOString(), user_id: user.uid, operator_name: clientData.name,
-                order_logs: [{ id: crypto.randomUUID(), old_status: 'INÍCIO', new_status: 'AGUARDANDO APROVAÇÃO', operator_name: clientData.name, created_at: new Date().toISOString() }]
+                created_at: new Date().toISOString(), user_id: user.uid, operator_name: effectiveName.toUpperCase(),
+                order_logs: [{ id: crypto.randomUUID(), old_status: 'INÍCIO', new_status: 'AGUARDANDO APROVAÇÃO', operator_name: effectiveName.toUpperCase(), created_at: new Date().toISOString() }]
             };
 
             const docRef = await addDoc(collection(db, salesPath), saleData);
@@ -332,7 +366,7 @@ export default function LojaPage() {
                 const deadlineDate = addBusinessDays(new Date(), 20);
                 await addDoc(collection(db, financePath), {
                     type: 'INFLOW', amount: halfValue,
-                    description: `[${orderNumber}] Pedido Loja - ${clientData.name} (PIX 1/2 - No Pedido)`,
+                    description: `[${orderNumber}] Pedido Loja - ${effectiveName.toUpperCase()} (PIX 1/2 - No Pedido)`,
                     payment_method: 'PIX 50/50',
                     status: 'RECEBIDO', created_at: new Date().toISOString(),
                     transaction_date: new Date().toISOString(), due_date: new Date().toISOString(),
@@ -340,7 +374,7 @@ export default function LojaPage() {
                 });
                 await addDoc(collection(db, financePath), {
                     type: 'INFLOW', amount: cartTotal - halfValue,
-                    description: `[${orderNumber}] Pedido Loja - ${clientData.name} (PIX 2/2 - Na Entrega)`,
+                    description: `[${orderNumber}] Pedido Loja - ${effectiveName.toUpperCase()} (PIX 2/2 - Na Entrega)`,
                     payment_method: 'PIX 50/50',
                     status: 'A RECEBER', created_at: new Date().toISOString(),
                     transaction_date: new Date().toISOString(), due_date: deadlineDate + 'T12:00:00',
@@ -358,8 +392,8 @@ export default function LojaPage() {
                     await addDoc(collection(db, financePath), {
                         type: 'INFLOW', amount: Math.round(installmentValue * 100) / 100,
                         description: storeInstallments > 1
-                            ? `[${orderNumber}] Pedido Loja - ${clientData.name} (Parcela ${i}/${storeInstallments})`
-                            : `[${orderNumber}] Pedido Loja - ${clientData.name}`,
+                            ? `[${orderNumber}] Pedido Loja - ${effectiveName.toUpperCase()} (Parcela ${i}/${storeInstallments})`
+                            : `[${orderNumber}] Pedido Loja - ${effectiveName.toUpperCase()}`,
                         payment_method: 'CARTÃO CRÉDITO',
                         status: 'A RECEBER', created_at: new Date().toISOString(),
                         transaction_date: now.toISOString(), due_date: dueDate.toISOString(),
@@ -370,7 +404,7 @@ export default function LojaPage() {
                 // PIX normal e outros: recebido na hora
                 await addDoc(collection(db, financePath), {
                     type: 'INFLOW', amount: cartTotal,
-                    description: `[${orderNumber}] Pedido Loja - ${clientData.name}`,
+                    description: `[${orderNumber}] Pedido Loja - ${effectiveName.toUpperCase()}`,
                     payment_method: paymentMethod,
                     status: 'RECEBIDO', created_at: new Date().toISOString(),
                     transaction_date: new Date().toISOString(), due_date: new Date().toISOString(),
@@ -391,15 +425,15 @@ export default function LojaPage() {
                 const fornSnap = await getDocs(collection(db, fornecedoresPath));
                 const exists = fornSnap.docs.some(d => {
                     const data = d.data();
-                    return data.name === clientData.name.toUpperCase() || (clientData.cpf_cnpj && data.cpf_cnpj === clientData.cpf_cnpj);
+                    return data.name === effectiveName.toUpperCase() || (effectiveCpfCnpj && data.cpf_cnpj === effectiveCpfCnpj);
                 });
                 if (!exists) {
                     await addDoc(collection(db, fornecedoresPath), {
-                        name: clientData.name.toUpperCase(),
+                        name: effectiveName.toUpperCase(),
                         type: 'CLIENTE',
-                        cpf_cnpj: clientData.cpf_cnpj || '',
-                        whatsapp: clientData.whatsapp || '',
-                        email: clientData.email || user.email || '',
+                        cpf_cnpj: effectiveCpfCnpj,
+                        whatsapp: effectiveWhatsapp,
+                        email: effectiveEmail,
                         created_at: new Date().toISOString(),
                         user_id: user.uid,
                         source: 'LOJA',
@@ -412,7 +446,7 @@ export default function LojaPage() {
                 const itemsSummary = cart.length > 0
                     ? cart.map(i => `${i.quantity}x ${i.name}`).join(' • ')
                     : observations || '';
-                const notifMessage = `${orderNumber} • ${clientData.name} • R$ ${cartTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+                const notifMessage = `${orderNumber} • ${effectiveName.toUpperCase()} • R$ ${cartTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
                 await addDoc(collection(db, notificacoesPath), {
                     type: 'NOVA_VENDA_LOJA',
                     title: 'Nova venda na loja',
@@ -420,8 +454,8 @@ export default function LojaPage() {
                     items_summary: itemsSummary,
                     sale_id: docRef.id,
                     sale_number: orderNumber,
-                    client_name: clientData.name,
-                    client_whatsapp: clientData.whatsapp || '',
+                    client_name: effectiveName.toUpperCase(),
+                    client_whatsapp: effectiveWhatsapp,
                     value: cartTotal,
                     payment_method: pixSplit && paymentMethod === 'PIX' ? 'PIX 50/50' : paymentMethod,
                     source: 'LOJA',
@@ -445,6 +479,16 @@ export default function LojaPage() {
 
             toast.success('Pedido realizado com sucesso!');
             setCart([]); setShowCart(false); setShowCheckout(false); setObservations(''); setPixSplit(false);
+            // Salva os dados do convidado no localStorage pra autocompletar
+            // se ele voltar a comprar (sem precisar criar conta)
+            try {
+                localStorage.setItem('libera_guest_info', JSON.stringify({
+                    name: effectiveName,
+                    email: effectiveEmail,
+                    whatsapp: effectiveWhatsapp,
+                    cpf_cnpj: effectiveCpfCnpj,
+                }));
+            } catch {}
             router.push('/loja/meus-pedidos');
         } catch (err) { console.error(err); toast.error('Erro ao realizar pedido'); }
         finally { setCheckoutLoading(false); }
@@ -733,11 +777,51 @@ export default function LojaPage() {
                                                 <p className="text-xs font-bold text-green-700">Produtos de pronta entrega podem ser retirados no mesmo dia se o pedido for realizado antes das 17h.</p>
                                             </div>
                                         )}
-                                        <div className="bg-gray-50 rounded-xl p-3">
-                                            <p className="text-xs text-gray-400 uppercase font-bold">Cliente</p>
-                                            <p className="text-sm font-bold text-black">{clientData?.name}</p>
-                                            <p className="text-xs text-gray-500">{clientData?.whatsapp} • {clientData?.email || user?.email}</p>
-                                        </div>
+                                        {clientData ? (
+                                            <div className="bg-gray-50 rounded-xl p-3">
+                                                <p className="text-xs text-gray-400 uppercase font-bold">Cliente</p>
+                                                <p className="text-sm font-bold text-black">{clientData.name}</p>
+                                                <p className="text-xs text-gray-500">{clientData.whatsapp} • {clientData.email || user?.email}</p>
+                                            </div>
+                                        ) : (
+                                            <div className="bg-gray-50 rounded-xl p-3 space-y-2">
+                                                <p className="text-xs text-gray-400 uppercase font-bold">Seus dados</p>
+                                                <div>
+                                                    <label className="block text-[10px] font-bold uppercase text-gray-500 mb-1">Nome completo <span className="text-red-500">*</span></label>
+                                                    <input type="text" value={guestName} onChange={e => setGuestName(e.target.value)}
+                                                        placeholder="Seu nome"
+                                                        className="w-full border border-gray-200 rounded-lg p-2 text-sm text-black outline-none focus:border-black" />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[10px] font-bold uppercase text-gray-500 mb-1">WhatsApp <span className="text-red-500">*</span></label>
+                                                    <input type="tel" value={guestWhatsapp} onChange={e => {
+                                                        const v = e.target.value.replace(/\D/g, '').slice(0, 11);
+                                                        const f = v.length > 10
+                                                            ? v.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3')
+                                                            : v.length > 6
+                                                                ? v.replace(/(\d{2})(\d{4,5})(\d{0,4})/, '($1) $2-$3')
+                                                                : v;
+                                                        setGuestWhatsapp(f);
+                                                    }} placeholder="(62) 99999-9999"
+                                                        className="w-full border border-gray-200 rounded-lg p-2 text-sm text-black outline-none focus:border-black" />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[10px] font-bold uppercase text-gray-500 mb-1">E-mail <span className="text-gray-400">(opcional)</span></label>
+                                                    <input type="email" value={guestEmail} onChange={e => setGuestEmail(e.target.value)}
+                                                        placeholder="seu@email.com"
+                                                        className="w-full border border-gray-200 rounded-lg p-2 text-sm text-black outline-none focus:border-black" />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[10px] font-bold uppercase text-gray-500 mb-1">CPF/CNPJ <span className="text-gray-400">(opcional)</span></label>
+                                                    <input type="text" value={guestCpfCnpj} onChange={e => setGuestCpfCnpj(e.target.value)}
+                                                        placeholder="000.000.000-00"
+                                                        className="w-full border border-gray-200 rounded-lg p-2 text-sm text-black outline-none focus:border-black" />
+                                                </div>
+                                                <p className="text-[10px] text-gray-400 text-center pt-1">
+                                                    💡 Sem necessidade de criar conta — comprar é rápido!
+                                                </p>
+                                            </div>
+                                        )}
                                         <div>
                                             <label className="block text-xs font-bold uppercase text-black mb-1">Entrega</label>
                                             <select value={deliveryMethod} onChange={e => setDeliveryMethod(e.target.value)}
@@ -898,24 +982,10 @@ export default function LojaPage() {
                                                 <span className="text-xl font-black text-black">R$ {cartTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                                             </div>
                                         </div>
-                                        {!user || !clientData ? (
-                                            <button
-                                                onClick={() => router.push('/loja/login?next=' + encodeURIComponent('/loja'))}
-                                                className="w-full bg-black text-white py-3 rounded-xl font-bold uppercase text-sm hover:bg-gray-900"
-                                            >
-                                                Entrar para finalizar
-                                            </button>
-                                        ) : (
-                                            <button onClick={handleCheckout} disabled={checkoutLoading}
-                                                className="w-full bg-black text-white py-3 rounded-xl font-bold uppercase text-sm hover:bg-gray-900 disabled:opacity-50">
-                                                {checkoutLoading ? 'Processando...' : 'Confirmar Pedido'}
-                                            </button>
-                                        )}
-                                        {(!user || !clientData) && (
-                                            <p className="text-xs text-gray-500 text-center mt-1">
-                                                Seu carrinho fica salvo enquanto você cadastra
-                                            </p>
-                                        )}
+                                        <button onClick={handleCheckout} disabled={checkoutLoading || !user}
+                                            className="w-full bg-black text-white py-3 rounded-xl font-bold uppercase text-sm hover:bg-gray-900 disabled:opacity-50">
+                                            {checkoutLoading ? 'Processando...' : 'Confirmar Pedido'}
+                                        </button>
                                         <button onClick={() => setShowCheckout(false)} className="w-full py-2 text-sm font-bold text-gray-400 hover:text-black">Voltar</button>
                                     </div>
                                 )}

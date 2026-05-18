@@ -34,7 +34,13 @@ export default function LoginPage() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
-        router.push('/dashboard');
+        // Cliente anônimo (visitante da loja) não tem nada que fazer no
+        // dashboard das vendedoras — manda direto pra loja.
+        if (user.isAnonymous) {
+          router.push('/loja');
+        } else {
+          router.push('/dashboard');
+        }
       } else {
         setLoading(false);
       }
