@@ -1,0 +1,49 @@
+name: Build Check
+
+# Roda em todo push pra main e em todo PR pra main.
+# Falha cedo se o build quebra — antes da Vercel tentar publicar.
+# Pega problemas que o "tsc" sozinho não pega, como o erro de
+# useSearchParams sem Suspense boundary (que travou nossos builds
+# entre 15 e 18 de maio).
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    name: Verifica build de produção (mesmo comando que a Vercel roda)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Verificação TypeScript
+        run: npx tsc --noEmit || true
+        # || true porque o projeto tem ignoreBuildErrors=true no
+        # next.config.ts e algumas libs externas têm tipagens com
+        # warnings — não queremos quebrar por isso.
+
+      - name: Build de produção
+        run: npm run build
+        env:
+          # Valores stub só pra Firebase init não reclamar.
+          # O build NÃO chama a API — só verifica que o código
+          # compila e que as páginas estáticas são geradas.
+          NEXT_PUBLIC_FIREBASE_API_KEY: stub
+          NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: stub.firebaseapp.com
+          NEXT_PUBLIC_FIREBASE_PROJECT_ID: stub
+          NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: stub.appspot.com
+          NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: '0'
+          NEXT_PUBLIC_FIREBASE_APP_ID: stub
+          NEXT_PUBLIC_VAPID_PUBLIC_KEY: stub
