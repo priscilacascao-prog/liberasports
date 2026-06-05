@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { auth, db } from '@/lib/firebase';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, sendPasswordResetEmail } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
@@ -12,7 +12,7 @@ import Image from 'next/image';
 const appId = 'libera-sports-v1';
 const clientesPath = `artifacts/${appId}/public/data/clientes`;
 
-export default function LojaLoginPage() {
+function LojaLoginPageInner() {
     const router = useRouter();
     const searchParams = useSearchParams();
     // Para onde voltar após login bem-sucedido (padrão: /loja)
@@ -154,5 +154,13 @@ export default function LojaLoginPage() {
                 </p>
             </div>
         </div>
+    );
+}
+
+export default function LojaLoginPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen bg-white flex items-center justify-center"><Loader2 className="animate-spin text-black" size={40} /></div>}>
+            <LojaLoginPageInner />
+        </Suspense>
     );
 }
