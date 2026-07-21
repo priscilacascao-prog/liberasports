@@ -3210,12 +3210,16 @@ export default function DashboardPage() {
             {/* Tab Navigation (visible when NOT on HOME) */}
             {activeTab !== 'HOME' && (
                 <div className="max-w-5xl mx-auto px-4 md:px-6 mt-4 md:mt-6">
-                    <div className={`flex gap-1.5 p-1.5 rounded-2xl border overflow-x-auto mask-fade ${t.card}`}>
+                    {/* Mobile: grade 4x2 mostrando todos os módulos de uma vez.
+                        Desktop: linha horizontal com labels. */}
+                    <div className={`grid grid-cols-4 md:flex gap-1.5 p-1.5 rounded-2xl border ${t.card}`}>
                         <button
                             onClick={() => setActiveTab('HOME')}
-                            className={`flex items-center justify-center px-5 py-4 rounded-xl font-black uppercase text-sm tracking-widest transition-all shrink-0 ${t.text} ${isDark ? 'hover:bg-zinc-900' : 'hover:bg-gray-100'}`}
+                            className={`flex flex-col md:flex-row items-center justify-center gap-1 md:gap-0 py-2.5 md:py-4 md:px-5 rounded-xl font-black uppercase transition-all md:shrink-0 ${t.text} ${isDark ? 'hover:bg-zinc-900' : 'hover:bg-gray-100'}`}
+                            title="Início"
                         >
                             <Home size={20} />
+                            <span className="text-[9px] md:hidden tracking-wider">Início</span>
                         </button>
                         {[
                             { id: 'ORÇAMENTOS', icon: FileText, label: 'Orçamentos' },
@@ -3235,7 +3239,7 @@ export default function DashboardPage() {
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id as any)}
                                     className={`
-                                        flex-1 flex items-center justify-center gap-2 px-5 py-4 rounded-xl font-black uppercase text-sm tracking-wider transition-all shrink-0
+                                        flex flex-col md:flex-row md:flex-1 items-center justify-center gap-1 md:gap-2 py-2.5 md:py-4 md:px-5 rounded-xl font-black uppercase transition-all
                                         ${isActive
                                             ? `${t.accentBg} ${t.accentText} shadow-lg`
                                             : `${t.text} ${isDark ? 'hover:bg-zinc-900' : 'hover:bg-gray-100'}`
@@ -3243,7 +3247,7 @@ export default function DashboardPage() {
                                     `}
                                 >
                                     <Icon size={18} />
-                                    {tab.label}
+                                    <span className="text-[9px] md:text-sm tracking-wider leading-none">{tab.label}</span>
                                 </button>
                             );
                         })}
